@@ -61,7 +61,6 @@ def get_cik_from_ticker(ticker):
     except Exception as e:
         logger.error(f"Error in direct CIK lookup for {ticker}: {str(e)}")
     
-    # If direct lookup fails, try the hardcoded CIK values for common tickers
     common_ciks = {
         'AAPL': '0000320193',
         'MSFT': '0000789019',

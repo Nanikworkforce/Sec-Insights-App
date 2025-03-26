@@ -1,19 +1,19 @@
-
-import type React from "react"
-
-import { useState } from "react"
+import React, { useState } from "react"
 import { SearchIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-export function Search() {
+interface SearchProps {
+  onSearch: (query: string) => void;
+}
+
+export function Search({ onSearch }: SearchProps) {
   const [query, setQuery] = useState("")
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle search query
-    console.log("Searching for:", query)
+    onSearch(query)
   }
 
   return (

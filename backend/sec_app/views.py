@@ -144,17 +144,28 @@ class ChartDataAPIView(APIView):
         revenue_metrics = FinancialMetric.objects.filter(company=company, metric_name="Revenue")
         profit_metrics = FinancialMetric.objects.filter(company=company, metric_name="Profit")
         
+        logger.info(f"Revenue metrics for {ticker}: {list(revenue_metrics)}")
+        logger.info(f"Profit metrics for {ticker}: {list(profit_metrics)}")
+        
         data = []
-        for rev in revenue_metrics:
-            period_name = rev.period.name  # e.g., "Q1 2024"
-            profit_value = profit_metrics.filter(period=rev.period).first()
+        # Use profit metrics as the base since revenue metrics are missing
+        for profit in profit_metrics:
+            try:
+                period_name = profit.period.period
+                revenue_value = revenue_metrics.filter(period=profit.period).first()
 
-            data.append({
-                "period": period_name,
-                "revenue": rev.value,
-                "profit": profit_value.value if profit_value else 0,
-            })
+                logger.info(f"Processing period: {period_name}, Revenue: {revenue_value}, Profit: {profit.value}")
 
+                data.append({
+                    "period": period_name,
+                    "revenue": revenue_value.value if revenue_value else 0,  # Default to 0 if missing
+                    "profit": profit.value,
+                })
+            except Exception as e:
+                logger.error(f"Error processing metrics for period {profit.period}: {str(e)}")
+                return Response({"error": "Error processing financial metrics."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        logger.info(f"Data returned for {ticker}: {data}")
         return Response({"ticker": ticker, "metrics": data}, status=status.HTTP_200_OK)
 
 class InsightsAPIView(APIView):
@@ -220,3 +231,34 @@ class IndustryComparisonAPIView(APIView):
             })
         
         return Response({"ticker": ticker, "industry": company.industry, "comparisons": comparisons}, status=status.HTTP_200_OK)
+
+class FinancialMetricsAPIView(APIView):
+    def get(self, request):
+        ticker = request.GET.get("company__ticker")
+        if not ticker:
+            return Response({"error": "Ticker is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        metrics = FinancialMetric.objects.filter(company__ticker=ticker)
+        
+        logger.info(f"Metrics for {ticker}: {list(metrics)}")
+        
+        if not metrics.exists():
+            return Response({"error": "No financial data available for this ticker."}, status=status.HTTP_404_NOT_FOUND)
+        
+        data = [
+            {
+                "id": metric.id,
+                "company": metric.company.id,
+                "period": metric.period.id,
+                "metric_name": metric.metric_name,
+                "value": metric.value,
+                "unit": metric.unit,
+                "xbrl_tag": metric.xbrl_tag,
+                "company_name": metric.company.name,
+                "company_ticker": metric.company.ticker,
+            }
+            for metric in metrics
+        ]
+        
+        logger.info(f"Data returned for {ticker}: {data}")
+        return Response(data, status=status.HTTP_200_OK)

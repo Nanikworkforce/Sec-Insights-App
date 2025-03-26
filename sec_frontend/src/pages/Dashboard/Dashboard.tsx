@@ -7,9 +7,15 @@ import { Overview } from "@/components/overview"
 // import { RecentQueries } from "@/components/RecentQueries"
 import { Search } from "@/components/search"
 import { RecentQueries } from "@/components/recent-queries"
-
+import React, { useState } from "react"
 
 export default function DashboardPage() {
+  const [ticker, setTicker] = useState("AAPL")
+
+  const handleSearch = (query: string) => {
+    setTicker(query)
+  }
+
   return (
     <>
       <DashboardShell>
@@ -17,7 +23,7 @@ export default function DashboardPage() {
           heading="Financial Analytics Dashboard"
           text="Query financial data, create charts, and discover insights."
         >
-          <Search />
+          <Search onSearch={handleSearch} />
         </DashboardHeader>
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
@@ -123,7 +129,7 @@ export default function DashboardPage() {
                   <CardTitle>Revenue Overview</CardTitle>
                 </CardHeader>
                 <CardContent className="pl-2">
-                  <Overview />
+                  <Overview ticker={ticker} />
                 </CardContent>
               </Card>
               <Card className="col-span-3">
@@ -268,7 +274,7 @@ export default function DashboardPage() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             className="h-4 w-4 text-primary"
-                          >
+                          > 
                             <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
                             <polyline points="14 2 14 8 20 8" />
                             <path d="M16 13H8" />
