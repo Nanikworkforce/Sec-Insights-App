@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!doctype html public "-//w3c//dtd xhtml 1.0 strict//en" "http://www.w3.org/tr/xhtml1/dtd/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta http-equiv="content-security-policy" content="upgrade-insecure-requests" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+    <title>xbrl viewer</title>
+    <script language="javascript">
+    /* <![cdata[ */
+        /* created by staff of the u.s. securities and exchange commission.
+        *  data and content created by government employees within the scope of their employment
+        *  are not subject to domestic copyright protection. 17 u.s.c. 105.
+        *
+        *  this script checks the accession number of the document requested to determine
+        *  the year and sequence of filing.  if filed after the availability of ixviewer-plus
+        *  this script redirects to that viewer, otherwise to a prior ixviewer in effect
+        *  or deemed compatible with the filing.
+        */
+
+        function loadviewer(ixvurl) {
+            // load viewer in an iframe so the end user's browser url is not changed
+            var iframe = document.getelementbyid("ixvframe");
+            iframe.src = ixvurl;
+        }
+
+        const url = location.href;
+        // url doc pattern is /archives/edgar/data/ciknum/{10digits}{yy}{sequence}/{more params}
+        // uncomment one of the following urlpatterns depending on usage:
+        // for sec.gov: const urlpattern = /(\?doc=(\/archives\/edgar\/data\/[0-9]+\/[0-9]{10}([0-9]{8})\/).*$)/;
+        // for arelle gui: const urlpattern = /(\?doc=(\/[0-9]+\/).*$)/;
+        const urlpattern = /(\?doc=(\/archives\/edgar\/data\/[0-9]+\/[0-9]{10}([0-9]{8})\/).*$)/;
+        const ixvplusnspattern = /http:\/\/xbrl.sec.gov\/(ffd|sbs)\/.*$/;
+        var ixvurl = null;
+        
+        if (! urlpattern.test(url)) {
+            alert("not an edgar inline xbrl document viewing request, please check url");
+            // this hangs: loadviewer("/ixviewer/ix.html" + ixparams);
+        } else {
+            const match = url.match(urlpattern);
+            const ixparams = match[1];
+            const docpath = match[2];
+            const acsnyrseq = match[3];
+            const acsnyr = number(match[3].substring(0, 2));
+            let xhr = new xmlhttprequest();
+            xhr.onreadystatechange = function() {
+                if (this.readystate == 4) {
+                    if (this.status == 200) {
+                        const ml = json.parse(this.responsetext);
+                        if (!(typeof ml === 'object' && "instance" in ml)) {
+                            console.log("metalinks does not have instance objects");
+                            // unable to read metalinks.json, use 23.2 ixviewer
+                            loadviewer("/ixviewer/ix.html" + ixparams);
+                        } else {
+                            const numinstances = object.keys(ml["instance"]).length;
+                            let maxdocsperinst = 0;
+                            let hasixvplusexhibit = false;
+                            object.keys(ml["instance"]).foreach(instancenames => {
+                                let docsininstance = instancenames.split(" ").length;
+                                if (docsininstance > maxdocsperinst)
+                                    maxdocsperinst = docsininstance;
+                                if ("basetaxonomies" in ml["instance"][instancenames]) {
+                                    object.keys(ml["instance"][instancenames]["basetaxonomies"]).foreach(basetaxonomyurl => {
+                                        if (ixvplusnspattern.test(basetaxonomyurl))
+                                            hasixvplusexhibit = true;
+                                    });
+                                }
+                            });
+
+                            if (
+                                (numinstances > 1 || maxdocsperinst > 1 || hasixvplusexhibit || url.includes("&redline=true")) 
+                                || acsnyr >= 25
+                            )
+                                loadviewer("/ixviewer-plus/ix.xhtml" + ixparams);
+                            else
+                                loadviewer("/ixviewer/ix.html" + ixparams);
+                        }
+                    } else {
+                        console.log("unable to read metalinks.json for this accession");
+                        // unable to read metalinks.json, use 23.2 ixviewer
+                        loadviewer("/ixviewer/ix.html" + ixparams);
+                    }
+                }
+            };
+            xhr.ontimeout = function() {
+                console.log("timeout reading metalinks.json for this accession");
+                // unable to read metalinks.json, use 23.2 ixviewer
+                loadviewer("/ixviewer/ix.html" + ixparams);
+            };
+            xhr.open("get", docpath + 'metalinks.json', true);
+            xhr.timeout = 2000; // milliseconds
+            xhr.send();
+
+            /* arelle gui usage: set title for tab in browser for when there are multiple tabs */
+            const urltitleparampattern = /&title=([^&]+),*$/;
+            if (urltitleparampattern.test(url)) {
+                const match = url.match(urltitleparampattern);
+                document.title = decodeuricomponent(match[1]);
+            }
+
+            /* alternative select viewer using accession number
+
+            const acsnyrseq = match[3];
+            if (acsnyrseq > "24905000") {
+                loadviewer(docpath + "ixbrlviewer.xhtml");
+            } else if (acsnyrseq > "23905000") {
+                loadviewer("/ixviewer-plus/ix.xhtml" + ixparams);
+            } else {
+                loadviewer("/ixviewer/ix.html" + ixparams);
+            }
+
+            */
+        }
+    /* ]]> */
+    </script>
+</head>
+
+<body style="margin: 0">
+    <noscript>
+        please enable javascript to use the edgar inline xbrl viewer.
+    </noscript>
+    <iframe id="ixvframe"
+        title="inline xbrl viewer"
+        style="position: absolute; height: 100%; width: 100%; border: none"
+    />
+</body>
+</html>
