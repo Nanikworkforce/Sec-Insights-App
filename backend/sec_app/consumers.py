@@ -10,7 +10,6 @@ class RevenueConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         await self.accept()
         await self.send_revenue_data()
-
     async def send_revenue_data(self):
         revenue_data = await sync_to_async(list)(
             FinancialMetric.objects.filter(

@@ -9,7 +9,7 @@ import os
 logger = logging.getLogger(__name__)
 
 # SEC API endpoints
-BASE_URL = "https://data.sec.gov/api"
+BASE_URL = "https://data.sec.gov/api" 
 SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK"
 COMPANY_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
 
@@ -20,7 +20,6 @@ HEADERS = {
     'Host': 'data.sec.gov'
 }
 
-# Cache for CIK lookups to reduce API calls
 CIK_CACHE = {}
 
 # Load CIK cache from file if it exists
@@ -66,7 +65,7 @@ def get_cik_from_ticker(ticker):
         'MSFT': '0000789019',
         'GOOGL': '0001652044',
         'AMZN': '0001018724',
-        'META': '0001326801',  # Facebook/Meta
+        'META': '0001326801', 
         'TSLA': '0001318605',
         'NVDA': '0001045810',
         'JPM': '0000019617',
@@ -103,54 +102,36 @@ def get_cik_from_ticker(ticker):
     return None
 
 def fetch_financial_data(ticker, verbose=False):
-    """
-    Fetch financial data from SEC for a given ticker
-    
-    Args:
-        ticker (str): Stock ticker symbol
-        verbose (bool): Whether to display detailed logs
-        
-    Returns:
-        dict: Financial data for the ticker
-    """
+
     if verbose:
         print(f"Requesting 10-K filings for {ticker}")
     
-    # Try to find CIK for the ticker
     cik = get_cik_from_ticker(ticker)
     if not cik:
         if verbose:
             print(f"Could not find CIK for {ticker}")
         return None
     
-    # Now that cik is defined, we can print it
     print(f"Found CIK for {ticker}: {cik}")
     
-    # Format CIK properly (remove leading zeros but pad to 10 digits for URLs)
     cik_int = int(cik)
     cik_formatted = str(cik_int)
     cik_padded = cik_formatted.zfill(10)
     
-    # Updated URL formats for the SEC API
     urls_to_try = [
-        # EDGAR API endpoints
         f"https://www.sec.gov/Archives/edgar/data/{cik_int}/index.json",
         f"https://data.sec.gov/submissions/CIK{cik_padded}.json",
         f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik_padded}.json",
-        # Try with different CIK formats
         f"https://data.sec.gov/submissions/CIK{cik_formatted}.json",
-        # Try the company search endpoint
         f"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={cik_formatted}&type=10-K&dateb=&owner=exclude&count=10&output=atom"
     ]
     
-    # Use the headers defined at the top of the file but update them
     headers = {
         'User-Agent': 'Nanik paul@nanikworkforce.com',
         'Accept-Encoding': 'gzip, deflate',
         'Host': 'data.sec.gov'
     }
     
-    # Print the headers being used for debugging
     if verbose:
         print(f"Using headers: {headers}")
     
