@@ -7,9 +7,6 @@ logger = logging.getLogger(__name__)
 
 @shared_task
 def update_sec_filings():
-    """
-    Task to update SEC filings
-    """
     try:
         logger.info("Starting scheduled SEC filings update")
         call_command('update_sec_filings', '--days-back=90', '--batch-size=10')

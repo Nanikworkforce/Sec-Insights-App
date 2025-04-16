@@ -9,7 +9,7 @@ from .models.analysis import SentimentAnalysis
 from .models.period import FinancialPeriod
 from .models.filling import FilingDocument
 from .models.metric import FinancialMetric
-from django.db.models import Avg
+from django.db.models import Avg, Sum
 from .models.query import Query
 from .serializer import *
 from rest_framework.decorators import api_view
@@ -19,6 +19,8 @@ from django.http import JsonResponse
 import logging
 import requests
 from django.conf import settings
+import pandas as pd
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -133,40 +135,81 @@ class FinancialMetricViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ChartDataAPIView(APIView):
     def get(self, request):
-        ticker = request.GET.get("ticker")
-        if not ticker:
-            return Response({"error": "Ticker is required."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        company = Company.objects.filter(ticker=ticker).first()
-        if not company:
-            return Response({"error": "Company not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        revenue_metrics = FinancialMetric.objects.filter(company=company, metric_name="Revenue")
-        profit_metrics = FinancialMetric.objects.filter(company=company, metric_name="Profit")
-        
-        logger.info(f"Revenue metrics for {ticker}: {list(revenue_metrics)}")
-        logger.info(f"Profit metrics for {ticker}: {list(profit_metrics)}")
-        
-        data = []
-        # Use profit metrics as the base since revenue metrics are missing
-        for profit in profit_metrics:
-            try:
-                period_name = profit.period.period
-                revenue_value = revenue_metrics.filter(period=profit.period).first()
+        try:
+            tickers = request.GET.get("tickers", "").split(',')
+            metric = request.GET.get("metric", "revenue")
+            
+            if not tickers or not tickers[0]:  # Check if tickers list is empty or contains empty string
+                return Response(
+                    {"error": "Tickers are required."}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            all_metrics = []
+            all_periods = set()
+            
+            # Add logging to debug
+            logger.info(f"Fetching data for tickers: {tickers}, metric: {metric}")
+            
+            for ticker in tickers:
+                company = Company.objects.filter(ticker=ticker).first()
+                if company:
+                    # Log the query parameters
+                    logger.info(f"Querying for company: {company}, metric: {metric}")
+                    
+                    metrics = FinancialMetric.objects.filter(
+                        company=company,
+                        metric_name=metric
+                    ).select_related('period')
+                    
+                    # Log the number of metrics found
+                    logger.info(f"Found {metrics.count()} metrics for {ticker}")
+                    
+                    for m in metrics:
+                        period = m.period.period
+                        all_periods.add(period)
+                        all_metrics.append({
+                            "ticker": ticker,
+                            "period": period,
+                            "value": float(m.value) if m.value is not None else 0
+                        })
+            
+            # Organize data by period
+            period_data = []
+            for period in sorted(all_periods):
+                period_values = {
+                    "period": period,
+                    "values": {
+                        metric["ticker"]: metric["value"]
+                        for metric in all_metrics
+                        if metric["period"] == period
+                    }
+                }
+                period_data.append(period_values)
+            
+            # Log the response data
+            logger.info(f"Returning data with {len(period_data)} periods")
+            
+            return Response({
+                "tickers": tickers,
+                "metrics": period_data,
+                "selected_metric": metric
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error in ChartDataAPIView: {str(e)}")
+            return Response(
+                {"error": f"Internal server error: {str(e)}"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
-                logger.info(f"Processing period: {period_name}, Revenue: {revenue_value}, Profit: {profit.value}")
-
-                data.append({
-                    "period": period_name,
-                    "revenue": revenue_value.value if revenue_value else 0,  # Default to 0 if missing
-                    "profit": profit.value,
-                })
-            except Exception as e:
-                logger.error(f"Error processing metrics for period {profit.period}: {str(e)}")
-                return Response({"error": "Error processing financial metrics."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        logger.info(f"Data returned for {ticker}: {data}")
-        return Response({"ticker": ticker, "metrics": data}, status=status.HTTP_200_OK)
+    @staticmethod
+    def get_available_metrics(request):
+        metrics = FinancialMetric.objects.values_list('metric_name', flat=True).distinct()
+        logger.info(f"Available metrics in database: {list(metrics)}")
+        return Response({
+            "metrics": list(metrics)
+        })
 
 class InsightsAPIView(APIView):
     def get(self, request):
@@ -212,25 +255,64 @@ class CustomQueryAPIView(APIView):
 
 class IndustryComparisonAPIView(APIView):
     def get(self, request):
-        ticker = request.GET.get("ticker")
-        if not ticker:
-            return Response({"error": "Ticker is required."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        company = Company.objects.filter(ticker=ticker).first()
-        if not company or not company.industry:
-            return Response({"error": "Company or industry data not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        comparisons = []
-        for metric in ["Revenue Growth", "Net Profit Margin"]:
-            company_metric = FinancialMetric.objects.filter(period__company=company, name=metric).aggregate(Avg("value"))
-            industry_metric = FinancialMetric.objects.filter(period__company__industry=company.industry, name=metric).aggregate(Avg("value"))
-            comparisons.append({
-                "metric": metric,
-                "company": company_metric["value__avg"],
-                "industry_avg": industry_metric["value__avg"]
+        try:
+            industries = request.GET.get("industries", "").split(',')
+            metric = request.GET.get("metric", "revenue")
+            
+            # Read industry mappings from Excel
+            df = pd.read_excel(os.path.join('sec_app', 'data', 'stocks_perf_data.xlsx'))
+            
+            # Create industry-ticker mapping
+            industry_tickers = {}
+            for industry in industries:
+                industry_tickers[industry] = df[df['Industry'] == industry]['Symbol'].tolist()
+                logger.info(f"Industry {industry} has tickers: {industry_tickers[industry]}")
+            
+            # Get all metrics for these companies
+            all_metrics = []
+            for industry, tickers in industry_tickers.items():
+                metrics = FinancialMetric.objects.filter(
+                    company__ticker__in=tickers,
+                    metric_name=metric
+                ).values('period__period').annotate(
+                    avg_value=Avg('value')  # Calculate average instead of sum
+                ).order_by('period__period')
+                
+                # Add to all metrics
+                for m in metrics:
+                    all_metrics.append({
+                        'period': m['period__period'],
+                        'industry': industry,
+                        'value': float(m['avg_value'] or 0)  # Use average value
+                    })
+            
+            # Get unique periods
+            all_periods = sorted(set(m['period'] for m in all_metrics))
+            
+            # Format data for chart
+            chart_data = []
+            for period in all_periods:
+                data_point = {'period': period}
+                for industry in industries:
+                    avg = next(
+                        (m['value'] for m in all_metrics 
+                         if m['period'] == period and m['industry'] == industry),
+                        0
+                    )
+                    data_point[f"{industry}_total"] = avg  # Keep the key name for frontend compatibility
+                chart_data.append(data_point)
+            
+            logger.info(f"Returning chart data: {chart_data[:2]}")  # Log first two points
+            
+            return Response({
+                "industries": industries,
+                "comparisons": chart_data
             })
-        
-        return Response({"ticker": ticker, "industry": company.industry, "comparisons": comparisons}, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error in IndustryComparisonAPIView: {str(e)}")
+            logger.error("Full traceback:", exc_info=True)
+            return Response({"error": str(e)}, status=500)
 
 class FinancialMetricsAPIView(APIView):
     def get(self, request):
@@ -262,3 +344,114 @@ class FinancialMetricsAPIView(APIView):
         
         logger.info(f"Data returned for {ticker}: {data}")
         return Response(data, status=status.HTTP_200_OK)
+
+class IndustryAPIView(APIView):
+    def get(self, request):
+        try:
+            # Get companies we have data for
+            companies_with_data = Company.objects.values_list('ticker', flat=True)
+            
+            # Read the Excel file
+            file_path = os.path.join('sec_app', 'data', 'stocks_perf_data.xlsx')
+            df = pd.read_excel(file_path)
+            
+            # Filter DataFrame to only include companies we have data for
+            df = df[df['Symbol'].isin(companies_with_data)]
+            
+            # Get industries that have companies with data
+            industries = df[['Industry', 'Symbol']].dropna().groupby('Industry')['Symbol'].apply(list).to_dict()
+            
+            return Response({
+                "industries": [
+                    {
+                        "name": industry,
+                        "companies": companies
+                    }
+                    for industry, companies in industries.items()
+                    if len(companies) > 0  # Only include industries with companies
+                ]
+            })
+        except Exception as e:
+            logger.error(f"Error fetching industries: {str(e)}")
+            return Response(
+                {"error": "Failed to fetch industries"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+class BoxPlotDataAPIView(APIView):
+    def get(self, request):
+        metric = request.GET.get('metric')
+        period = request.GET.get('period')  # This will now be just the year
+
+        logger.info(f"Querying for metric: {metric}, period: {period}")
+
+        if metric and period:
+            logger.info(f"Fetching box plot data for metric: {metric}, period: {period}")
+
+            try:
+                # Ensure the field names match your model
+                metrics = FinancialMetric.objects.filter(
+                    metric_name=metric,
+                    period__period=period  # Match the year format
+                ).select_related('company')
+
+                values = [metric.value for metric in metrics]
+                company_names = [metric.company.name for metric in metrics]
+
+                logger.info(f"Fetched values: {values}")
+                logger.info(f"Fetched company names: {company_names}")
+
+                data = {
+                    "values": values,
+                    "companyNames": company_names
+                }
+                return Response(data, status=status.HTTP_200_OK)
+            except Exception as e:
+                logger.error(f"Error fetching data: {str(e)}")
+                return Response({"error": "Error fetching data"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            logger.error("Invalid parameters for box plot data")
+            return Response({"error": "Invalid parameters"}, status=status.HTTP_400_BAD_REQUEST)
+        
+class AggregatedDataAPIView(APIView):
+    def get(self, request):
+        tickers = request.GET.get("tickers", "").split(',')
+        metric = request.GET.get("metric", "revenue")
+        period = request.GET.get("period", "1Y").strip('"')  # Clean extra quotes
+
+        if not tickers or not tickers[0]:
+            return Response({"error": "Tickers are required."}, status=400)
+
+        if period == "2Y":
+            intervals = [(2015, 2016), (2017, 2018), (2019, 2020), (2021, 2022), (2023, 2024)]
+        elif period == "3Y":
+            intervals = [(2015, 2017), (2018, 2020), (2021, 2023)]
+        elif period == "5Y":
+            intervals = [(2015, 2019), (2020, 2024)]
+        elif period == "10Y":
+            intervals = [(2015, 2024)]  # Single 10-year interval
+        else:
+            intervals = [(year, year) for year in range(2015, 2025)]
+
+        aggregated_data = []
+
+        for start, end in intervals:
+            print(f"Querying interval: {start}-{end}")
+            metrics = FinancialMetric.objects.filter(
+                company__ticker__in=tickers,
+                metric_name=metric,
+                period__start_date__year__range=(start, end)
+            ).values('company__ticker').annotate(total=Sum('value'))
+
+            metrics_dict = {m['company__ticker']: m['total'] for m in metrics}
+
+            for ticker in tickers:
+                total = metrics_dict.get(ticker, 0)
+                print(f"Ticker: {ticker}, Interval: {start}-{end}, Total: {total}")
+                aggregated_data.append({
+                    "name": f"{start}-{end}",
+                    "ticker": ticker,
+                    "value": total
+                })
+
+        return Response(aggregated_data, status=200)

@@ -26,7 +26,6 @@ class Command(BaseCommand):
             # Create the directory if it doesn't exist
             os.makedirs(os.path.dirname(excel_file), exist_ok=True)
             
-            # Define the metrics data (same as in create_sample_metrics_file.py)
             metrics_data = [
                 {
                     'metric_name': 'Revenue',

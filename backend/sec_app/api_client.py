@@ -22,7 +22,6 @@ HEADERS = {
 
 CIK_CACHE = {}
 
-# Load CIK cache from file if it exists
 cache_file = os.path.join(os.path.dirname(__file__), 'data', 'cik_cache.json')
 if os.path.exists(cache_file):
     try:

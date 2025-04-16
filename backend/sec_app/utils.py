@@ -21,7 +21,6 @@ from asgiref.sync import sync_to_async
 logger = logging.getLogger(__name__)
 
 def create_default_company():
-    """Create default company and period - call this after migrations"""
     company, _ = Company.objects.get_or_create(
         ticker='DEFAULT',
         defaults={
@@ -45,7 +44,6 @@ def initialize_metric_standards():
     """Initialize standard metrics - requires default company"""
     period_obj = create_default_company()
     
-    # First, clear any existing standard metrics to avoid duplicates
     FinancialMetric.objects.filter(period=period_obj).delete()
     
     standard_metrics = [
@@ -67,7 +65,6 @@ def initialize_metric_standards():
             'unit': 'USD',
             'period': period_obj
         },
-        # Balance Sheet Metrics
         {
             'metric_name': 'Total Assets',
             'xbrl_tag': 'us-gaap:Assets',
@@ -84,7 +81,6 @@ def initialize_metric_standards():
 
     metrics_created = 0
     for metric in standard_metrics:
-        # Use create instead of get_or_create to avoid duplicates
         FinancialMetric.objects.create(
             metric_name=metric['metric_name'],
             xbrl_tag=metric['xbrl_tag'],
@@ -101,7 +97,6 @@ def extract_xbrl_value(xbrl_data, tag_name):
     try:
         root = ET.fromstring(xbrl_data)
         
-        # Get all namespaces from the root element
         namespaces = dict([node for _, node in ET.iterparse(io.BytesIO(xbrl_data), events=['start-ns'])])
         
         # Register the us-gaap namespace

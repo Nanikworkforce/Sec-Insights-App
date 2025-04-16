@@ -3,7 +3,7 @@ from backend.basemodel import TimeBaseModel
 
 class Company(TimeBaseModel):
     name = models.CharField(max_length=255)
-    ticker = models.CharField(max_length=10, db_index=True)
+    ticker = models.CharField(max_length=10, db_index=True,unique=True)
     cik = models.CharField(max_length=10, unique=True)
     sector = models.CharField(max_length=100, null=True, blank=True)
     industry = models.CharField(max_length=100, null=True, blank=True)
