@@ -125,7 +125,7 @@ export function Overview({ ticker }: OverviewProps) {
     const fetchData = async () => {
       try {
         if (tickers.length === 0) return;
-
+        
         const response = await fetch(API_URL(tickers, selectedMetric, selectedPeriod));
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -147,8 +147,8 @@ export function Overview({ ticker }: OverviewProps) {
             entry[item.ticker] = item.value;
             return acc;
           }, []);
-
-          setData(chartData);
+        
+        setData(chartData);
           console.log('Chart Data:', chartData);
         } else {
           throw new Error('Unexpected response format');
@@ -200,15 +200,17 @@ export function Overview({ ticker }: OverviewProps) {
   const fetchIndustryData = useCallback(async () => {
     if (selectedIndustries.length === 0) return;
     
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
     try {
-      const queryParams = new URLSearchParams({
-        industries: selectedIndustries.join(','),
-        metric: selectedMetric,
-        show_companies: 'true'
-      });
+      // Create URLSearchParams without pre-encoding the industry names
+      const queryParams = new URLSearchParams();
+      queryParams.append('industries', selectedIndustries.join(','));
+      queryParams.append('metric', selectedMetric);
+      queryParams.append('show_companies', 'false');
 
       const url = `${INDUSTRY_API_URL}/?${queryParams}`;
+      console.log('Fetching from URL:', url);
+
       const response = await fetch(url);
       
       if (!response.ok) {
@@ -216,22 +218,46 @@ export function Overview({ ticker }: OverviewProps) {
       }
       
       const result = await response.json();
-      setIndustryData(result.comparisons);
+      console.log('Raw Industry Data:', result);
+      
+      if (!result.comparisons || result.comparisons.length === 0) {
+        console.log('No comparison data received');
+        return;
+      }
+
+      // Transform the data to match the expected format
+      const transformedData = result.comparisons.map((item: any) => {
+        const dataPoint: any = {
+          name: item.period
+        };
+        // Add the industry values using the _total suffix
+        selectedIndustries.forEach((industry: string) => {
+          const key = `${industry}_total`;
+          if (item[key] !== undefined) {
+            dataPoint[key] = item[key];
+          }
+        });
+        return dataPoint;
+      });
+
+      setData(transformedData);
+      console.log('Transformed Industry Data:', transformedData);
       setError(null);
     } catch (error) {
       console.error('Error fetching industry data:', error);
       setError('Failed to fetch industry data');
     } finally {
-      setIsLoading(false); // End loading
+      setIsLoading(false);
     }
-  }, [selectedIndustries, selectedMetric]); // Dependencies for useCallback
+  }, [selectedIndustries, selectedMetric]);
 
-  // Update the useEffect to use the callback
+  // Update the useEffect to trigger data fetching
   useEffect(() => {
-    if (activeTab === "industry") {
+    // Fetch data when industries are selected
+    if (selectedIndustries.length > 0) {
       fetchIndustryData();
     }
-  }, [fetchIndustryData, activeTab]);
+  }, [selectedIndustries, selectedMetric, fetchIndustryData]);
 
   // Update the fetchIndustries function
   const fetchIndustries = async () => {
@@ -594,7 +620,7 @@ export function Overview({ ticker }: OverviewProps) {
                     <Line
                       key={industry}
                       type="monotone"
-                      dataKey={`${industry}_avg`}
+                      dataKey={`${industry}_total`}  // Use the exact key from the API response
                       stroke={METRICS[selectedMetric].color}
                       name={`${industry} Average`}
                       strokeWidth={3}
