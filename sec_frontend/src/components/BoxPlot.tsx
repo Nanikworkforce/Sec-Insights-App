@@ -2,68 +2,85 @@ import React, { useEffect } from 'react';
 import Plot from 'react-plotly.js';
 
 interface BoxPlotProps {
-  data: number[];
+  data: { [metric: string]: number[] };  // Changed to object with metric keys
   title: string;
-  companyNames: string[];
-  selectedTickers?: string[];
+  companyNames: { [metric: string]: string[] };  // Changed to object with metric keys
+  selectedTicker?: string;
 }
 
-const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames, selectedTickers }) => {
+const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selectedTicker = '' }) => {
   useEffect(() => {
     console.log('Box Plot Data:', data);
     console.log('Company Names:', companyNames);
-    console.log('Selected Tickers:', selectedTickers);
-  }, [data, companyNames, selectedTickers]);
+    console.log('Selected Ticker:', selectedTicker);
+  }, [data, companyNames, selectedTicker]);
 
-  // Filter data points based on selected tickers
-  const filteredData = selectedTickers?.length 
-    ? data.filter((_, index) => 
-        selectedTickers.some(ticker => 
-          companyNames[index].includes(ticker)
-        )
-      )
-    : data;
+  // Create traces for all metrics
+  const traces = Object.entries(data).flatMap(([metric, values], metricIndex) => {
+    // Box plot trace
+    const boxTrace = {
+      y: values,
+      type: 'box' as const,
+      boxpoints: false,
+      line: { color: '#1B5A7D' },
+      fillcolor: 'rgba(0,0,0,0.1)',
+      boxmean: true,
+      showlegend: false,
+      whiskerwidth: 0.5,
+      boxwidth: 0.3,
+      name: metric,
+      x0: metricIndex,  // Position each box plot
+      xaxis: 'x'
+    };
 
-  const filteredNames = selectedTickers?.length
-    ? companyNames.filter(name => 
-        selectedTickers.some(ticker => 
-          name.includes(ticker)
-        )
-      )
-    : companyNames;
+    // Points trace
+    const pointsData = values.map((value, index) => ({
+      value,
+      name: companyNames[metric]?.[index] || `Company ${index + 1}`,
+      color: companyNames[metric]?.[index] === selectedTicker ? '#FF6B6B' : '#1B5A7D'
+    }));
+
+    const scatterTrace = {
+      y: pointsData.map(p => p.value),
+      x: Array(pointsData.length).fill(metricIndex),  // Align points with corresponding box
+      type: 'scatter' as const,
+      mode: 'markers' as const,
+      marker: {
+        size: 8,  // Reduced size for better fit
+        color: pointsData.map(p => p.color),
+        line: {
+          color: '#FFFFFF',
+          width: 1
+        }
+      },
+      text: pointsData.map(p => p.name),
+      hoverinfo: 'text+y' as const,
+      hovertemplate: `${metric}<br>Company: %{text}<br>Value: %{y:,.2f}<extra></extra>`,
+      showlegend: false,
+      name: `${metric} Companies`
+    };
+
+    return [boxTrace, scatterTrace];
+  });
 
   return (
     <Plot
-      data={[
-        {
-          y: filteredData,
-          type: 'box',
-          boxpoints: 'all', // Show all points
-          jitter: 1.5, // Adjust jitter for better overlay
-          pointpos: 0, // Position points directly on the box
-          text: filteredNames,
-          hoverinfo: 'text+y',
-          hovertemplate: '%{text}<br>Value: %{y}<extra></extra>',
-          fillcolor: 'rgba(0,0,0,0)', // Make the box transparent
-          line: {
-            color: 'light-blue', // Color of the box outline
-          },
-          marker: {
-            size: 10, // Increase the size of the dots
-          },
-        },
-      ]}
+      data={traces}
       layout={{
         title: title,
-        yaxis: {
-          title: 'Values',
+        yaxis: { title: 'Values' },
+        width: 800,
+        height: 550,
+        xaxis: {
+          ticktext: Object.keys(data),  // Show metric names as labels
+          tickvals: Object.keys(data).map((_, i) => i),
+          showgrid: false
         },
-        width: 600,  // Set the desired width
-        height: 500, // Set the desired height
+        margin: { l: 50, r: 50, t: 50, b: 50 }  // Adjust margins for better fit
       }}
       style={{ width: '100%', height: '100%' }}
     />
   );
 };
 
-export default BoxPlot; 
+export default BoxPlot;

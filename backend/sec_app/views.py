@@ -380,47 +380,79 @@ class IndustryAPIView(APIView):
         
 class BoxPlotDataAPIView(APIView):
     def get(self, request):
-        metric = request.GET.get('metric')
-        period = request.GET.get('period')  # This will now be just the year
+        metrics = request.GET.getlist('metric[]')  # Changed to handle multiple metrics
+        period = request.GET.get('period')
+        industry = request.GET.get('industry')
 
-        logger.info(f"Querying for metric: {metric}, period: {period}")
+        logger.info(f"Querying for metrics: {metrics}, period: {period}, industry: {industry}")
 
-        if metric and period:
-            logger.info(f"Fetching box plot data for metric: {metric}, period: {period}")
-
+        if metrics and period:
             try:
-                # Ensure the field names match your model
-                metrics = FinancialMetric.objects.filter(
-                    metric_name=metric,
-                    period__period=period  # Match the year format
-                ).select_related('company')
+                file_path = os.path.join('sec_app', 'data', 'stocks_perf_data.xlsx')
+                df = pd.read_excel(file_path)
+                
+                if industry:
+                    industry_companies = df[df['Industry'] == industry]['Symbol'].tolist()
+                    logger.info(f"Companies in {industry}: {industry_companies}")
+                    
+                    current_year = 2024
+                    if period == '1Y':
+                        year = str(current_year - 1)
+                    elif period == '2Y':
+                        year = str(current_year - 2)
+                    else:
+                        year = str(current_year - 1)
 
-                values = [metric.value for metric in metrics]
-                company_names = [metric.company.name for metric in metrics]
+                    # Process each metric
+                    result_data = {}
+                    result_companies = {}
+                    
+                    for metric in metrics:
+                        metrics_query = FinancialMetric.objects.filter(
+                            metric_name=metric,
+                            period__period__contains=year,
+                            company__ticker__in=industry_companies
+                        ).select_related('company').order_by('company__ticker')
 
-                logger.info(f"Fetched values: {values}")
-                logger.info(f"Fetched company names: {company_names}")
+                        values = []
+                        company_names = []
+                        for metric_obj in metrics_query:
+                            if metric_obj.value is not None:
+                                values.append(float(metric_obj.value))
+                                company_names.append(metric_obj.company.ticker)
 
-                data = {
-                    "values": values,
-                    "companyNames": company_names
-                }
-                return Response(data, status=status.HTTP_200_OK)
+                        # Sort and store data for this metric
+                        if values and company_names:
+                            zipped = sorted(zip(company_names, values), key=lambda x: x[0])
+                            company_names, values = zip(*zipped)
+                            result_data[metric] = list(values)
+                            result_companies[metric] = list(company_names)
+                    
+                    data = {
+                        "values": result_data,
+                        "companyNames": result_companies
+                    }
+                    return Response(data, status=status.HTTP_200_OK)
+                
+                return Response({"error": "Industry parameter required"}, status=status.HTTP_400_BAD_REQUEST)
+            
             except Exception as e:
                 logger.error(f"Error fetching data: {str(e)}")
-                return Response({"error": "Error fetching data"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            logger.error("Invalid parameters for box plot data")
             return Response({"error": "Invalid parameters"}, status=status.HTTP_400_BAD_REQUEST)
         
 class AggregatedDataAPIView(APIView):
     def get(self, request):
         tickers = request.GET.get("tickers", "").split(',')
         metric = request.GET.get("metric", "revenue")
-        period = request.GET.get("period", "1Y").strip('"')  # Clean extra quotes
+        period = request.GET.get("period", "1Y").strip('"')
 
         if not tickers or not tickers[0]:
             return Response({"error": "Tickers are required."}, status=400)
+
+        # Add debug logging
+        print(f"Fetching data for tickers: {tickers}, metric: {metric}, period: {period}")
 
         if period == "2Y":
             intervals = [(2015, 2016), (2017, 2018), (2019, 2020), (2021, 2022), (2023, 2024)]
@@ -441,9 +473,14 @@ class AggregatedDataAPIView(APIView):
                 company__ticker__in=tickers,
                 metric_name=metric,
                 period__start_date__year__range=(start, end)
-            ).values('company__ticker').annotate(total=Sum('value'))
+            )
+            
+            # Debug the query
+            print("Query:", metrics.query)
+            print("Results:", list(metrics.values()))
 
-            metrics_dict = {m['company__ticker']: m['total'] for m in metrics}
+            metrics_dict = {m['company__ticker']: m['total'] for m in metrics.values('company__ticker').annotate(total=Sum('value'))}
+            print(f"Metrics dict: {metrics_dict}")
 
             for ticker in tickers:
                 total = metrics_dict.get(ticker, 0)
@@ -455,3 +492,19 @@ class AggregatedDataAPIView(APIView):
                 })
 
         return Response(aggregated_data, status=200)
+
+@api_view(['GET'])
+def get_available_metrics(request):
+    try:
+        metrics = FinancialMetric.objects.values_list('metric_name', flat=True).distinct()
+        # Remove duplicates and sort
+        unique_metrics = sorted(list(set(metrics)))
+        return Response({
+            "metrics": unique_metrics
+        })
+    except Exception as e:
+        logger.error(f"Error fetching available metrics: {str(e)}")
+        return Response(
+            {"error": "Failed to fetch metrics"}, 
+            status=500
+        )

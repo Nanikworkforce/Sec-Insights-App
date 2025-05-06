@@ -3,7 +3,8 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     CompanyViewSet, FilingViewSet, FinancialMetricViewSet,
     ChartDataAPIView, InsightsAPIView, CustomQueryAPIView, IndustryComparisonAPIView,
-    get_sec_data, extract_financials, test_sec_api, IndustryAPIView,BoxPlotDataAPIView,AggregatedDataAPIView
+    get_sec_data, extract_financials, test_sec_api, IndustryAPIView,BoxPlotDataAPIView,AggregatedDataAPIView,
+    get_available_metrics
 )
 
 # Create a router and register only ViewSets.
@@ -21,7 +22,7 @@ urlpatterns = [
     path('insights/', InsightsAPIView.as_view(), name='insights'),
     path('custom-query/', CustomQueryAPIView.as_view(), name='custom_query'),
     path('industry-comparison/', IndustryComparisonAPIView.as_view(), name='industry_comparison'),
-    path('available-metrics/', ChartDataAPIView.get_available_metrics, name='available_metrics'),
+    path('available-metrics/', get_available_metrics, name='available_metrics'),
     path('industries/', IndustryAPIView.as_view(), name='industries'),
     path('boxplot-data/', BoxPlotDataAPIView.as_view(), name='boxplot_data'),
     path('aggregated-data/',AggregatedDataAPIView.as_view(),name='aggregate'),
