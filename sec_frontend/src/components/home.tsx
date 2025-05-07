@@ -129,12 +129,12 @@ const Dashboard: React.FC = () => {
   const [industryCompanyInput, setIndustryCompanyInput] = useState('');
   const [selectedIndustryMetrics, setSelectedIndustryMetrics] = useState<string[]>([]);
   const [industryMetricInput, setIndustryMetricInput] = useState('');
-  const [industryChartData, setIndustryChartData] = useState<number[]>([]);
+  const [industryChartData, setIndustryChartData] = useState<{ [metric: string]: number[] }>({});
   const [industryLoading, setIndustryLoading] = useState(false);
   const [industryError, setIndustryError] = useState<string | null>(null);
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [availableIndustries, setAvailableIndustries] = useState<{ value: string; label: string; companies: string[] }[]>([]);
-  const [industryCompanyNames, setIndustryCompanyNames] = useState<string[]>([]);
+  const [industryCompanyNames, setIndustryCompanyNames] = useState<{ [metric: string]: string[] }>({});
   const [selectedTicker, setSelectedTicker] = useState('');
   const [metricSearch, setMetricSearch] = useState('');
   const [isMetricDropdownOpen, setIsMetricDropdownOpen] = useState(false);
@@ -232,6 +232,15 @@ const Dashboard: React.FC = () => {
 
       console.log('Final transformed chart data:', sortedData);
       setChartData(sortedData);
+
+      if (sortedData.length > 0 && console.log(
+        'Last data point:',
+        sortedData[sortedData.length - 1].name,
+        'Metrics:',
+        selectedSearchMetrics
+      )) {
+        // Additional logic if needed
+      }
     } catch (error) {
       console.error('Error fetching metric data:', error);
       setError('Failed to fetch data');
@@ -1193,41 +1202,67 @@ const Dashboard: React.FC = () => {
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart 
                           data={chartData}
-                          onClick={(e) => {
-                            if (!e) {
-                              console.error('Chart click event is undefined');
-                              return;
-                            }
-                            console.log('Chart background clicked');
-                            setStickyTooltips([]);
-                          }}
                         >
                           <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                          <XAxis dataKey="name" />
+                          <XAxis 
+                            dataKey="name" 
+                            tickFormatter={(name) => {
+                              // Handle year ranges like "2024-2024" -> "2024"
+                              if (name.includes('-')) {
+                                const [startYear] = name.split('-');
+                                return startYear;
+                              }
+                              return name;
+                            }}
+                          />
                           <YAxis 
                             tickFormatter={(value) => new Intl.NumberFormat('en-US', {
                               notation: 'compact',
                               maximumFractionDigits: 1
                             }).format(value)}
                           />
+                          
                           {/* Regular hover tooltip */}
                           <Tooltip 
-                            formatter={(value: number) => new Intl.NumberFormat('en-US', {
-                              notation: 'compact',
-                              maximumFractionDigits: 1
-                            }).format(value)}
+                            formatter={(value: number, name, props) => [
+                              new Intl.NumberFormat('en-US', {
+                                notation: 'compact',
+                                maximumFractionDigits: 1
+                              }).format(value),
+                              // Clean the metric name display
+                              availableMetrics.find(m => m.value === name)?.label || name
+                            ]}
+                            labelFormatter={(label) => {
+                              // Handle year ranges in tooltip label
+                              if (typeof label === 'string' && label.includes('-')) {
+                                const [startYear] = label.split('-');
+                                return startYear;
+                              }
+                              return label;
+                            }}
                             contentStyle={{ 
                               boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                             }}
                             itemStyle={{ padding: 0 }}
+                            filterNull={true}
                           />
-                          {/* Render sticky tooltips */}
-                          {stickyTooltips.map((tooltip, index) => (
+
+                          {/* Fixed tooltip for 2024 data points */}
+                          {chartData.length > 0 && chartData[chartData.length - 1].name.startsWith('2024') && (
                             <Tooltip
-                              key={index}
+                              key="fixed-2024"
                               active={true}
-                              position={{ x: tooltip.x, y: tooltip.y }}
-                              payload={tooltip.payload}
+                              position={{
+                                x: document.querySelector('.recharts-cartesian-axis-ticks')?.lastElementChild?.getBoundingClientRect().x || 0,
+                                y: 100
+                              }}
+                              payload={selectedSearchMetrics.map(metric => ({
+                                name: availableMetrics.find(m => m.value === metric)?.label || metric,
+                                value: Number(chartData[chartData.length - 1][metric]) || 0,
+                                dataKey: metric,
+                                color: metricColors[metric]?.color || '#000',
+                                payload: chartData[chartData.length - 1]
+                              }))}
                               formatter={(value: number) => new Intl.NumberFormat('en-US', {
                                 notation: 'compact',
                                 maximumFractionDigits: 1
@@ -1235,16 +1270,18 @@ const Dashboard: React.FC = () => {
                               contentStyle={{
                                 backgroundColor: 'white',
                                 border: '1px solid #ccc',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                zIndex: 10000
                               }}
-                              itemStyle={{ padding: 0 }}
                               wrapperStyle={{
-                                visibility: 'visible',
+                                visibility: 'visible !important',
                                 position: 'absolute',
-                                zIndex: 100
+                                zIndex: 10000,
+                                pointerEvents: 'none'
                               }}
                             />
-                          ))}
+                          )}
+
                           <Legend />
                           {selectedSearchMetrics.map((metric) => {
                             const metricConfig = metricColors[metric] || {
@@ -1261,32 +1298,7 @@ const Dashboard: React.FC = () => {
                                 strokeWidth={2}
                                 dot={{
                                   fill: metricConfig.color,
-                                  r: 4,
-                                  onClick: (data: any, _index: number, event?: React.MouseEvent<SVGCircleElement>) => {
-                                    if (!event) {
-                                      console.error('Event is undefined');
-                                      return;
-                                    }
-                                    
-                                    event.stopPropagation();
-                                    console.log('Dot clicked!', { data, event });
-                                    
-                                    const { clientX, clientY } = event;
-                                    const newTooltip = {
-                                      x: clientX - 60,  // Adjust these offsets as needed
-                                      y: clientY - 50,
-                                      payload: [{
-                                        dataKey: metric,
-                                        value: data[metric],
-                                        name: metricConfig.label,
-                                        color: metricConfig.color,
-                                        payload: data
-                                      }]
-                                    };
-
-                                    console.log('Creating new sticky tooltip:', newTooltip);
-                                    setStickyTooltips(prev => prev.length >= 2 ? [prev[1], newTooltip] : [...prev, newTooltip]);
-                                  }
+                                  r: 4
                                 }}
                               />
                             );
@@ -1314,7 +1326,17 @@ const Dashboard: React.FC = () => {
                           data={peerChartData}
                         >
                           <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                          <XAxis dataKey="name" />
+                          <XAxis 
+                            dataKey="name" 
+                            tickFormatter={(name) => {
+                              // Handle year ranges like "2024-2024" -> "2024"
+                              if (name.includes('-')) {
+                                const [startYear] = name.split('-');
+                                return startYear;
+                              }
+                              return name;
+                            }}
+                          />
                           <YAxis 
                             tickFormatter={(value) => new Intl.NumberFormat('en-US', {
                               notation: 'compact',
@@ -1326,6 +1348,13 @@ const Dashboard: React.FC = () => {
                               notation: 'compact',
                               maximumFractionDigits: 1
                             }).format(value)}
+                            labelFormatter={(label) => {
+                              if (typeof label === 'string' && label.includes('-')) {
+                                const [startYear] = label.split('-');
+                                return startYear;
+                              }
+                              return label;
+                            }}
                             contentStyle={{ 
                               boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                             }}

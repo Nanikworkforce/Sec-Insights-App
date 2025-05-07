@@ -19,7 +19,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
   const traces = Object.entries(data).flatMap(([metric, values], metricIndex) => {
     // Box plot trace
     const boxTrace = {
-      y: values,
+      y: values.map(v => Number((v / 1000000000).toFixed(1))),
       type: 'box' as const,
       boxpoints: false,
       line: { color: '#1B5A7D' },
@@ -28,7 +28,8 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
       showlegend: false,
       whiskerwidth: 0.5,
       boxwidth: 0.3,
-      name: metric,
+      name: '',
+      hoverinfo: 'y',
       x0: metricIndex,  // Position each box plot
       xaxis: 'x'
     };
@@ -41,7 +42,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
     }));
 
     const scatterTrace = {
-      y: pointsData.map(p => p.value),
+      y: pointsData.map(p => Number((p.value / 1000000000).toFixed(1))),
       x: Array(pointsData.length).fill(metricIndex),  // Align points with corresponding box
       type: 'scatter' as const,
       mode: 'markers' as const,
@@ -55,9 +56,9 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
       },
       text: pointsData.map(p => p.name),
       hoverinfo: 'text+y' as const,
-      hovertemplate: `${metric}<br>Company: %{text}<br>Value: %{y:,.2f}<extra></extra>`,
+      hovertemplate: `Company: %{text}<br>Value: %{y:,.1f}B<extra></extra>`,
       showlegend: false,
-      name: `${metric} Companies`
+      name: ''
     };
 
     return [boxTrace, scatterTrace];
