@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import BoxPlot from './BoxPlot';
 
@@ -129,7 +129,7 @@ const Dashboard: React.FC = () => {
   const [industryCompanyInput, setIndustryCompanyInput] = useState('');
   const [selectedIndustryMetrics, setSelectedIndustryMetrics] = useState<string[]>([]);
   const [industryMetricInput, setIndustryMetricInput] = useState('');
-  const [industryChartData, setIndustryChartData] = useState<{ [metric: string]: number[] }>({});
+  const [industryChartData, setIndustryChartData] = useState<YourChartDataType[]>([]);
   const [industryLoading, setIndustryLoading] = useState(false);
   const [industryError, setIndustryError] = useState<string | null>(null);
   const [selectedIndustry, setSelectedIndustry] = useState('');
@@ -151,6 +151,9 @@ const Dashboard: React.FC = () => {
   const peerDropdownRef = useRef<HTMLDivElement>(null);
   const [activeTooltip, setActiveTooltip] = useState<{ x: number; y: number; payload: any } | null>(null);
   const [stickyTooltips, setStickyTooltips] = useState<StickyTooltip[]>([]);
+  const [fixed2024Data, setFixed2024Data] = useState<any>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [fixedTooltipPos, setFixedTooltipPos] = useState<{ left: number, top: number } | null>(null);
 
   // Add function to handle company selection
   const handleCompanySelection = (company: string) => {
@@ -315,7 +318,7 @@ const Dashboard: React.FC = () => {
       const data = await response.json();
       console.log('Raw industry data:', data);
 
-      setIndustryChartData(data.values || {});
+      setIndustryChartData(data.values || []);
       setIndustryCompanyNames(data.companyNames || {});
       setSelectedIndustryCompanies([]);
 
@@ -368,11 +371,22 @@ const Dashboard: React.FC = () => {
     fetchAvailableMetrics();
   }, []);
 
+  // Fetch metric data when dependencies change (do NOT depend on chartData)
   useEffect(() => {
     if (activeChart === 'metrics') {
       fetchMetricData();
     }
   }, [searchValue, selectedSearchMetrics, activeChart, selectedPeriod, fetchMetricData]);
+
+  // Set the fixed 2024 data point when chartData changes
+  useEffect(() => {
+    if (activeChart === 'metrics') {
+      const data2024 = chartData.find(d => d.name.startsWith('2024'));
+      if (data2024) {
+        setFixed2024Data(data2024);
+      }
+    }
+  }, [chartData, activeChart]);
 
   useEffect(() => {
     if (activeChart === 'peers') {
@@ -450,9 +464,35 @@ const Dashboard: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Find the position of the last tick (2024) after chart renders
+  useLayoutEffect(() => {
+    if (!fixed2024Data) return;
+    const chartDiv = chartContainerRef.current;
+    if (!chartDiv) return;
+    // Find the tick element whose label is 2024
+    const tickEls = chartDiv.querySelectorAll('.recharts-cartesian-axis-tick');
+    let tick2024: HTMLElement | null = null;
+    tickEls.forEach((el) => {
+      if (el.textContent?.trim() === '2024') {
+        tick2024 = el as HTMLElement;
+      }
+    });
+    if (!tick2024) return;
+    const tickRect = tick2024.getBoundingClientRect();
+    const chartRect = chartDiv.getBoundingClientRect();
+    setFixedTooltipPos({
+      left: tickRect.left - chartRect.left + tickRect.width / 2,
+      top: 40 // adjust as needed
+    });
+  }, [fixed2024Data, chartData, activeChart]);
+
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
+
+  console.log('chartData:', chartData);
+  console.log('fixed2024Data:', fixed2024Data);
+  console.log('fixedTooltipPos:', fixedTooltipPos);
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
@@ -1199,112 +1239,112 @@ const Dashboard: React.FC = () => {
                         No data available
                       </div>
                     ) : (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart 
-                          data={chartData}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                          <XAxis 
-                            dataKey="name" 
-                            tickFormatter={(name) => {
-                              // Handle year ranges like "2024-2024" -> "2024"
-                              if (name.includes('-')) {
-                                const [startYear] = name.split('-');
-                                return startYear;
+                      <div style={{ position: 'relative', width: '100%', height: 400 }} ref={chartContainerRef}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart 
+                            data={chartData}
+                            onMouseMove={e => {
+                              if (e && e.activePayload && e.activePayload.length > 0) {
+                                const payload = e.activePayload[0].payload;
+                                if (!payload.name?.startsWith('2024')) {
+                                  setActiveTooltip(payload);
+                                } else {
+                                  setActiveTooltip(null);
+                                }
+                              } else {
+                                setActiveTooltip(null);
                               }
-                              return name;
                             }}
-                          />
-                          <YAxis 
-                            tickFormatter={(value) => new Intl.NumberFormat('en-US', {
-                              notation: 'compact',
-                              maximumFractionDigits: 1
-                            }).format(value)}
-                          />
-                          
-                          {/* Regular hover tooltip */}
-                          <Tooltip 
-                            formatter={(value: number, name, props) => [
-                              new Intl.NumberFormat('en-US', {
-                                notation: 'compact',
-                                maximumFractionDigits: 1
-                              }).format(value),
-                              // Clean the metric name display
-                              availableMetrics.find(m => m.value === name)?.label || name
-                            ]}
-                            labelFormatter={(label) => {
-                              // Handle year ranges in tooltip label
-                              if (typeof label === 'string' && label.includes('-')) {
-                                const [startYear] = label.split('-');
-                                return startYear;
-                              }
-                              return label;
-                            }}
-                            contentStyle={{ 
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                            }}
-                            itemStyle={{ padding: 0 }}
-                            filterNull={true}
-                          />
-
-                          {/* Fixed tooltip for 2024 data points */}
-                          {chartData.length > 0 && chartData[chartData.length - 1].name.startsWith('2024') && (
-                            <Tooltip
-                              key="fixed-2024"
-                              active={true}
-                              position={{
-                                x: document.querySelector('.recharts-cartesian-axis-ticks')?.lastElementChild?.getBoundingClientRect().x || 0,
-                                y: 100
+                            onMouseLeave={() => setActiveTooltip(null)}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+                            <XAxis 
+                              dataKey="name" 
+                              tickFormatter={(name) => {
+                                // Handle year ranges like "2024-2024" -> "2024"
+                                if (name.includes('-')) {
+                                  const [startYear] = name.split('-');
+                                  return startYear;
+                                }
+                                return name;
                               }}
-                              payload={selectedSearchMetrics.map(metric => ({
-                                name: availableMetrics.find(m => m.value === metric)?.label || metric,
-                                value: Number(chartData[chartData.length - 1][metric]) || 0,
-                                dataKey: metric,
-                                color: metricColors[metric]?.color || '#000',
-                                payload: chartData[chartData.length - 1]
-                              }))}
-                              formatter={(value: number) => new Intl.NumberFormat('en-US', {
+                            />
+                            <YAxis 
+                              tickFormatter={(value) => new Intl.NumberFormat('en-US', {
                                 notation: 'compact',
                                 maximumFractionDigits: 1
                               }).format(value)}
-                              contentStyle={{
-                                backgroundColor: 'white',
-                                border: '1px solid #ccc',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                zIndex: 10000
-                              }}
-                              wrapperStyle={{
-                                visibility: 'visible !important',
-                                position: 'absolute',
-                                zIndex: 10000,
-                                pointerEvents: 'none'
-                              }}
                             />
-                          )}
+                            
+                            {/* Regular hover tooltip */}
+                            <Tooltip 
+                              formatter={(value: number, name) => [
+                                new Intl.NumberFormat('en-US', {
+                                  notation: 'compact',
+                                  maximumFractionDigits: 1
+                                }).format(value),
+                                availableMetrics.find(m => m.value === name)?.label || name
+                              ]}
+                              labelFormatter={(label) => {
+                                if (typeof label === 'string' && label.includes('-')) {
+                                  const [startYear] = label.split('-');
+                                  return startYear;
+                                }
+                                return label;
+                              }}
+                              contentStyle={{ 
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                              }}
+                              itemStyle={{ padding: 0 }}
+                              filterNull={true}
+                            />
 
-                          <Legend />
-                          {selectedSearchMetrics.map((metric) => {
-                            const metricConfig = metricColors[metric] || {
-                              color: generateColorPalette(1)[0],
-                              label: availableMetrics.find(m => m.value === metric)?.label || metric
-                            };
-                            return (
-                              <Line
-                                key={metric}
-                                type="monotone"
-                                dataKey={metric}
-                                stroke={metricConfig.color}
-                                name={metricConfig.label}
-                                strokeWidth={2}
-                                dot={{
-                                  fill: metricConfig.color,
-                                  r: 4
-                                }}
-                              />
-                            );
-                          })}
-                        </LineChart>
-                      </ResponsiveContainer>
+                            <Legend />
+                            {selectedSearchMetrics.map((metric) => {
+                              const metricConfig = metricColors[metric] || {
+                                color: generateColorPalette(1)[0],
+                                label: availableMetrics.find(m => m.value === metric)?.label || metric
+                              };
+                              return (
+                                <Line
+                                  key={metric}
+                                  type="monotone"
+                                  dataKey={metric}
+                                  stroke={metricConfig.color}
+                                  name={metricConfig.label}
+                                  strokeWidth={2}
+                                  dot={{
+                                    fill: metricConfig.color,
+                                    r: 4
+                                  }}
+                                />
+                              );
+                            })}
+                          </LineChart>
+                        </ResponsiveContainer>
+                        {/* Custom fixed 2024 tooltip - OUTSIDE ResponsiveContainer! */}
+                        {fixed2024Data && fixedTooltipPos && (
+                          <div
+                            data-testid="fixed-2024-tooltip"
+                            style={{
+                              position: 'absolute',
+                              left: fixedTooltipPos.left - 100,
+                              top: fixedTooltipPos.top + 16,
+                              zIndex: 99999,
+                              background: '#fff',
+                              border: '1px solid #ccc',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                              borderRadius: 4,
+                              padding: 10,
+                              minWidth: 0,
+                              fontSize: 'inherit',
+                              pointerEvents: 'none',
+                            }}
+                          >
+                            FIXED TOOLTIP TOOLTIP
+                          </div>
+                        )}
+                      </div>
                     )
                   ) : activeChart === 'peers' ? (
                     // Peers Chart
@@ -1392,7 +1432,7 @@ const Dashboard: React.FC = () => {
                       <div className="flex items-center justify-center h-full text-red-500">
                         {industryError}
                       </div>
-                    ) : industryChartData.length === 0 ? (
+                    ) : industryChartData && industryChartData.length === 0 ? (
                       <div className="flex items-center justify-center h-full text-gray-500">
                         No data available
                       </div>
