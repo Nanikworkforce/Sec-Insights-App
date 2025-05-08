@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, DefaultTooltipContent } from 'recharts';
 import BoxPlot from './BoxPlot';
 
 const BASE_URL = 'http://127.0.0.1:8000/api';
@@ -1277,7 +1277,7 @@ const Dashboard: React.FC = () => {
                             />
                             
                             {/* Regular hover tooltip */}
-                            <Tooltip 
+                            <Tooltip
                               formatter={(value: number, name) => [
                                 new Intl.NumberFormat('en-US', {
                                   notation: 'compact',
@@ -1292,16 +1292,16 @@ const Dashboard: React.FC = () => {
                                 }
                                 return label;
                               }}
-                              content={({ active, payload }) => {
-                                // Hide tooltip for 2024 data point
+                              content={({ active, payload, label, ...props }) => {
+                                // If the hovered point is 2024, don't show the tooltip
                                 if (active && payload && payload.length > 0) {
                                   const point = payload[0].payload;
                                   if (point.name && point.name.startsWith('2024')) {
                                     return null;
                                   }
                                 }
-                                // Default rendering
-                                return undefined;
+                                // Render the default tooltip for other points
+                                return <DefaultTooltipContent active={active} payload={payload} label={label} {...props} />;
                               }}
                               contentStyle={{ 
                                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
