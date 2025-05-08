@@ -1292,6 +1292,17 @@ const Dashboard: React.FC = () => {
                                 }
                                 return label;
                               }}
+                              content={({ active, payload }) => {
+                                // Hide tooltip for 2024 data point
+                                if (active && payload && payload.length > 0) {
+                                  const point = payload[0].payload;
+                                  if (point.name && point.name.startsWith('2024')) {
+                                    return null;
+                                  }
+                                }
+                                // Default rendering
+                                return undefined;
+                              }}
                               contentStyle={{ 
                                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                               }}
@@ -1328,7 +1339,7 @@ const Dashboard: React.FC = () => {
                             data-testid="fixed-2024-tooltip"
                             style={{
                               position: 'absolute',
-                              left: fixedTooltipPos.left - 100,
+                              left: fixedTooltipPos.left - 70,
                               top: fixedTooltipPos.top + 16,
                               zIndex: 99999,
                               background: '#fff',
@@ -1341,7 +1352,41 @@ const Dashboard: React.FC = () => {
                               pointerEvents: 'none',
                             }}
                           >
-                            FIXED TOOLTIP TOOLTIP
+                            <div className="font-medium mb-1">2024</div>
+                            {selectedSearchMetrics.map((metric) => {
+                              const value2024 = Number(fixed2024Data[metric]) || 0;
+                              const metricConfig = metricColors[metric];
+                              const hoveredValue = (activeTooltip && activeTooltip[metric] != null)
+                                ? Number(activeTooltip[metric])
+                                : null;
+                              const diff = hoveredValue != null ? value2024 - hoveredValue : null;
+                              const percent = (hoveredValue && hoveredValue !== 0)
+                                ? (diff / hoveredValue) * 100
+                                : null;
+                              const isIncrease = percent != null && percent >= 0;
+                              return (
+                                <div key={metric} className="mb-1 flex items-center">
+                                  <span style={{ color: metricConfig?.color, minWidth: 80, display: 'inline-block' }}>
+                                    {metricConfig?.label || metric}:
+                                  </span>
+                                  <span>
+                                    {new Intl.NumberFormat('en-US', {
+                                      notation: 'compact',
+                                      maximumFractionDigits: 1
+                                    }).format(value2024)}
+                                  </span>
+                                  {percent != null && (
+                                    <span
+                                      className={`ml-2 flex items-center text-xs font-semibold ${isIncrease ? 'text-green-600' : 'text-red-600'}`}
+                                      style={{ minWidth: 50 }}
+                                    >
+                                      {isIncrease ? '▲' : '▼'}
+                                      {Math.abs(percent).toFixed(1)}%
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
