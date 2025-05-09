@@ -187,6 +187,43 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const transformData = (data: any[]) => {
+    const transformedData: { [key: string]: any } = {};
+    
+    data.forEach((item) => {
+      const year = parseInt(item.name.split('-')[0]);
+      const period = selectedPeriod.replace('Y', '');
+      const periodNum = parseInt(period);
+      
+      // Calculate the range
+      const startYear = Math.floor(year / periodNum) * periodNum;
+      const endYear = startYear + periodNum - 1;
+      const periodKey = `${startYear}-${endYear}`;
+      
+      if (!transformedData[periodKey]) {
+        transformedData[periodKey] = {
+          name: periodKey,
+          ...selectedSearchMetrics.reduce((acc, metric) => ({
+            ...acc,
+            [metric]: 0
+          }), {})
+        };
+      }
+      
+      // Aggregate values for the period
+      selectedSearchMetrics.forEach(metric => {
+        transformedData[periodKey][metric] += (item[metric] || 0) / periodNum;
+      });
+    });
+    
+    // Sort by start year
+    return Object.values(transformedData).sort((a, b) => {
+      const yearA = parseInt(a.name.split('-')[0]);
+      const yearB = parseInt(b.name.split('-')[0]);
+      return yearA - yearB;
+    });
+  };
+
   const fetchMetricData = useCallback(async () => {
     if (!searchValue || selectedSearchMetrics.length === 0) return;
     
@@ -197,6 +234,7 @@ const Dashboard: React.FC = () => {
       const ticker = searchValue.split(':')[0].trim().toUpperCase();
       console.log('Fetching data for ticker:', ticker, 'period:', selectedPeriod);
 
+      // Fetch data for all selected metrics
       const promises = selectedSearchMetrics.map(async metric => {
         const url = `${BASE_URL}/aggregated-data/?tickers=${ticker}&metric=${metric}&period=${selectedPeriod}`;
         console.log('Fetching from URL:', url);
@@ -212,22 +250,36 @@ const Dashboard: React.FC = () => {
 
       const results = await Promise.all(promises);
       
-      // Transform the data for the chart
-      const transformedData: { [key: string]: ChartDataPoint } = {};
+      // Combine all metric data
+      const combinedData: { [key: string]: any }[] = [];
       
       results.forEach(({ metric, data }) => {
-        data.forEach((item: { name: string; value: number; ticker: string }) => {
-          const period = item.name;
-          if (!transformedData[period]) {
-            transformedData[period] = { name: period };
+        data.forEach((item: any) => {
+          const year = parseInt(item.name.split('-')[0]);
+          const period = selectedPeriod.replace('Y', '');
+          const periodNum = parseInt(period);
+          
+          // Calculate the range
+          const startYear = Math.floor(year / periodNum) * periodNum;
+          const endYear = startYear + periodNum - 1;
+          const periodKey = `${startYear}-${endYear}`;
+          
+          let periodData = combinedData.find(d => d.name === periodKey);
+          if (!periodData) {
+            periodData = {
+              name: periodKey,
+              ...selectedSearchMetrics.reduce((acc, m) => ({ ...acc, [m]: 0 }), {})
+            };
+            combinedData.push(periodData);
           }
-          // Log the value being set
-          console.log(`Setting ${metric} value for ${period}:`, item.value);
-          transformedData[period][metric] = item.value || 0;
+          
+          // Add the metric value
+          periodData[metric] = item.value;
         });
       });
-
-      const sortedData = Object.values(transformedData).sort((a, b) => {
+      
+      // Sort by start year
+      const sortedData = combinedData.sort((a, b) => {
         const yearA = parseInt(a.name.split('-')[0]);
         const yearB = parseInt(b.name.split('-')[0]);
         return yearA - yearB;
@@ -236,13 +288,13 @@ const Dashboard: React.FC = () => {
       console.log('Final transformed chart data:', sortedData);
       setChartData(sortedData);
 
-      if (sortedData.length > 0 && console.log(
-        'Last data point:',
-        sortedData[sortedData.length - 1].name,
-        'Metrics:',
-        selectedSearchMetrics
-      )) {
-        // Additional logic if needed
+      if (sortedData.length > 0) {
+        console.log(
+          'Last data point:',
+          sortedData[sortedData.length - 1].name,
+          'Metrics:',
+          selectedSearchMetrics
+        );
       }
     } catch (error) {
       console.error('Error fetching metric data:', error);
@@ -378,15 +430,36 @@ const Dashboard: React.FC = () => {
     }
   }, [searchValue, selectedSearchMetrics, activeChart, selectedPeriod, fetchMetricData]);
 
-  // Set the fixed 2024 data point when chartData changes
+  // Update the useEffect that sets fixed2024Data
   useEffect(() => {
-    if (activeChart === 'metrics') {
-      const data2024 = chartData.find(d => d.name.startsWith('2024'));
-      if (data2024) {
-        setFixed2024Data(data2024);
+    if (activeChart === 'metrics' && chartData.length > 0) {
+      // For annual view, keep the 2024 logic
+      if (selectedPeriod === '1Y') {
+        const data2024 = chartData.find(d => d.name.startsWith('2024'));
+        if (data2024) {
+          setFixed2024Data(data2024);
+        }
+      } else {
+        // For other periods (2Y, 3Y, etc.), use the last period
+        const lastPeriod = chartData[chartData.length - 1];
+        if (lastPeriod) {
+          setFixed2024Data(lastPeriod);
+        }
+      }
+    } else if (activeChart === 'peers' && peerChartData.length > 0) {
+      if (selectedPeriod === '1Y') {
+        const data2024 = peerChartData.find(d => d.name.startsWith('2024'));
+        if (data2024) {
+          setFixed2024Data(data2024);
+        }
+      } else {
+        const lastPeriod = peerChartData[peerChartData.length - 1];
+        if (lastPeriod) {
+          setFixed2024Data(lastPeriod);
+        }
       }
     }
-  }, [chartData, activeChart]);
+  }, [chartData, peerChartData, activeChart, selectedPeriod]);
 
   useEffect(() => {
     if (activeChart === 'peers') {
@@ -484,6 +557,10 @@ const Dashboard: React.FC = () => {
       left: tickRect.left - chartRect.left + tickRect.width / 2,
       top: 40 // adjust as needed
     });
+    console.log('Set fixedTooltipPos:', {
+      left: tickRect.left - chartRect.left + tickRect.width / 2,
+      top: 40
+    });
   }, [fixed2024Data, chartData, activeChart]);
 
   const toggleSidebar = () => {
@@ -493,6 +570,8 @@ const Dashboard: React.FC = () => {
   console.log('chartData:', chartData);
   console.log('fixed2024Data:', fixed2024Data);
   console.log('fixedTooltipPos:', fixedTooltipPos);
+  console.log('peerChartData:', peerChartData);
+  console.log('fixed2024Data:', fixed2024Data);
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
@@ -1239,14 +1318,18 @@ const Dashboard: React.FC = () => {
                         No data available
                       </div>
                     ) : (
-                      <div style={{ position: 'relative', width: '100%', height: 400 }} ref={chartContainerRef}>
+                      <div ref={chartContainerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart 
                             data={chartData}
                             onMouseMove={e => {
                               if (e && e.activePayload && e.activePayload.length > 0) {
                                 const payload = e.activePayload[0].payload;
-                                if (!payload.name?.startsWith('2024')) {
+                                const isFixedPoint = selectedPeriod === '1Y' 
+                                  ? payload.name?.startsWith('2024')
+                                  : payload.name === chartData[chartData.length - 1]?.name;
+                                
+                                if (!isFixedPoint) {
                                   setActiveTooltip(payload);
                                 } else {
                                   setActiveTooltip(null);
@@ -1260,13 +1343,15 @@ const Dashboard: React.FC = () => {
                             <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
                             <XAxis 
                               dataKey="name" 
-                              tickFormatter={(name) => {
-                                // Handle year ranges like "2024-2024" -> "2024"
-                                if (name.includes('-')) {
-                                  const [startYear] = name.split('-');
+                              tickFormatter={(value) => {
+                                if (typeof value === 'string' && value.includes('-')) {
+                                  if (selectedPeriod !== '1Y') {
+                                    return value;
+                                  }
+                                  const [startYear] = value.split('-');
                                   return startYear;
                                 }
-                                return name;
+                                return value;
                               }}
                             />
                             <YAxis 
@@ -1287,16 +1372,20 @@ const Dashboard: React.FC = () => {
                               ]}
                               labelFormatter={(label) => {
                                 if (typeof label === 'string' && label.includes('-')) {
+                                  if (selectedPeriod !== '1Y') {
+                                    return label;
+                                  }
                                   const [startYear] = label.split('-');
                                   return startYear;
                                 }
                                 return label;
                               }}
                               content={({ active, payload, label, ...props }) => {
-                                // If the hovered point is 2024, don't show the tooltip
+                                // If the hovered point is the fixed point (2024 for 1Y, or last period for others), don't show the tooltip
                                 if (active && payload && payload.length > 0) {
                                   const point = payload[0].payload;
-                                  if (point.name && point.name.startsWith('2024')) {
+                                  if ((selectedPeriod === '1Y' && point.name?.startsWith('2024')) || 
+                                      (selectedPeriod !== '1Y' && point.name === chartData[chartData.length - 1]?.name)) {
                                     return null;
                                   }
                                 }
@@ -1336,7 +1425,6 @@ const Dashboard: React.FC = () => {
                         {/* Custom fixed 2024 tooltip - OUTSIDE ResponsiveContainer! */}
                         {fixed2024Data && fixedTooltipPos && (
                           <div
-                            data-testid="fixed-2024-tooltip"
                             style={{
                               position: 'absolute',
                               left: fixedTooltipPos.left - 70,
@@ -1352,7 +1440,9 @@ const Dashboard: React.FC = () => {
                               pointerEvents: 'none',
                             }}
                           >
-                            <div className="font-medium mb-1">2024</div>
+                            <div className="font-medium mb-1">
+                              {selectedPeriod === '1Y' ? '2024' : fixed2024Data.name}
+                            </div>
                             {selectedSearchMetrics.map((metric) => {
                               const value2024 = Number(fixed2024Data[metric]) || 0;
                               const metricConfig = metricColors[metric];
@@ -1406,66 +1496,155 @@ const Dashboard: React.FC = () => {
                         No data available
                       </div>
                     ) : (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart 
-                          data={peerChartData}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                          <XAxis 
-                            dataKey="name" 
-                            tickFormatter={(name) => {
-                              // Handle year ranges like "2024-2024" -> "2024"
-                              if (name.includes('-')) {
-                                const [startYear] = name.split('-');
-                                return startYear;
+                      <div ref={chartContainerRef} style={{ position: 'relative', width: '100%', height: 400 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart 
+                            data={peerChartData}
+                            onMouseMove={e => {
+                              if (e && e.activePayload && e.activePayload.length > 0) {
+                                const payload = e.activePayload[0].payload;
+                                const isFixedPoint = selectedPeriod === '1Y' 
+                                  ? payload.name?.startsWith('2024')
+                                  : payload.name === peerChartData[peerChartData.length - 1]?.name;
+                                
+                                if (!isFixedPoint) {
+                                  setActiveTooltip(payload);
+                                } else {
+                                  setActiveTooltip(null);
+                                }
+                              } else {
+                                setActiveTooltip(null);
                               }
-                              return name;
                             }}
-                          />
-                          <YAxis 
-                            tickFormatter={(value) => new Intl.NumberFormat('en-US', {
-                              notation: 'compact',
-                              maximumFractionDigits: 1
-                            }).format(value)}
-                          />
-                          <Tooltip 
-                            formatter={(value: number) => new Intl.NumberFormat('en-US', {
-                              notation: 'compact',
-                              maximumFractionDigits: 1
-                            }).format(value)}
-                            labelFormatter={(label) => {
-                              if (typeof label === 'string' && label.includes('-')) {
-                                const [startYear] = label.split('-');
-                                return startYear;
-                              }
-                              return label;
+                            onMouseLeave={() => setActiveTooltip(null)}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+                            <XAxis 
+                              dataKey="name" 
+                              tickFormatter={(value) => {
+                                if (typeof value === 'string' && value.includes('-')) {
+                                  if (selectedPeriod !== '1Y') {
+                                    return value;
+                                  }
+                                  const [startYear] = value.split('-');
+                                  return startYear;
+                                }
+                                return value;
+                              }}
+                            />
+                            <YAxis 
+                              tickFormatter={(value) => new Intl.NumberFormat('en-US', {
+                                notation: 'compact',
+                                maximumFractionDigits: 1
+                              }).format(value)}
+                            />
+                            <Tooltip 
+                              formatter={(value: number) => new Intl.NumberFormat('en-US', {
+                                notation: 'compact',
+                                maximumFractionDigits: 1
+                              }).format(value)}
+                              labelFormatter={(label) => {
+                                if (typeof label === 'string' && label.includes('-')) {
+                                  if (selectedPeriod !== '1Y') {
+                                    return label;
+                                  }
+                                  const [startYear] = label.split('-');
+                                  return startYear;
+                                }
+                                return label;
+                              }}
+                              content={({ active, payload, label, ...props }) => {
+                                if (active && payload && payload.length > 0) {
+                                  const point = payload[0].payload;
+                                  if ((selectedPeriod === '1Y' && point.name?.startsWith('2024')) || 
+                                      (selectedPeriod !== '1Y' && point.name === peerChartData[peerChartData.length - 1]?.name)) {
+                                    return null;
+                                  }
+                                }
+                                return <DefaultTooltipContent active={active} payload={payload} label={label} {...props} />;
+                              }}
+                              contentStyle={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+                              itemStyle={{ padding: 0 }}
+                            />
+                            <Legend />
+                            {selectedCompanies.map((company, idx) => {
+                              const color = generateColorPalette(selectedCompanies.length)[idx];
+                              const metricLabel = availableMetrics.find(m => m.value === selectedPeerMetric)?.label || selectedPeerMetric;
+                              return (
+                                <Line
+                                  key={company.ticker}
+                                  type="monotone"
+                                  dataKey={company.ticker}
+                                  stroke={color}
+                                  name={`${company.ticker} - ${metricLabel}`}
+                                  strokeWidth={2}
+                                  dot={{
+                                    fill: color,
+                                    r: 4
+                                  }}
+                                />
+                              );
+                            })}
+                          </LineChart>
+                        </ResponsiveContainer>
+                        {/* Fixed tooltip for peers chart */}
+                        {activeChart === 'peers' && fixed2024Data && fixedTooltipPos && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              left: fixedTooltipPos.left - 70,
+                              top: fixedTooltipPos.top + 16,
+                              zIndex: 99999,
+                              background: '#fff',
+                              border: '1px solid #ccc',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                              borderRadius: 4,
+                              padding: 10,
+                              minWidth: 0,
+                              fontSize: 'inherit',
+                              pointerEvents: 'none',
                             }}
-                            contentStyle={{ 
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                            }}
-                            itemStyle={{ padding: 0 }}
-                          />
-                          <Legend />
-                          {selectedCompanies.map((company, index) => {
-                            const color = generateColorPalette(selectedCompanies.length)[index];
-                            const metricLabel = availableMetrics.find(m => m.value === selectedPeerMetric)?.label || selectedPeerMetric;
-                            return (
-                              <Line
-                                key={company.ticker}
-                                type="monotone"
-                                dataKey={company.ticker}
-                                stroke={color}
-                                name={`${company.ticker} - ${metricLabel}`}
-                                strokeWidth={2}
-                                dot={{
-                                  fill: color,
-                                  r: 4
-                                }}
-                              />
-                            );
-                          })}
-                        </LineChart>
-                      </ResponsiveContainer>
+                          >
+                            <div className="font-medium mb-1">
+                              {selectedPeriod === '1Y' ? '2024' : fixed2024Data.name}
+                            </div>
+                            {selectedCompanies.map((company, idx) => {
+                              const value = Number(fixed2024Data[company.ticker]) || 0;
+                              const hoveredValue = (activeTooltip && activeTooltip[company.ticker] != null)
+                                ? Number(activeTooltip[company.ticker])
+                                : null;
+                              const diff = hoveredValue != null ? value - hoveredValue : null;
+                              const percent = (hoveredValue && hoveredValue !== 0)
+                                ? (diff / hoveredValue) * 100
+                                : null;
+                              const isIncrease = percent != null && percent >= 0;
+                              const color = generateColorPalette(selectedCompanies.length)[idx];
+                              return (
+                                <div key={company.ticker} className="mb-1 flex items-center">
+                                  <span style={{ color, minWidth: 80, display: 'inline-block' }}>
+                                    {company.ticker}:
+                                  </span>
+                                  <span>
+                                    {new Intl.NumberFormat('en-US', {
+                                      notation: 'compact',
+                                      maximumFractionDigits: 1
+                                    }).format(value)}
+                                  </span>
+                                  {percent != null && (
+                                    <span
+                                      className={`ml-2 flex items-center text-xs font-semibold ${isIncrease ? 'text-green-600' : 'text-red-600'}`}
+                                      style={{ minWidth: 50 }}
+                                    >
+                                      {isIncrease ? '▲' : '▼'}
+                                      {Math.abs(percent).toFixed(1)}%
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     )
                   ) : (
                     // Industry Chart
@@ -1593,6 +1772,6 @@ const Dashboard: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 export default Dashboard; 
