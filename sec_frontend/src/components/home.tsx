@@ -251,6 +251,48 @@ const Dashboard: React.FC = () => {
       const ticker = searchValue.split(':')[0].trim().toUpperCase();
       console.log('Fetching data for ticker:', ticker, 'period:', selectedPeriod);
 
+      // Create array of time periods based on selectedPeriod
+      let timePoints: string[] = [];
+      if (selectedPeriod === '1Y') {
+        // For annual data, use single years
+        timePoints = Array.from({ length: 20 }, (_, i) => (2005 + i).toString());
+      } else {
+        // For multi-year periods, use predefined ranges
+        switch (selectedPeriod) {
+          case '2Y':
+            timePoints = [
+              '2005-06', '2007-08', '2009-10', '2011-12', '2013-14',
+              '2015-16', '2017-18', '2019-20', '2021-22', '2023-24'
+            ];
+            break;
+          case '3Y':
+            timePoints = [
+              '2007-09', '2010-12', '2013-15', '2016-18',
+              '2019-21', '2022-24'
+            ];
+            break;
+          case '4Y':
+            timePoints = [
+              '2005-08', '2009-12', '2013-16', '2017-20', '2021-24'
+            ];
+            break;
+          case '5Y':
+            timePoints = [
+              '2005-09', '2010-14', '2015-19', '2020-24'
+            ];
+            break;
+          case '10Y':
+            timePoints = ['2005-14', '2015-24'];
+            break;
+          case '15Y':
+            timePoints = ['2010-24'];
+            break;
+          case '20Y':
+            timePoints = ['2005-24'];
+            break;
+        }
+      }
+
       // First check if company exists
       const companyResponse = await fetch(`${BASE_URL}/companies/${ticker}/`);
       if (!companyResponse.ok) {
@@ -282,22 +324,29 @@ const Dashboard: React.FC = () => {
         return;
       }
 
+      // Initialize data points for all time periods
+      const baseData = timePoints.map(period => ({
+        name: period,
+        ticker: ticker,
+        value: 0
+      }));
+
       // Transform the data for the chart
       const transformedData = results.reduce((acc, { metric, data }) => {
+        // Start with the base data structure
+        if (acc.length === 0) {
+          acc = [...baseData];
+        }
+
+        // Update values for periods that have data
         data.forEach((item: ChartDataPoint) => {
           const existingPoint = acc.find(p => p.name === item.name);
           if (existingPoint) {
             existingPoint[metric] = item.value;
             existingPoint.ticker = item.ticker;
-          } else {
-            acc.push({
-              name: item.name,
-              ticker: item.ticker,
-              value: item.value,
-              [metric]: item.value
-            });
           }
         });
+
         return acc;
       }, [] as ChartDataPoint[]);
 
