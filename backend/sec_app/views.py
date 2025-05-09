@@ -445,66 +445,119 @@ class BoxPlotDataAPIView(APIView):
 class AggregatedDataAPIView(APIView):
     def get(self, request):
         tickers = request.GET.get("tickers", "").split(',')
-        metric = request.GET.get("metric", "revenue")
+        metric = request.GET.get("metric", "Revenue")  # Default to "Revenue" with capital R
         period = request.GET.get("period", "1Y").strip('"')
 
         if not tickers or not tickers[0]:
             return Response({"error": "Tickers are required."}, status=400)
 
-        # Add debug logging
         print(f"Fetching data for tickers: {tickers}, metric: {metric}, period: {period}")
 
-        if period == "2Y":
-            intervals = [(2015, 2016), (2017, 2018), (2019, 2020), (2021, 2022), (2023, 2024)]
-        elif period == "3Y":
-            intervals = [(2015, 2017), (2018, 2020), (2021, 2023)]
-        elif period == "5Y":
-            intervals = [(2015, 2019), (2020, 2024)]
-        elif period == "10Y":
-            intervals = [(2015, 2024)]  # Single 10-year interval
+        # Capitalize first letter of metric to match database
+        metric = metric[0].upper() + metric[1:] if metric else ""
+
+        # Check if companies exist
+        companies = Company.objects.filter(ticker__in=tickers)
+        print(f"Found companies in DB: {list(companies.values_list('ticker', flat=True))}")
+
+        # Get metrics based on period type
+        metrics = FinancialMetric.objects.filter(
+            company__ticker__in=tickers,
+            metric_name=metric
+        ).select_related('period')
+
+        print(f"Found {metrics.count()} total metrics")
+        print(f"SQL Query: {metrics.query}")
+
+        # Filter metrics based on period type
+        if period == '1Y':
+            metrics = metrics.filter(period__period__regex=r'^\d{4}$')
         else:
-            intervals = [(year, year) for year in range(2015, 2025)]
-
-        aggregated_data = []
-
-        for start, end in intervals:
-            print(f"Querying interval: {start}-{end}")
-            metrics = FinancialMetric.objects.filter(
-                company__ticker__in=tickers,
-                metric_name=metric,
-                period__start_date__year__range=(start, end)
+            year_span = int(period.replace('Y', ''))
+            metrics = metrics.filter(
+                period__period__regex=fr'^\d{{4}}-\d{{2}}$',
+                period__period__contains='-'
             )
+
+        print(f"After period filtering: {metrics.count()} metrics")
+        
+        # Group by period and calculate aggregates
+        aggregated_data = []
+        for ticker in tickers:
+            ticker_metrics = metrics.filter(company__ticker=ticker)
+            print(f"\nProcessing {ticker}:")
+            print(f"Found {ticker_metrics.count()} metrics")
+            if ticker_metrics.exists():
+                print("Sample periods:", list(ticker_metrics.values_list('period__period', flat=True))[:5])
             
-            # Debug the query
-            print("Query:", metrics.query)
-            print("Results:", list(metrics.values()))
+            for metric_obj in ticker_metrics:
+                try:
+                    value = float(metric_obj.value) if metric_obj.value is not None else 0
+                    period_str = metric_obj.period.period
+                    print(f"Adding data point: {ticker}, {period_str}, {value}")
+                    
+                    aggregated_data.append({
+                        "name": period_str,
+                        "ticker": ticker,
+                        "value": value
+                    })
+                except Exception as e:
+                    print(f"Error processing metric: {str(e)}")
 
-            metrics_dict = {m['company__ticker']: m['total'] for m in metrics.values('company__ticker').annotate(total=Sum('value'))}
-            print(f"Metrics dict: {metrics_dict}")
+        # Sort data chronologically
+        aggregated_data.sort(key=lambda x: x['name'])
 
-            for ticker in tickers:
-                total = metrics_dict.get(ticker, 0)
-                print(f"Ticker: {ticker}, Interval: {start}-{end}, Total: {total}")
-                aggregated_data.append({
-                    "name": f"{start}-{end}",
-                    "ticker": ticker,
-                    "value": total
-                })
-
+        if not aggregated_data:
+            print("No data was aggregated")
+            
         return Response(aggregated_data, status=200)
 
 @api_view(['GET'])
 def get_available_metrics(request):
     try:
-        metrics = FinancialMetric.objects.values_list('metric_name', flat=True).distinct()
-        # Remove duplicates and sort
-        unique_metrics = sorted(list(set(metrics)))
+        # Read the first CSV file to get metric names
+        csv_path = os.path.join('sec_app', 'tickers', 'ABCE_StdMetrics.csv')
+        df = pd.read_csv(csv_path)
+        
+        # Get all metric names from the first column (index 0), excluding only 'statementType'
+        metrics = df.iloc[:, 0].tolist()
+        metrics = [m for m in metrics if m != 'statementType']
+        
+        # Sort metrics alphabetically
+        metrics.sort()
+        
+        logger.info(f"Available metrics from CSV: {metrics}")
+        
         return Response({
-            "metrics": unique_metrics
+            "metrics": metrics
         })
     except Exception as e:
         logger.error(f"Error fetching available metrics: {str(e)}")
         return Response(
             {"error": "Failed to fetch metrics"}, 
             status=500
+        )
+
+@api_view(['GET'])
+def check_company(request, ticker):
+    """Check if a company exists and has data."""
+    try:
+        company = Company.objects.get(ticker=ticker)
+        metrics_count = FinancialMetric.objects.filter(company=company).count()
+        
+        if metrics_count == 0:
+            return Response(
+                {"error": f"No financial data available for {ticker}"}, 
+                status=404
+            )
+            
+        return Response({
+            "ticker": company.ticker,
+            "name": company.name,
+            "metrics_count": metrics_count
+        })
+    except Company.DoesNotExist:
+        return Response(
+            {"error": f"Company {ticker} not found"}, 
+            status=404
         )
