@@ -3,46 +3,94 @@
 import pandas as pd
 from django.core.management.base import BaseCommand
 from sec_app.models.company import Company
+import os
 
 class Command(BaseCommand):
-    help = 'Import company data from stocks_perf_data.xlsx (selected columns only)'
+    help = 'Load company data from tickers directory'
 
-    def handle(self, *args, **kwargs):
-        file_path = '/backend/data/stocks_perf_data.xlsx' 
+    def handle(self, *args, **options):
+        # Get the project root directory (where manage.py is)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.abspath(os.path.join(current_dir, '..', '..', '..', '..'))
+        
+        self.stdout.write(f"Current directory: {current_dir}")
+        self.stdout.write(f"Project root: {project_root}")
+        
+        # Try all possible locations
+        possible_paths = [
+            os.path.join(project_root, 'sec_app', 'tickers'),
+            os.path.join(project_root, 'backend', 'sec_app', 'tickers'),
+            os.path.join(os.path.dirname(project_root), 'sec_app', 'tickers')
+        ]
+        
+        # Debug: List all directories and files
+        self.stdout.write("\nChecking directories:")
+        for path in possible_paths:
+            self.stdout.write(f"\nChecking path: {path}")
+            if os.path.exists(path):
+                self.stdout.write(f"Directory exists!")
+                try:
+                    files = os.listdir(path)
+                    self.stdout.write(f"Files in directory:")
+                    for f in files:
+                        self.stdout.write(f"  - {f}")
+                except Exception as e:
+                    self.stdout.write(f"Error reading directory: {str(e)}")
+            else:
+                self.stdout.write("Directory does not exist")
+        
+        # Find the first path that exists
+        tickers_dir = None
+        for path in possible_paths:
+            if os.path.exists(path):
+                tickers_dir = path
+                break
+        
+        if not tickers_dir:
+            self.stdout.write(self.style.ERROR(f"Could not find tickers directory. Tried:"))
+            for path in possible_paths:
+                self.stdout.write(self.style.ERROR(f"- {path}"))
+            return
+        
+        self.stdout.write(f"Found tickers directory at: {tickers_dir}")
+        
+        ticker_files = [f for f in os.listdir(tickers_dir) if f.endswith('_StdMetrics.csv')]
+        self.stdout.write(f"Found {len(ticker_files)} ticker files")
+        
+        companies_added = 0
+        companies_updated = 0
 
-        try:
-            use_cols = ['Symbol', 'Company', 'Sector', 'Industry', 'CIK']
-            df = pd.read_excel(file_path, engine='openpyxl', usecols=use_cols)
+        for file_name in ticker_files:
+            ticker = file_name.replace('_StdMetrics.csv', '')
+            file_path = os.path.join(tickers_dir, file_name)
 
-            for _, row in df.iterrows():
-                ticker = str(row['Symbol']).strip()
-                name = str(row['Company']).strip()
-                sector = str(row.get('Sector', '')).strip()
-                industry = str(row.get('Industry', '')).strip()
-                cik = str(row.get('CIK', '')).strip()
-                # country = str(row.get('Country', '')).strip()
-                # market_cap = row.get('Market Cap')
-                # assets = row.get('Assets')
-
-                company, created = Company.objects.get_or_create(
+            try:
+                df = pd.read_csv(file_path)
+                company_name = ticker
+                
+                # Generate a unique placeholder CIK for each company
+                placeholder_cik = f"CIK{ticker}"  # Using ticker as part of CIK to ensure uniqueness
+                
+                company, created = Company.objects.update_or_create(
                     ticker=ticker,
                     defaults={
-                        'name': name,
-                        'sector': sector if pd.notna(sector) else None,
-                        'industry': industry if pd.notna(industry) else None,
-                        'cik': cik if pd.notna(cik) else None,
-                        # 'country': country if pd.notna(country) else None,
-                        # 'market_cap': market_cap if pd.notna(market_cap) else None,
-                        # 'assets': assets if pd.notna(assets) else None
+                        'name': company_name,
+                        'cik': placeholder_cik  # Using the placeholder CIK instead of empty string
                     }
                 )
 
                 if created:
-                    self.stdout.write(self.style.SUCCESS(f"✔ Created company: {ticker} - {name}"))
+                    companies_added += 1
+                    self.stdout.write(self.style.SUCCESS(f"Added company: {ticker}"))
                 else:
-                    self.stdout.write(f"↪ Company {ticker} already exists. Skipped.")
+                    companies_updated += 1
+                    self.stdout.write(self.style.SUCCESS(f"Updated company: {ticker}"))
 
-            self.stdout.write(self.style.SUCCESS("✅ Company import complete."))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f"Error processing {file_name}: {str(e)}"))
 
-        except Exception as e:
-            self.stderr.write(self.style.ERROR(f"❌ Error importing companies: {e}"))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f'Successfully processed companies: {companies_added} added, {companies_updated} updated'
+            )
+        )

@@ -61,8 +61,8 @@ function generateColorPalette(count: number): string[] {
   return colors;
 }
 
-// Add type for period
-type PeriodType = '1Y' | '2Y' | '3Y' | '5Y' | '10Y' | '15Y';
+// Update the PeriodType to include all available periods
+type PeriodType = '1Y' | '2Y' | '3Y' | '4Y' | '5Y' | '10Y' | '15Y' | '20Y';
 
 // Add interface for peer data
 interface PeerDataPoint {
@@ -79,6 +79,8 @@ interface CompanyTicker {
 // First, add this interface for the chart data
 interface ChartDataPoint {
   name: string;
+  ticker: string;
+  value: number;
   [key: string]: string | number;
 }
 
@@ -97,6 +99,21 @@ interface StickyTooltip {
   x: number;
   y: number;
   payload: any[];
+}
+
+// Add these interfaces at the top of the file
+interface YourChartDataType {
+  [metric: string]: number[];
+}
+
+// Update the activeTooltip interface
+interface ActiveTooltip {
+  x: number;
+  y: number;
+  payload: {
+    [key: string]: any;
+  };
+  [key: string]: any;  // Add index signature for dynamic metric access
 }
 
 const Dashboard: React.FC = () => {
@@ -129,7 +146,7 @@ const Dashboard: React.FC = () => {
   const [industryCompanyInput, setIndustryCompanyInput] = useState('');
   const [selectedIndustryMetrics, setSelectedIndustryMetrics] = useState<string[]>([]);
   const [industryMetricInput, setIndustryMetricInput] = useState('');
-  const [industryChartData, setIndustryChartData] = useState<YourChartDataType[]>([]);
+  const [industryChartData, setIndustryChartData] = useState<ChartDataPoint[]>([]);
   const [industryLoading, setIndustryLoading] = useState(false);
   const [industryError, setIndustryError] = useState<string | null>(null);
   const [selectedIndustry, setSelectedIndustry] = useState('');
@@ -149,7 +166,7 @@ const Dashboard: React.FC = () => {
   const [peerMetricSearch, setPeerMetricSearch] = useState('');
   const [showPeerMetricDropdown, setShowPeerMetricDropdown] = useState(false);
   const peerDropdownRef = useRef<HTMLDivElement>(null);
-  const [activeTooltip, setActiveTooltip] = useState<{ x: number; y: number; payload: any } | null>(null);
+  const [activeTooltip, setActiveTooltip] = useState<ActiveTooltip | null>(null);
   const [stickyTooltips, setStickyTooltips] = useState<StickyTooltip[]>([]);
   const [fixed2024Data, setFixed2024Data] = useState<any>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -234,6 +251,14 @@ const Dashboard: React.FC = () => {
       const ticker = searchValue.split(':')[0].trim().toUpperCase();
       console.log('Fetching data for ticker:', ticker, 'period:', selectedPeriod);
 
+      // First check if company exists
+      const companyResponse = await fetch(`${BASE_URL}/companies/${ticker}/`);
+      if (!companyResponse.ok) {
+        setError(`No data available for ${ticker}. Please try another company.`);
+        setChartData([]);
+        return;
+      }
+
       // Fetch data for all selected metrics
       const promises = selectedSearchMetrics.map(async metric => {
         const url = `${BASE_URL}/aggregated-data/?tickers=${ticker}&metric=${metric}&period=${selectedPeriod}`;
@@ -249,53 +274,36 @@ const Dashboard: React.FC = () => {
       });
 
       const results = await Promise.all(promises);
-      
-      // Combine all metric data
-      const combinedData: { [key: string]: any }[] = [];
-      
-      results.forEach(({ metric, data }) => {
-        data.forEach((item: any) => {
-          const year = parseInt(item.name.split('-')[0]);
-          const period = selectedPeriod.replace('Y', '');
-          const periodNum = parseInt(period);
-          
-          // Calculate the range
-          const startYear = Math.floor(year / periodNum) * periodNum;
-          const endYear = startYear + periodNum - 1;
-          const periodKey = `${startYear}-${endYear}`;
-          
-          let periodData = combinedData.find(d => d.name === periodKey);
-          if (!periodData) {
-            periodData = {
-              name: periodKey,
-              ...selectedSearchMetrics.reduce((acc, m) => ({ ...acc, [m]: 0 }), {})
-            };
-            combinedData.push(periodData);
-          }
-          
-          // Add the metric value
-          periodData[metric] = item.value;
-        });
-      });
-      
-      // Sort by start year
-      const sortedData = combinedData.sort((a, b) => {
-        const yearA = parseInt(a.name.split('-')[0]);
-        const yearB = parseInt(b.name.split('-')[0]);
-        return yearA - yearB;
-      });
+      console.log('All results:', results);
 
-      console.log('Final transformed chart data:', sortedData);
-      setChartData(sortedData);
-
-      if (sortedData.length > 0) {
-        console.log(
-          'Last data point:',
-          sortedData[sortedData.length - 1].name,
-          'Metrics:',
-          selectedSearchMetrics
-        );
+      if (results.every(result => result.data.length === 0)) {
+        setError(`No data available for ${ticker} for the selected metrics and period.`);
+        setChartData([]);
+        return;
       }
+
+      // Transform the data for the chart
+      const transformedData = results.reduce((acc, { metric, data }) => {
+        data.forEach((item: ChartDataPoint) => {
+          const existingPoint = acc.find(p => p.name === item.name);
+          if (existingPoint) {
+            existingPoint[metric] = item.value;
+            existingPoint.ticker = item.ticker;
+          } else {
+            acc.push({
+              name: item.name,
+              ticker: item.ticker,
+              value: item.value,
+              [metric]: item.value
+            });
+          }
+        });
+        return acc;
+      }, [] as ChartDataPoint[]);
+
+      console.log('Transformed data:', transformedData);
+      setChartData(transformedData);
+
     } catch (error) {
       console.error('Error fetching metric data:', error);
       setError('Failed to fetch data');
@@ -573,6 +581,27 @@ const Dashboard: React.FC = () => {
   console.log('peerChartData:', peerChartData);
   console.log('fixed2024Data:', fixed2024Data);
 
+  // Update the diff calculation to handle null
+  const calculatePercentage = (current: number, previous: number | null) => {
+    if (previous === null || previous === 0) return null;
+    return ((current - previous) / previous) * 100;
+  };
+
+  // Update DefaultTooltipContent usage
+  const CustomTooltip: React.FC<any> = ({ active, payload, label, ...props }) => {
+    if (!active || !payload) return null;
+    return (
+      <div className="custom-tooltip bg-white p-2 border rounded shadow">
+        <p className="label">{label}</p>
+        {payload.map((entry: any) => (
+          <p key={entry.name} style={{ color: entry.color }}>
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       {/* Mobile Header */}
@@ -793,7 +822,17 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Every 3Ys
+                        3Ys
+                      </button>
+                      <button 
+                        onClick={() => setSelectedPeriod('4Y')}
+                        className={`px-4 py-1 rounded text-sm ${
+                          selectedPeriod === '4Y' 
+                            ? 'bg-[#E5F0F6] text-[#1B5A7D]' 
+                            : 'text-gray-600'
+                        }`}
+                      >
+                        4Ys
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('5Y')}
@@ -803,7 +842,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Every 5Ys
+                        5Ys
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('10Y')}
@@ -813,7 +852,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Every 10Ys
+                        10Ys
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('15Y')}
@@ -823,7 +862,17 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Every 15Ys
+                        15Ys
+                      </button>
+                      <button 
+                        onClick={() => setSelectedPeriod('20Y')}
+                        className={`px-4 py-1 rounded text-sm ${
+                          selectedPeriod === '20Y' 
+                            ? 'bg-[#E5F0F6] text-[#1B5A7D]' 
+                            : 'text-gray-600'
+                        }`}
+                      >
+                        20Ys
                       </button>
                     </div>
           </div>

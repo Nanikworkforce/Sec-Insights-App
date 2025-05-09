@@ -10,61 +10,106 @@ class Command(BaseCommand):
     help = 'Import financial data from CSV files'
 
     def handle(self, *args, **kwargs):
-        # Path to the directory containing CSV files
-        directory_path = 'sec_app/ticker_perf/'
+        directory_path = 'sec_app/tickers'
+        self.stdout.write(f"Looking for CSV files in: {directory_path}")
 
         # Iterate over each CSV file in the directory
         for filename in os.listdir(directory_path):
-            if filename.endswith('.csv'):
+            if filename.endswith('_StdMetrics.csv'):
                 filepath = os.path.join(directory_path, filename)
+                self.stdout.write(f"Processing file: {filename}")
                 self.import_csv(filepath)
 
     def import_csv(self, filepath):
         df = pd.read_csv(filepath)
         ticker = os.path.basename(filepath).split('_')[0]
+        self.stdout.write(f"Processing ticker: {ticker}")
 
-        # Check for existing company with the same ticker
+        # Get or create company
+        company = self.get_or_create_company(ticker)
+        if not company:
+            return
+
+        # Process annual data (2005-2024)
+        self.process_annual_data(df, company)
+        
+        # Process multi-year periods
+        self.process_period_data(df, company, '2Y')
+        self.process_period_data(df, company, '3Y')
+        self.process_period_data(df, company, '4Y')
+        self.process_period_data(df, company, '5Y')
+        self.process_period_data(df, company, '10Y')
+        self.process_period_data(df, company, '15Y')
+        self.process_period_data(df, company, '20Y')
+
+    def get_or_create_company(self, ticker):
         existing_companies = Company.objects.filter(ticker=ticker)
         if existing_companies.count() > 1:
-            print(f"Multiple companies found with ticker {ticker}. Please resolve duplicates.")
-            return
+            self.stdout.write(self.style.ERROR(f"Multiple companies found with ticker {ticker}"))
+            return None
         elif existing_companies.count() == 1:
-            company = existing_companies.first()
+            return existing_companies.first()
         else:
-            # Ensure you have a valid CIK for each company
             cik = self.get_cik_for_ticker(ticker)
             if cik == '0000000000':
-                print(f"Warning: No valid CIK found for ticker {ticker}. Skipping.")
-                return
+                self.stdout.write(self.style.WARNING(f"No valid CIK found for ticker {ticker}"))
             company = Company.objects.create(ticker=ticker, name=ticker, cik=cik)
+            self.stdout.write(self.style.SUCCESS(f"Created new company: {ticker}"))
+            return company
 
-        # Assuming the first column is the metric name
+    def process_annual_data(self, df, company):
+        # Process each year from 2005 to 2024
+        for year in range(2005, 2025):
+            year_str = str(year)
+            if year_str not in df.columns:
+                continue
+
+            period, _ = FinancialPeriod.objects.get_or_create(
+                company=company,
+                period=year_str,
+                defaults={
+                    'start_date': f'{year}-01-01',
+                    'end_date': f'{year}-12-31'
+                }
+            )
+
+            self.create_metrics(df, company, period, year_str)
+
+    def process_period_data(self, df, company, period_type):
+        # Get the column names for this period type
+        period_cols = [col for col in df.columns if col.startswith(f'{period_type}: ')]
+        
+        for col in period_cols:
+            # Extract years from column name (e.g., "2Y: 2005-06" -> "2005-06")
+            years = col.split(': ')[1]
+            
+            period, _ = FinancialPeriod.objects.get_or_create(
+                company=company,
+                period=years,
+                defaults={
+                    'start_date': f'{years.split("-")[0]}-01-01',
+                    'end_date': f'20{years.split("-")[1]}-12-31'
+                }
+            )
+
+            self.create_metrics(df, company, period, col)
+
+    def create_metrics(self, df, company, period, column):
         metric_names = df.iloc[:, 0]
+        for i, metric_name in enumerate(metric_names):
+            if metric_name == 'statementType':
+                continue
 
-        # Iterate over each year column
-        for year in df.columns[1:]:
-            for i, metric_name in enumerate(metric_names):
-                value = df.at[i, year]
+            value = df.at[i, column]
+            if pd.isna(value):
+                continue
 
-                # Check if the value is missing or invalid
-                if pd.isna(value):
-                    print(f"Skipping missing value for {metric_name} in {year}")
-                    continue
-
-                # Create or get the financial period for the year
-                period, _ = FinancialPeriod.objects.get_or_create(
-                    company=company,
-                    period=year,
-                    defaults={'start_date': f'{year}-01-01', 'end_date': f'{year}-12-31'}
-                )
-
-                # Create or update the financial metric
-                FinancialMetric.objects.update_or_create(
-                    company=company,
-                    period=period,
-                    metric_name=metric_name,
-                    defaults={'value': value, 'unit': 'USD'}  # Assuming USD as the unit
-                )
+            FinancialMetric.objects.update_or_create(
+                company=company,
+                period=period,
+                metric_name=metric_name,
+                defaults={'value': value, 'unit': 'USD'}
+            )
 
     def get_cik_for_ticker(self, ticker):
         cik_lookup = {
@@ -82,6 +127,5 @@ class Command(BaseCommand):
             'META': '0001326801',
             'ANGI': '0001705110',
             'AXIL': '0001718500'
-            
         }
         return cik_lookup.get(ticker, '0000000000')  
