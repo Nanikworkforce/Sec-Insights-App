@@ -338,13 +338,13 @@ const Dashboard: React.FC = () => {
           acc = [...baseData];
         }
 
-        // Update values for periods that have data
-        data.forEach((item: ChartDataPoint) => {
-          const existingPoint = acc.find(p => p.name === item.name);
-          if (existingPoint) {
-            existingPoint[metric] = item.value;
-            existingPoint.ticker = item.ticker;
-          }
+        // Create a map of existing data points
+        const dataMap = new Map(data.map(item => [item.name, item.value]));
+
+        // Update all time points, using existing value or 0 if no data
+        acc.forEach(point => {
+          point[metric] = dataMap.get(point.name) || 0;
+          point.ticker = ticker;
         });
 
         return acc;
