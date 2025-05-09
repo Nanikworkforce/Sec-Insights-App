@@ -366,41 +366,86 @@ const Dashboard: React.FC = () => {
     
     setPeerLoading(true);
     setPeerError(null);
-    
+
     try {
-      // Extract tickers from selectedCompanies
-      const tickers = selectedCompanies.map(company => company.ticker);
-      console.log('Fetching peer data for tickers:', tickers, 'metric:', selectedPeerMetric);
-
-      const url = `${BASE_URL}/aggregated-data/?tickers=${tickers.join(',')}&metric=${selectedPeerMetric}&period=${selectedPeriod}`;
-      console.log('Fetching from URL:', url);
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch peer data');
-      }
-      const data = await response.json();
-      console.log('Raw peer data:', data);
-
-      // Transform the data for the chart
-      const transformedData: { [key: string]: PeerDataPoint } = {};
-      
-      data.forEach((item: { name: string; value: number; ticker: string }) => {
-        const period = item.name;
-        if (!transformedData[period]) {
-          transformedData[period] = { name: period };
+      // Create array of time periods based on selectedPeriod
+      let timePoints: string[] = [];
+      if (selectedPeriod === '1Y') {
+        timePoints = Array.from({ length: 20 }, (_, i) => (2005 + i).toString());
+      } else {
+        switch (selectedPeriod) {
+          case '2Y':
+            timePoints = [
+              '2005-06', '2007-08', '2009-10', '2011-12', '2013-14',
+              '2015-16', '2017-18', '2019-20', '2021-22', '2023-24'
+            ];
+            break;
+          case '3Y':
+            timePoints = [
+              '2007-09', '2010-12', '2013-15', '2016-18',
+              '2019-21', '2022-24'
+            ];
+            break;
+          case '4Y':
+            timePoints = [
+              '2005-08', '2009-12', '2013-16', '2017-20', '2021-24'
+            ];
+            break;
+          case '5Y':
+            timePoints = [
+              '2005-09', '2010-14', '2015-19', '2020-24'
+            ];
+            break;
+          case '10Y':
+            timePoints = ['2005-14', '2015-24'];
+            break;
+          case '15Y':
+            timePoints = ['2010-24'];
+            break;
+          case '20Y':
+            timePoints = ['2005-24'];
+            break;
         }
-        transformedData[period][item.ticker] = item.value || 0;
+      }
+
+      // Initialize base data structure with all time points
+      const baseData = timePoints.map(period => ({
+        name: period,
+        ...selectedCompanies.reduce((acc, company) => ({
+          ...acc,
+          [company.ticker]: 0
+        }), {})
+      }));
+
+      // Fetch data for each company
+      const promises = selectedCompanies.map(async company => {
+        const url = `${BASE_URL}/aggregated-data/?tickers=${company.ticker}&metric=${selectedPeerMetric}&period=${selectedPeriod}`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch data for ${company.ticker}`);
+        }
+        const data = await response.json();
+        return { company, data };
       });
 
-      const sortedData = Object.values(transformedData).sort((a, b) => {
-        const yearA = parseInt(a.name.split('-')[0]);
-        const yearB = parseInt(b.name.split('-')[0]);
-        return yearA - yearB;
+      const results = await Promise.all(promises);
+
+      // Transform the data
+      const transformedData = baseData.map(basePoint => {
+        const point = { ...basePoint };
+        results.forEach(({ company, data }) => {
+          const matchingData = data.find(d => d.name === point.name);
+          if (matchingData) {
+            point[company.ticker] = matchingData.value;
+          }
+          // If no matching data, keep the default 0
+        });
+        return point;
       });
 
-      console.log('Transformed peer chart data:', sortedData);
-      setPeerChartData(sortedData);
+      console.log('Transformed peer data:', transformedData);
+      setPeerChartData(transformedData);
+
     } catch (error) {
       console.error('Error fetching peer data:', error);
       setPeerError('Failed to fetch peer data');
