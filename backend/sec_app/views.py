@@ -516,7 +516,7 @@ class AggregatedDataAPIView(APIView):
 def get_available_metrics(request):
     try:
         # Read the first CSV file to get metric names
-        csv_path = os.path.join('sec_app', 'tickers', 'ABCE_StdMetrics.csv')
+        csv_path = os.path.join('sec_app', 'stdmetrics', 'ABCE_StdMetrics.csv')
         df = pd.read_csv(csv_path)
         
         # Get all metric names from the first column (index 0), excluding only 'statementType'

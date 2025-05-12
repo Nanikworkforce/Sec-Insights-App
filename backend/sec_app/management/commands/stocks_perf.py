@@ -18,9 +18,9 @@ class Command(BaseCommand):
         
         # Try all possible locations
         possible_paths = [
-            os.path.join(project_root, 'sec_app', 'tickers'),
-            os.path.join(project_root, 'backend', 'sec_app', 'tickers'),
-            os.path.join(os.path.dirname(project_root), 'sec_app', 'tickers')
+            os.path.join(project_root, 'sec_app', 'stdmetrics'),
+            os.path.join(project_root, 'backend', 'sec_app', 'stdmetrics'),
+            os.path.join(os.path.dirname(project_root), 'sec_app', 'stdmetrics')
         ]
         
         # Debug: List all directories and files

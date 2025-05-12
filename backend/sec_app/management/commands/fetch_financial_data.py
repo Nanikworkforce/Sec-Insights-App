@@ -5,111 +5,133 @@ from django.core.management.base import BaseCommand
 from sec_app.models.company import Company
 from sec_app.models.metric import FinancialMetric
 from sec_app.models.period import FinancialPeriod
+from django.db import transaction
+from tqdm import tqdm
 
 class Command(BaseCommand):
     help = 'Import financial data from CSV files'
 
     def handle(self, *args, **kwargs):
-        directory_path = 'sec_app/tickers'
+        directory_path = 'sec_app/stdmetrics'
         self.stdout.write(f"Looking for CSV files in: {directory_path}")
 
-        # Iterate over each CSV file in the directory
-        for filename in os.listdir(directory_path):
-            if filename.endswith('_StdMetrics.csv'):
+        # Get all CSV files
+        csv_files = [f for f in os.listdir(directory_path) if f.endswith('_StdMetrics.csv')]
+        total_files = len(csv_files)
+        self.stdout.write(f"Found {total_files} files to process")
+
+        # Process in batches of 100 files
+        batch_size = 100
+        for i in range(0, total_files, batch_size):
+            batch_files = csv_files[i:i + batch_size]
+            self.process_batch(batch_files, directory_path, i, total_files)
+
+    def process_batch(self, batch_files, directory_path, batch_start, total_files):
+        with transaction.atomic():
+            metrics_to_create = []
+            periods_cache = {}
+            
+            for filename in tqdm(batch_files, desc=f"Processing files {batch_start+1}-{batch_start+len(batch_files)} of {total_files}"):
                 filepath = os.path.join(directory_path, filename)
-                self.stdout.write(f"Processing file: {filename}")
-                self.import_csv(filepath)
+                ticker = filename.split('_')[0]
+                
+                try:
+                    # Get company (should already exist from stocks_perf command)
+                    company = Company.objects.get(ticker=ticker)
+                    
+                    # Process the CSV file
+                    df = pd.read_csv(filepath, index_col=0)
+                    
+                    # Process annual data
+                    self.process_annual_data(df, company, metrics_to_create, periods_cache)
+                    
+                    # Process multi-year periods
+                    for period_type in ['2Y', '3Y', '4Y', '5Y', '10Y', '15Y', '20Y']:
+                        self.process_period_data(df, company, period_type, metrics_to_create, periods_cache)
+                    
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f"Error processing {filename}: {str(e)}"))
 
-    def import_csv(self, filepath):
-        df = pd.read_csv(filepath)
-        ticker = os.path.basename(filepath).split('_')[0]
-        self.stdout.write(f"Processing ticker: {ticker}")
+            # Bulk create all metrics for this batch
+            if metrics_to_create:
+                FinancialMetric.objects.bulk_create(
+                    metrics_to_create,
+                    batch_size=1000,
+                    ignore_conflicts=True
+                )
+                self.stdout.write(f"Created {len(metrics_to_create)} metrics in this batch")
 
-        # Get or create company
-        company = self.get_or_create_company(ticker)
-        if not company:
-            return
-
-        # Process annual data (2005-2024)
-        self.process_annual_data(df, company)
-        
-        # Process multi-year periods
-        self.process_period_data(df, company, '2Y')
-        self.process_period_data(df, company, '3Y')
-        self.process_period_data(df, company, '4Y')
-        self.process_period_data(df, company, '5Y')
-        self.process_period_data(df, company, '10Y')
-        self.process_period_data(df, company, '15Y')
-        self.process_period_data(df, company, '20Y')
-
-    def get_or_create_company(self, ticker):
-        existing_companies = Company.objects.filter(ticker=ticker)
-        if existing_companies.count() > 1:
-            self.stdout.write(self.style.ERROR(f"Multiple companies found with ticker {ticker}"))
-            return None
-        elif existing_companies.count() == 1:
-            return existing_companies.first()
-        else:
-            cik = self.get_cik_for_ticker(ticker)
-            if cik == '0000000000':
-                self.stdout.write(self.style.WARNING(f"No valid CIK found for ticker {ticker}"))
-            company = Company.objects.create(ticker=ticker, name=ticker, cik=cik)
-            self.stdout.write(self.style.SUCCESS(f"Created new company: {ticker}"))
-            return company
-
-    def process_annual_data(self, df, company):
-        # Process each year from 2005 to 2024
+    def process_annual_data(self, df, company, metrics_to_create, periods_cache):
         for year in range(2005, 2025):
             year_str = str(year)
             if year_str not in df.columns:
                 continue
 
-            period, _ = FinancialPeriod.objects.get_or_create(
-                company=company,
-                period=year_str,
-                defaults={
-                    'start_date': f'{year}-01-01',
-                    'end_date': f'{year}-12-31'
-                }
-            )
+            # Get or create period (using cache)
+            period_key = f"{company.id}-{year_str}"
+            if period_key not in periods_cache:
+                period, _ = FinancialPeriod.objects.get_or_create(
+                    company=company,
+                    period=year_str,
+                    defaults={
+                        'start_date': f'{year}-01-01',
+                        'end_date': f'{year}-12-31'
+                    }
+                )
+                periods_cache[period_key] = period
+            period = periods_cache[period_key]
 
-            self.create_metrics(df, company, period, year_str)
+            # Create metrics
+            for metric_name in df.index:
+                if metric_name == 'statementType':
+                    continue
+                    
+                value = df.at[metric_name, year_str]
+                if pd.notna(value):
+                    metrics_to_create.append(
+                        FinancialMetric(
+                            company=company,
+                            period=period,
+                            metric_name=metric_name,
+                            value=value
+                        )
+                    )
 
-    def process_period_data(self, df, company, period_type):
-        # Get the column names for this period type
+    def process_period_data(self, df, company, period_type, metrics_to_create, periods_cache):
         period_cols = [col for col in df.columns if col.startswith(f'{period_type}: ')]
         
         for col in period_cols:
-            # Extract years from column name (e.g., "2Y: 2005-06" -> "2005-06")
             years = col.split(': ')[1]
             
-            period, _ = FinancialPeriod.objects.get_or_create(
-                company=company,
-                period=years,
-                defaults={
-                    'start_date': f'{years.split("-")[0]}-01-01',
-                    'end_date': f'20{years.split("-")[1]}-12-31'
-                }
-            )
+            # Get or create period (using cache)
+            period_key = f"{company.id}-{years}"
+            if period_key not in periods_cache:
+                period, _ = FinancialPeriod.objects.get_or_create(
+                    company=company,
+                    period=years,
+                    defaults={
+                        'start_date': f'{years.split("-")[0]}-01-01',
+                        'end_date': f'20{years.split("-")[1]}-12-31'
+                    }
+                )
+                periods_cache[period_key] = period
+            period = periods_cache[period_key]
 
-            self.create_metrics(df, company, period, col)
-
-    def create_metrics(self, df, company, period, column):
-        metric_names = df.iloc[:, 0]
-        for i, metric_name in enumerate(metric_names):
-            if metric_name == 'statementType':
-                continue
-
-            value = df.at[i, column]
-            if pd.isna(value):
-                continue
-
-            FinancialMetric.objects.update_or_create(
-                company=company,
-                period=period,
-                metric_name=metric_name,
-                defaults={'value': value, 'unit': 'USD'}
-            )
+            # Create metrics
+            for metric_name in df.index:
+                if metric_name == 'statementType':
+                    continue
+                    
+                value = df.at[metric_name, col]
+                if pd.notna(value):
+                    metrics_to_create.append(
+                        FinancialMetric(
+                            company=company,
+                            period=period,
+                            metric_name=metric_name,
+                            value=value
+                        )
+                    )
 
     def get_cik_for_ticker(self, ticker):
         cik_lookup = {
