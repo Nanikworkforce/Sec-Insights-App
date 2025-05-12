@@ -341,9 +341,9 @@ const Dashboard: React.FC = () => {
         // Create a map of existing data points
         const dataMap = new Map(data.map(item => [item.name, item.value]));
 
-        // Update all time points, using existing value or 0 if no data
+        // Update all time points, using null for missing data instead of 0
         acc.forEach(point => {
-          point[metric] = dataMap.get(point.name) || 0;
+          point[metric] = dataMap.get(point.name) || null;  // Changed from 0 to null
           point.ticker = ticker;
         });
 
@@ -435,10 +435,7 @@ const Dashboard: React.FC = () => {
         const point = { ...basePoint };
         results.forEach(({ company, data }) => {
           const matchingData = data.find(d => d.name === point.name);
-          if (matchingData) {
-            point[company.ticker] = matchingData.value;
-          }
-          // If no matching data, keep the default 0
+          point[company.ticker] = matchingData ? matchingData.value : null;  // Changed from 0 to null
         });
         return point;
       });
@@ -1506,8 +1503,8 @@ const Dashboard: React.FC = () => {
                             
                             {/* Regular hover tooltip */}
                             <Tooltip
-                              formatter={(value: number, name) => [
-                                new Intl.NumberFormat('en-US', {
+                              formatter={(value: number | null, name) => [
+                                value === null ? "N/A" : new Intl.NumberFormat('en-US', {
                                   notation: 'compact',
                                   maximumFractionDigits: 1
                                 }).format(value),
@@ -1524,48 +1521,56 @@ const Dashboard: React.FC = () => {
                                 return label;
                               }}
                               content={({ active, payload, label, ...props }) => {
-                                // If the hovered point is the fixed point (2024 for 1Y, or last period for others), don't show the tooltip
                                 if (active && payload && payload.length > 0) {
                                   const point = payload[0].payload;
                                   if ((selectedPeriod === '1Y' && point.name?.startsWith('2024')) || 
                                       (selectedPeriod !== '1Y' && point.name === chartData[chartData.length - 1]?.name)) {
                                     return null;
                                   }
+                                  return (
+                                    <div className="custom-tooltip bg-white p-2 border rounded shadow">
+                                      <p className="label">{label}</p>
+                                      {payload.map((entry: any) => (
+                                        <p key={entry.name} style={{ color: entry.color }}>
+                                          {entry.name}: {entry.value === null ? "N/A" : new Intl.NumberFormat('en-US', {
+                                            notation: 'compact',
+                                            maximumFractionDigits: 1
+                                          }).format(entry.value)}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  );
                                 }
-                                // Render the default tooltip for other points
-                                return <DefaultTooltipContent active={active} payload={payload} label={label} {...props} />;
+                                return null;
                               }}
-                              contentStyle={{ 
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                              }}
+                              contentStyle={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
                               itemStyle={{ padding: 0 }}
-                              filterNull={true}
+                              filterNull={false}  // Changed to false to show null values
                             />
 
                             <Legend />
-                            {selectedSearchMetrics.map((metric) => {
-                              const metricConfig = metricColors[metric] || {
-                                color: generateColorPalette(1)[0],
-                                label: availableMetrics.find(m => m.value === metric)?.label || metric
-                              };
+                            {selectedSearchMetrics.map((metric, idx) => {
+                              const color = generateColorPalette(selectedSearchMetrics.length)[idx];
+                              const metricLabel = availableMetrics.find(m => m.value === metric)?.label || metric;
                               return (
                                 <Line
                                   key={metric}
                                   type="monotone"
                                   dataKey={metric}
-                                  stroke={metricConfig.color}
-                                  name={metricConfig.label}
+                                  stroke={color}
+                                  name={metricLabel}
                                   strokeWidth={2}
                                   dot={{
-                                    fill: metricConfig.color,
+                                    fill: color,
                                     r: 4
                                   }}
+                                  connectNulls={false}  // Add this prop to each Line component
                                 />
                               );
                             })}
                           </LineChart>
                         </ResponsiveContainer>
-                        {/* Custom fixed 2024 tooltip - OUTSIDE ResponsiveContainer! */}
+                        {/* Fixed tooltip for 2024 */}
                         {fixed2024Data && fixedTooltipPos && (
                           <div
                             style={{
@@ -1587,26 +1592,27 @@ const Dashboard: React.FC = () => {
                               {selectedPeriod === '1Y' ? '2024' : fixed2024Data.name}
                             </div>
                             {selectedSearchMetrics.map((metric) => {
-                              const value2024 = Number(fixed2024Data[metric]) || 0;
-                              const metricConfig = metricColors[metric];
+                              const value = fixed2024Data[metric];
                               const hoveredValue = (activeTooltip && activeTooltip[metric] != null)
                                 ? Number(activeTooltip[metric])
                                 : null;
-                              const diff = hoveredValue != null ? value2024 - hoveredValue : null;
-                              const percent = (hoveredValue && hoveredValue !== 0)
+                              const diff = value != null && hoveredValue != null ? value - hoveredValue : null;
+                              const percent = (hoveredValue != null && hoveredValue !== 0 && diff != null)
                                 ? (diff / hoveredValue) * 100
                                 : null;
                               const isIncrease = percent != null && percent >= 0;
+                              const color = metricColors[metric]?.color || generateColorPalette(1)[0];
+                              
                               return (
                                 <div key={metric} className="mb-1 flex items-center">
-                                  <span style={{ color: metricConfig?.color, minWidth: 80, display: 'inline-block' }}>
-                                    {metricConfig?.label || metric}:
+                                  <span style={{ color, minWidth: 80, display: 'inline-block' }}>
+                                    {metric}:
                                   </span>
                                   <span>
-                                    {new Intl.NumberFormat('en-US', {
+                                    {value === null ? "N/A" : new Intl.NumberFormat('en-US', {
                                       notation: 'compact',
                                       maximumFractionDigits: 1
-                                    }).format(value2024)}
+                                    }).format(value)}
                                   </span>
                                   {percent != null && (
                                     <span
@@ -1682,32 +1688,38 @@ const Dashboard: React.FC = () => {
                               }).format(value)}
                             />
                             <Tooltip 
-                              formatter={(value: number) => new Intl.NumberFormat('en-US', {
-                                notation: 'compact',
-                                maximumFractionDigits: 1
-                              }).format(value)}
-                              labelFormatter={(label) => {
-                                if (typeof label === 'string' && label.includes('-')) {
-                                  if (selectedPeriod !== '1Y') {
-                                    return label;
-                                  }
-                                  const [startYear] = label.split('-');
-                                  return startYear;
-                                }
-                                return label;
-                              }}
-                              content={({ active, payload, label, ...props }) => {
+                              formatter={(value: number | null) => 
+                                value === null ? "N/A" : new Intl.NumberFormat('en-US', {
+                                  notation: 'compact',
+                                  maximumFractionDigits: 1
+                                }).format(value)
+                              }
+                              content={({ active, payload, label }) => {
                                 if (active && payload && payload.length > 0) {
                                   const point = payload[0].payload;
                                   if ((selectedPeriod === '1Y' && point.name?.startsWith('2024')) || 
                                       (selectedPeriod !== '1Y' && point.name === peerChartData[peerChartData.length - 1]?.name)) {
                                     return null;
                                   }
+                                  return (
+                                    <div className="custom-tooltip bg-white p-2 border rounded shadow">
+                                      <p className="label">{label}</p>
+                                      {payload.map((entry: any) => (
+                                        <p key={entry.name} style={{ color: entry.color }}>
+                                          {entry.name}: {entry.value === null ? "N/A" : new Intl.NumberFormat('en-US', {
+                                            notation: 'compact',
+                                            maximumFractionDigits: 1
+                                          }).format(entry.value)}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  );
                                 }
-                                return <DefaultTooltipContent active={active} payload={payload} label={label} {...props} />;
+                                return null;
                               }}
                               contentStyle={{ boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
                               itemStyle={{ padding: 0 }}
+                              filterNull={false}
                             />
                             <Legend />
                             {selectedCompanies.map((company, idx) => {
@@ -1725,6 +1737,7 @@ const Dashboard: React.FC = () => {
                                     fill: color,
                                     r: 4
                                   }}
+                                  connectNulls={false}
                                 />
                               );
                             })}
@@ -1752,12 +1765,12 @@ const Dashboard: React.FC = () => {
                               {selectedPeriod === '1Y' ? '2024' : fixed2024Data.name}
                             </div>
                             {selectedCompanies.map((company, idx) => {
-                              const value = Number(fixed2024Data[company.ticker]) || 0;
+                              const value = fixed2024Data[company.ticker];
                               const hoveredValue = (activeTooltip && activeTooltip[company.ticker] != null)
                                 ? Number(activeTooltip[company.ticker])
                                 : null;
-                              const diff = hoveredValue != null ? value - hoveredValue : null;
-                              const percent = (hoveredValue && hoveredValue !== 0)
+                              const diff = value != null && hoveredValue != null ? value - hoveredValue : null;
+                              const percent = (hoveredValue != null && hoveredValue !== 0 && diff != null)
                                 ? (diff / hoveredValue) * 100
                                 : null;
                               const isIncrease = percent != null && percent >= 0;
@@ -1768,7 +1781,7 @@ const Dashboard: React.FC = () => {
                                     {company.ticker}:
                                   </span>
                                   <span>
-                                    {new Intl.NumberFormat('en-US', {
+                                    {value === null ? "N/A" : new Intl.NumberFormat('en-US', {
                                       notation: 'compact',
                                       maximumFractionDigits: 1
                                     }).format(value)}
