@@ -492,7 +492,7 @@ class AggregatedDataAPIView(APIView):
             
             for metric_obj in ticker_metrics:
                 try:
-                    value = float(metric_obj.value) if metric_obj.value is not None else 0
+                    value = float(metric_obj.value) if metric_obj.value is not None else None
                     period_str = metric_obj.period.period
                     print(f"Adding data point: {ticker}, {period_str}, {value}")
                     
