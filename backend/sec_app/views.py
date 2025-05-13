@@ -397,9 +397,21 @@ class BoxPlotDataAPIView(APIView):
                     
                     current_year = 2024
                     if period == '1Y':
-                        year = str(current_year - 1)
+                        year = str(current_year)
                     elif period == '2Y':
                         year = str(current_year - 2)
+                    elif period == '3Y':
+                        year = str(current_year - 3)
+                    elif period == '4Y':
+                        year = str(current_year - 4)
+                    elif period == '5Y':
+                        year = str(current_year - 5)
+                    elif period == '10Y':
+                        year = str(current_year - 10)
+                    elif period == '15Y':
+                        year = str(current_year - 15)
+                    elif period == '20Y':
+                        year = str(current_year - 20)
                     else:
                         year = str(current_year - 1)
 
