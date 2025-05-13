@@ -1503,13 +1503,17 @@ const Dashboard: React.FC = () => {
                             
                             {/* Regular hover tooltip */}
                             <Tooltip
-                              formatter={(value: number | null, name) => [
-                                value === null ? "N/A" : new Intl.NumberFormat('en-US', {
-                                  notation: 'compact',
-                                  maximumFractionDigits: 1
-                                }).format(value),
-                                availableMetrics.find(m => m.value === name)?.label || name
-                              ]}
+                              formatter={(value: number | null, name: string) => {
+                                // Assuming `searchValue` contains the ticker
+                                const ticker = searchValue.split(':')[0].trim().toUpperCase();
+                                return [
+                                  value === null ? "N/A" : new Intl.NumberFormat('en-US', {
+                                    notation: 'compact',
+                                    maximumFractionDigits: 1
+                                  }).format(value),
+                                  `${name} (${ticker})`  // Include the ticker in the tooltip
+                                ];
+                              }}
                               labelFormatter={(label) => {
                                 if (typeof label === 'string' && label.includes('-')) {
                                   if (selectedPeriod !== '1Y') {
@@ -1523,6 +1527,7 @@ const Dashboard: React.FC = () => {
                               content={({ active, payload, label, ...props }) => {
                                 if (active && payload && payload.length > 0) {
                                   const point = payload[0].payload;
+                                  const ticker = searchValue.split(':')[0].trim().toUpperCase(); // Define ticker here as well
                                   if ((selectedPeriod === '1Y' && point.name?.startsWith('2024')) || 
                                       (selectedPeriod !== '1Y' && point.name === chartData[chartData.length - 1]?.name)) {
                                     return null;
@@ -1532,7 +1537,7 @@ const Dashboard: React.FC = () => {
                                       <p className="label">{label}</p>
                                       {payload.map((entry: any) => (
                                         <p key={entry.name} style={{ color: entry.color }}>
-                                          {entry.name}: {entry.value === null ? "N/A" : new Intl.NumberFormat('en-US', {
+                                          {`${entry.name} (${ticker})`}: {entry.value === null ? "N/A" : new Intl.NumberFormat('en-US', {
                                             notation: 'compact',
                                             maximumFractionDigits: 1
                                           }).format(entry.value)}
@@ -1602,11 +1607,12 @@ const Dashboard: React.FC = () => {
                                 : null;
                               const isIncrease = percent != null && percent >= 0;
                               const color = metricColors[metric]?.color || generateColorPalette(1)[0];
-                              
+                              const ticker = searchValue.split(':')[0].trim().toUpperCase(); // Define ticker here
+
                               return (
                                 <div key={metric} className="mb-1 flex items-center">
                                   <span style={{ color, minWidth: 80, display: 'inline-block' }}>
-                                    {metric}:
+                                    {`${metric} (${ticker})`}:  {/* Include the ticker in the fixed tooltip */}
                                   </span>
                                   <span>
                                     {value === null ? "N/A" : new Intl.NumberFormat('en-US', {
