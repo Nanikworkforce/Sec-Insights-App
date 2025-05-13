@@ -868,7 +868,7 @@ const Dashboard: React.FC = () => {
                 <img 
                   src="/GetDeeperIcons.png" 
                   alt="Pro" 
-                  className="w-28 h-28 sm:w-32 sm:h-32 lg:w-47 lg:h-31"
+                  className="w-28 h-28 sm:w-32 sm:h-32 lg:w-40 lg:h-18"
                 />
               </div>
               

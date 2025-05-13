@@ -17,54 +17,89 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
 
   // Create traces for all metrics
   const traces = Object.entries(data).flatMap(([metric, values], metricIndex) => {
-    // Only scale monetary values, not ratios
-    const isMonetaryMetric = ['Revenue', 'Assets', 'Liabilities'].some(m => metric.includes(m));
-    const scaleFactor = isMonetaryMetric ? 1000000000 : 1;
+    // More precise metric type detection
+    const isRatioMetric = [
+      'ToEquity', 
+      'Ratio',
+      'Return',
+      'Turnover',
+      'Margin',
+      'Yield'
+    ].some(term => metric.includes(term));
     
-    const processedValues = values.map(v => Number((v / scaleFactor).toFixed(1)));
+    const scaleFactor = isRatioMetric ? 1 : 1000000000;
+    const unitSuffix = isRatioMetric ? '' : 'B';
+
+    // Get full list of companies for this metric
+    const allCompanies = companyNames[metric] || [];
+    
+    // Create map of company to value
+    const valueMap = new Map<string, number>();
+    values.forEach((v, index) => {
+      const company = allCompanies[index] || `Company ${index + 1}`;
+      valueMap.set(company, v);
+    });
+
+    // Get complete list of companies in industry
+    const industryCompanies = [...new Set(allCompanies.flat())];
+
+    // Create values array with null for missing data
+    const completeValues = industryCompanies.map(company => {
+      const value = valueMap.get(company);
+      return value !== undefined ? Number((value / scaleFactor).toFixed(1)) : null;
+    });
 
     // Box plot trace
     const boxTrace = {
-      y: processedValues,
+      y: completeValues.filter(v => v !== null) as number[],
       type: 'box' as const,
       boxpoints: false,
-      line: { color: '#1B5A7D' },
-      fillcolor: 'rgba(0,0,0,0.1)',
+      line: { 
+        color: '#1B5A7D',
+        width: 2  // Increased line width
+      },
+      fillcolor: 'rgba(27,90,125,0.3)',  // More visible blue tint
       boxmean: true,
       showlegend: false,
-      whiskerwidth: 0.5,
-      boxwidth: 0.3,
-      name: metric,  // Ensure the metric name is set
+      whiskerwidth: 0.4,
+      boxwidth: 0.6,  // Wider boxes
+      name: metric,
       hoverinfo: 'y',
-      x0: metricIndex,  // Position each box plot
-      xaxis: 'x'
+      x0: metricIndex,
+      xaxis: 'x',
+      jitter: 0.2,  // Add some jitter for better visibility
+      pointpos: -1.8  // Adjust point position
     };
 
     // Points trace
-    const pointsData = values.map((value, index) => ({
-      value,
-      name: companyNames[metric]?.[index] || `Company ${index + 1}`,
-      color: companyNames[metric]?.[index] === selectedTicker ? '#FF6B6B' : '#1B5A7D'
+    const pointsData = industryCompanies.map((company, index) => ({
+      value: completeValues[index],
+      name: company,
+      color: company === selectedTicker ? '#FF6B6B' : '#1B5A7D'
     }));
 
     const scatterTrace = {
-      y: pointsData.map(p => Number((p.value / scaleFactor).toFixed(1))),
-      x: Array(pointsData.length).fill(metricIndex),  // Align points with corresponding box
+      y: pointsData.map(p => p.value),
+      x: pointsData.map(() => {
+        // Add horizontal jitter between -0.2 and 0.2
+        return metricIndex + (Math.random() - 0.5) * 0.2;
+      }),
       type: 'scatter' as const,
       mode: 'markers' as const,
       marker: {
-        size: 8,  // Reduced size for better fit
+        size: 10,  // Increased from 8
         color: pointsData.map(p => p.color),
+        opacity: pointsData.map(p => p.value === null ? 0.3 : 0.8),
         line: {
           color: '#FFFFFF',
-          width: 1
+          width: 1.5  // Add white border
         }
       },
       text: pointsData.map(p => p.name),
       hoverinfo: 'text+y' as const,
-      hovertemplate: `Company: %{text}<br>Value: %{y:,.1f}${isMonetaryMetric ? 'B' : ''}<extra></extra>`,
+      hovertemplate: `Company: %{text}<br>Value: %{y:,.1f}${unitSuffix}<extra></extra>`,
       showlegend: false,
-      name: metric  // Ensure the metric name is set
+      name: metric
     };
 
     return [boxTrace, scatterTrace];
