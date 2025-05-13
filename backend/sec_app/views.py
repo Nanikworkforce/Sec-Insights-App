@@ -380,7 +380,7 @@ class IndustryAPIView(APIView):
         
 class BoxPlotDataAPIView(APIView):
     def get(self, request):
-        metrics = request.GET.getlist('metric[]')  # Changed to handle multiple metrics
+        metrics = request.GET.getlist('metric[]')
         period = request.GET.get('period')
         industry = request.GET.get('industry')
 
@@ -443,6 +443,7 @@ class BoxPlotDataAPIView(APIView):
                         "values": result_data,
                         "companyNames": result_companies
                     }
+                    logger.info(f"Returning data: {data}")
                     return Response(data, status=status.HTTP_200_OK)
                 
                 return Response({"error": "Industry parameter required"}, status=status.HTTP_400_BAD_REQUEST)
