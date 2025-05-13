@@ -893,7 +893,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Annual
+                        Last 1Y
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('2Y')}
@@ -903,7 +903,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Every 2Ys
+                        Last 2Ys
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('3Y')}
@@ -913,7 +913,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        3Ys
+                        Last 3Ys
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('4Y')}
@@ -923,7 +923,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        4Ys
+                        Last 4Ys
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('5Y')}
@@ -933,7 +933,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        5Ys
+                        Last 5Ys
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('10Y')}
@@ -943,7 +943,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        10Ys
+                        Last 10Ys
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('15Y')}
@@ -953,7 +953,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        15Ys
+                        Last 15Ys
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('20Y')}
@@ -963,7 +963,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        20Ys
+                        Last 20Ys
                       </button>
                     </div>
           </div>
