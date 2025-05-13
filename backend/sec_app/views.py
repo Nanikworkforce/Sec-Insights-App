@@ -396,24 +396,23 @@ class BoxPlotDataAPIView(APIView):
                     logger.info(f"Companies in {industry}: {industry_companies}")
                     
                     current_year = 2024
+                    period_str = ""
                     if period == '1Y':
-                        year = str(current_year)
+                        period_str = str(current_year)
                     elif period == '2Y':
-                        year = str(current_year - 2)
+                        period_str = f"{current_year-1}-{str(current_year)[-2:]}"
                     elif period == '3Y':
-                        year = str(current_year - 3)
+                        period_str = f"{current_year-2}-{str(current_year)[-2:]}"
                     elif period == '4Y':
-                        year = str(current_year - 4)
+                        period_str = f"{current_year-3}-{str(current_year)[-2:]}"
                     elif period == '5Y':
-                        year = str(current_year - 5)
+                        period_str = f"{current_year-4}-{str(current_year)[-2:]}"
                     elif period == '10Y':
-                        year = str(current_year - 10)
+                        period_str = f"{current_year-9}-{str(current_year)[-2:]}"
                     elif period == '15Y':
-                        year = str(current_year - 15)
+                        period_str = f"{current_year-14}-{str(current_year)[-2:]}"
                     elif period == '20Y':
-                        year = str(current_year - 20)
-                    else:
-                        year = str(current_year - 1)
+                        period_str = f"{current_year-19}-{str(current_year)[-2:]}"
 
                     # Process each metric
                     result_data = {}
@@ -422,7 +421,7 @@ class BoxPlotDataAPIView(APIView):
                     for metric in metrics:
                         metrics_query = FinancialMetric.objects.filter(
                             metric_name=metric,
-                            period__period__contains=year,
+                            period__period__contains=period_str,
                             company__ticker__in=industry_companies
                         ).select_related('company').order_by('company__ticker')
 
