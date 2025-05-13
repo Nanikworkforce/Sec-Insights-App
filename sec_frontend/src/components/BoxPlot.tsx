@@ -17,9 +17,15 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
 
   // Create traces for all metrics
   const traces = Object.entries(data).flatMap(([metric, values], metricIndex) => {
+    // Only scale monetary values, not ratios
+    const isMonetaryMetric = ['Revenue', 'Assets', 'Liabilities'].some(m => metric.includes(m));
+    const scaleFactor = isMonetaryMetric ? 1000000000 : 1;
+    
+    const processedValues = values.map(v => Number((v / scaleFactor).toFixed(1)));
+
     // Box plot trace
     const boxTrace = {
-      y: values.map(v => Number((v / 1000000000).toFixed(1))),
+      y: processedValues,
       type: 'box' as const,
       boxpoints: false,
       line: { color: '#1B5A7D' },
@@ -28,7 +34,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
       showlegend: false,
       whiskerwidth: 0.5,
       boxwidth: 0.3,
-      name: '',
+      name: metric,  // Ensure the metric name is set
       hoverinfo: 'y',
       x0: metricIndex,  // Position each box plot
       xaxis: 'x'
@@ -42,7 +48,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
     }));
 
     const scatterTrace = {
-      y: pointsData.map(p => Number((p.value / 1000000000).toFixed(1))),
+      y: pointsData.map(p => Number((p.value / scaleFactor).toFixed(1))),
       x: Array(pointsData.length).fill(metricIndex),  // Align points with corresponding box
       type: 'scatter' as const,
       mode: 'markers' as const,
@@ -56,9 +62,9 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
       },
       text: pointsData.map(p => p.name),
       hoverinfo: 'text+y' as const,
-      hovertemplate: `Company: %{text}<br>Value: %{y:,.1f}B<extra></extra>`,
+      hovertemplate: `Company: %{text}<br>Value: %{y:,.1f}${isMonetaryMetric ? 'B' : ''}<extra></extra>`,
       showlegend: false,
-      name: ''
+      name: metric  // Ensure the metric name is set
     };
 
     return [boxTrace, scatterTrace];

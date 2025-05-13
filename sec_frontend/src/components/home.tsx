@@ -116,15 +116,26 @@ interface ActiveTooltip {
   [key: string]: any;  // Add index signature for dynamic metric access
 }
 
+// Define a mapping of tickers to company names
+// const tickerToCompanyNameMap = {
+//   AAPL: 'Apple Inc.',
+//   META: 'Meta Platforms',
+//   A: 'Agilent Technologies',
+//   AA: 'Alcoa Corporation',
+//   // Add more mappings as needed
+// };
+
+function getCompanyNameFromTicker(ticker: string): string | undefined {
+  return tickerToCompanyNameMap[ticker];
+}
+
 const Dashboard: React.FC = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [activeChart, setActiveChart] = useState<'metrics' | 'peers' | 'industry'>('metrics');
   const [searchValue, setSearchValue] = useState('AAPL');
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['Revenue', 'CostOfGoodsSold']);
   const [metricInput, setMetricInput] = useState('');
-  const [selectedCompanies, setSelectedCompanies] = useState<CompanyTicker[]>([
-    { ticker: 'AAPL', name: 'Apple Inc.' }
-  ]);
+  const [selectedCompanies, setSelectedCompanies] = useState<CompanyTicker[]>([]);
   const [companyInput, setCompanyInput] = useState('');
   const [selectedPeerMetric, setSelectedPeerMetric] = useState('');
   const [selectedMetric1, setSelectedMetric1] = useState('Revenue');
@@ -469,6 +480,7 @@ const Dashboard: React.FC = () => {
       const data = await response.json();
       console.log('Raw industry data:', data);
 
+      // Ensure data is correctly set
       setIndustryChartData(data.values || []);
       setIndustryCompanyNames(data.companyNames || {});
       setSelectedIndustryCompanies([]);
@@ -692,6 +704,42 @@ const Dashboard: React.FC = () => {
       </div>
     );
   };
+
+  // Example of fetching companies
+  const fetchCompanies = async (tickers: string[]) => {
+    try {
+      console.log('Fetching companies for tickers:', tickers);
+      const response = await fetch(`http://127.0.0.1:8000/api/companies?tickers=${tickers.join(',')}`);
+      const data = await response.json();
+      console.log('Received company data:', data);
+      
+      // Transform the data to match our expected structure
+      const companies = data.map((company: any) => ({
+        ticker: company.ticker,
+        name: company.name
+      }));
+      
+      setSelectedCompanies(companies);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+    }
+  };
+
+  useEffect(() => {
+    console.log('Current selectedCompanies:', selectedCompanies);
+  }, [selectedCompanies]);
+
+  useEffect(() => {
+    console.log('Selected Industry Companies:', selectedIndustryCompanies);
+  }, [selectedIndustryCompanies]);
+
+  // Ensure this useEffect is called when the industry is selected
+  useEffect(() => {
+    if (selectedIndustry) {
+      // Fetch or set selectedIndustryCompanies here
+      // Example: setSelectedIndustryCompanies(fetchCompaniesForIndustry(selectedIndustry));
+    }
+  }, [selectedIndustry]);
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
@@ -1130,19 +1178,27 @@ const Dashboard: React.FC = () => {
                           ticker.toLowerCase().includes(companySearch.toLowerCase())
                         )
                         .sort((a, b) => a.localeCompare(b))
-                        .map(ticker => (
-                          <div
-                            key={ticker}
-                            onClick={() => {
-                              setSelectedTicker(ticker);
-                              setCompanySearch('');
-                              setShowCompanyDropdown(false);
-                            }}
-                            className="px-3 py-2 text-sm xl:text-base hover:bg-gray-100 cursor-pointer"
-                          >
-                            {ticker}
-                          </div>
-                        ))}
+                        .map(ticker => {
+                          // Debugging: Log the ticker and the corresponding company
+                          console.log('Ticker:', ticker);
+                          const company = selectedIndustryCompanies.find(c => c.ticker === ticker);
+                          console.log('Company:', company);
+
+                          const displayName = company ? `${company.name} (${ticker})` : ticker;
+                          return (
+                            <div
+                              key={ticker}
+                              onClick={() => {
+                                setSelectedTicker(ticker);
+                                setCompanySearch('');
+                                setShowCompanyDropdown(false);
+                              }}
+                              className="px-3 py-2 text-sm xl:text-base hover:bg-gray-100 cursor-pointer"
+                            >
+                              {displayName}
+                            </div>
+                          );
+                        })}
                     </div>
                   )}
                 </div>
@@ -1694,30 +1750,36 @@ const Dashboard: React.FC = () => {
                               }).format(value)}
                             />
                             <Tooltip 
-                              formatter={(value: number | null) => 
-                                value === null ? "N/A" : new Intl.NumberFormat('en-US', {
-                                  notation: 'compact',
-                                  maximumFractionDigits: 1
-                                }).format(value)
-                              }
                               content={({ active, payload, label }) => {
                                 if (active && payload && payload.length > 0) {
-                                  const point = payload[0].payload;
-                                  if ((selectedPeriod === '1Y' && point.name?.startsWith('2024')) || 
-                                      (selectedPeriod !== '1Y' && point.name === peerChartData[peerChartData.length - 1]?.name)) {
-                                    return null;
-                                  }
                                   return (
                                     <div className="custom-tooltip bg-white p-2 border rounded shadow">
                                       <p className="label">{label}</p>
-                                      {payload.map((entry: any) => (
-                                        <p key={entry.name} style={{ color: entry.color }}>
-                                          {entry.name}: {entry.value === null ? "N/A" : new Intl.NumberFormat('en-US', {
-                                            notation: 'compact',
-                                            maximumFractionDigits: 1
-                                          }).format(entry.value)}
-                                        </p>
-                                      ))}
+                                      {payload.map((entry: any) => {
+                                        // Split the name into parts (ticker and metric)
+                                        const [ticker, metric] = entry.name.split('-').map(part => part.trim());
+                                        
+                                        // Get company name from selectedCompanies
+                                        const company = selectedCompanies.find(c => c.ticker === ticker);
+                                        
+                                        // Format the display name
+                                        const displayName = company 
+                                          ? `${company.name} (${ticker})` 
+                                          : `Company (${ticker})`; // Fallback if name not found
+
+                                        return (
+                                          <p key={entry.name} style={{ color: entry.color }}>
+                                            {`${displayName} - ${metric}: ${
+                                              entry.value === null 
+                                                ? "N/A" 
+                                                : new Intl.NumberFormat('en-US', {
+                                                    notation: 'compact',
+                                                    maximumFractionDigits: 1
+                                                  }).format(entry.value)
+                                            }`}
+                                          </p>
+                                        );
+                                      })}
                                     </div>
                                   );
                                 }
