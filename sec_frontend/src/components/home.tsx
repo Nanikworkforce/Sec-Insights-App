@@ -893,7 +893,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Last 1Y
+                        {activeChart === 'industry' ? 'Last 1Y' : 'Annual'}
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('2Y')}
@@ -903,7 +903,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Last 2Ys
+                        {activeChart === 'industry' ? 'Last 2Ys' : '2Ys'}
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('3Y')}
@@ -913,7 +913,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Last 3Ys
+                        {activeChart === 'industry' ? 'Last 3Ys' : '3Ys'}
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('4Y')}
@@ -923,7 +923,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Last 4Ys
+                        {activeChart === 'industry' ? 'Last 4Ys' : '4Ys'}
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('5Y')}
@@ -933,7 +933,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Last 5Ys
+                        {activeChart === 'industry' ? 'Last 5Ys' : '5Ys'}
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('10Y')}
@@ -943,7 +943,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Last 10Ys
+                        {activeChart === 'industry' ? 'Last 10Ys' : '10Ys'}
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('15Y')}
@@ -953,7 +953,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Last 15Ys
+                        {activeChart === 'industry' ? 'Last 15Ys' : '15Ys'}
                       </button>
                       <button 
                         onClick={() => setSelectedPeriod('20Y')}
@@ -963,7 +963,7 @@ const Dashboard: React.FC = () => {
                             : 'text-gray-600'
                         }`}
                       >
-                        Last 20Ys
+                        {activeChart === 'industry' ? 'Last 20Ys' : '20Ys'}
                       </button>
                     </div>
           </div>
