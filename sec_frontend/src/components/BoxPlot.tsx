@@ -54,21 +54,23 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
       y: completeValues.filter(v => v !== null) as number[],
       type: 'box' as const,
       boxpoints: false,
+      showbox: true,  // Explicitly show the box
       line: { 
         color: '#1B5A7D',
-        width: 2  // Increased line width
+        width: 2
       },
-      fillcolor: 'rgba(27,90,125,0.3)',  // More visible blue tint
+      fillcolor: 'rgba(27,90,125,0.3)',
       boxmean: true,
       showlegend: false,
       whiskerwidth: 0.4,
-      boxwidth: 0.6,  // Wider boxes
+      boxwidth: 0.6,
+      quartilemethod: 'linear',  // Ensure quartiles are calculated
       name: metric,
       hoverinfo: 'y',
       x0: metricIndex,
       xaxis: 'x',
-      jitter: 0.2,  // Add some jitter for better visibility
-      pointpos: -1.8  // Adjust point position
+      jitter: 0.2,
+      pointpos: -1.8
     };
 
     // Points trace
@@ -87,12 +89,12 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
       type: 'scatter' as const,
       mode: 'markers' as const,
       marker: {
-        size: 10,  // Increased from 8
+        size: 14,  // Increased from 10
         color: pointsData.map(p => p.color),
         opacity: pointsData.map(p => p.value === null ? 0.3 : 0.8),
         line: {
           color: '#FFFFFF',
-          width: 1.5  // Add white border
+          width: 1.5
         }
       },
       text: pointsData.map(p => p.name),
