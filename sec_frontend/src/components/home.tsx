@@ -864,7 +864,7 @@ const Dashboard: React.FC = () => {
             
             {/* GetDeeper icon container with user profile */}
             <div className="flex-1 flex justify-end items-center gap-6">
-              <div className="lg:mr-[33%] absolute top-1">
+              <div className="lg:mr-[33%] absolute top-8">  
                 <img 
                   src="/GetDeeperIcons.png" 
                   alt="Pro" 
