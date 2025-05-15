@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from sec_app.utils import initialize_metric_standards
+from backend.sec_app.utility.utils import initialize_metric_standards
 
 class Command(BaseCommand):
     help = 'Initialize standard financial metrics'
