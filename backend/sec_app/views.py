@@ -18,7 +18,7 @@ from .utility.utils import *
 from django.http import JsonResponse
 import logging
 import requests
-from django.conf import settings
+from django.conf import settings 
 import pandas as pd
 import os 
 from .utility.chatbox import answer_question
@@ -32,7 +32,6 @@ class ChartChatboxAPIView(APIView):
             metrics = request.data.get("metrics", [])
             chart_data = request.data.get("chartData", [])
 
-            # Validate required data
             if not company:
                 return Response({
                     "answer": "Please select a company to analyze."
@@ -48,7 +47,6 @@ class ChartChatboxAPIView(APIView):
                     "answer": f"No data available for {company}."
                 })
 
-            # Validate data has values
             valid_data = [
                 point for point in chart_data 
                 if any(point.get(metric) is not None for metric in metrics)

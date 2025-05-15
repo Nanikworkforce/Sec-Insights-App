@@ -4,12 +4,63 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def normalize_metric_name(metric: str) -> str:
+    """Convert camelCase to space-separated lowercase"""
+    normalized = re.sub(r'(?<!^)(?=[A-Z])', ' ', metric).lower()
+    return normalized
+
 def answer_question(question: str, chart_context: dict, chart_data: list) -> str:
     try:
         company = chart_context.get("company", "")
-        period = chart_context.get("period", "")
         metrics = chart_context.get("metrics", [])
+
+        question_lower = re.sub(r'\s+', ' ', question.lower()).strip()
         
+        metric_map = {
+            normalize_metric_name(m): m 
+            for m in metrics
+        }
+        
+        requested_metric = None
+        best_match_score = 0
+        
+        for norm_metric, orig_metric in metric_map.items():
+            metric_words = set(norm_metric.split())
+            question_words = set(question_lower.split())
+            
+            # Calculate match score based on word overlap
+            match_score = len(metric_words & question_words)
+            
+            # Prioritize exact phrase matches but allow word order variations
+            if match_score > best_match_score or (
+                match_score == best_match_score and 
+                norm_metric in question_lower
+            ):
+                best_match_score = match_score
+                requested_metric = orig_metric
+
+        if not chart_data:
+            return "I don't have any data to analyze. Please ensure data is loaded for the selected company and metrics."
+            
+        sorted_data = sorted(chart_data, key=lambda x: x.get('name', ''))
+
+        # For specific year questions
+        year_match = re.search(r'\b\d{4}\b', question)  
+        if year_match:
+            year = year_match.group()
+            year_data = next((d for d in sorted_data if str(year) in d.get('name', '')), None)
+            
+            if not year_data:
+                return f"I don't have any data for {year}. The available years are: {', '.join(d['name'] for d in sorted_data)}."
+
+            # If specific metric mentioned, only show that metric
+            if requested_metric:
+                if requested_metric in year_data and year_data[requested_metric] is not None:
+                    value = year_data[requested_metric]
+                    return f"The {requested_metric} for {company} in {year_data['name']} is ${value:,.0f}"
+                else:
+                    return f"I can see the year {year} in the data, but there's no value available for {requested_metric}."
+
         if any(word in question.lower() for word in ["selected company", "selected ticker", "which company", "which ticker"]):
             if company:
                 metrics_str = ", ".join(f"'{m}'" for m in metrics)
@@ -22,50 +73,6 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
                 metrics_str = ", ".join(f"'{m}'" for m in metrics)
                 return f"The selected metrics are: {metrics_str}"
             return "No metrics are currently selected. Please select at least one metric to analyze."
-
-        if not chart_data:
-            return f"No data available for {company}."
-        sorted_data = sorted(chart_data, key=lambda x: x.get('name', ''))
-        
-        if "growth" in question.lower() and "percentage" in question.lower():
-            years = re.findall(r'\b\d{4}\b', question)
-            if len(years) == 2:
-                start_year, end_year = years
-                start_data = next((d for d in sorted_data if str(start_year) in d.get('name', '')), None)
-                end_data = next((d for d in sorted_data if str(end_year) in d.get('name', '')), None)
-                
-                if start_data and end_data:
-                    responses = []
-                    for metric in metrics:
-                        if metric in start_data and metric in end_data:
-                            start_value = start_data[metric]
-                            end_value = end_data[metric]
-                            if start_value and start_value != 0:  # Avoid division by zero
-                                change = end_value - start_value
-                                change_pct = (change / start_value) * 100
-                                direction = "increased" if change > 0 else "decreased"
-                                responses.append(
-                                    f"{metric} has {direction} by {abs(change_pct):.1f}% "
-                                    f"from ${start_value:,.0f} ({start_year}) "
-                                    f"to ${end_value:,.0f} ({end_year})"
-                                )
-                    return " and ".join(responses) + "." if responses else f"No valid data found for comparison between {start_year} and {end_year}."
-                return f"Unable to find data for both {start_year} and {end_year}."
-
-        year_match = re.search(r'\b\d{4}\b', question)  
-        if year_match:
-            year = year_match.group()
-            year_data = next((d for d in sorted_data if str(year) in d.get('name', '')), None)
-            
-            if year_data:
-                responses = []
-                for metric in metrics:
-                    if metric in year_data:
-                        value = year_data[metric]
-                        responses.append(f"The {metric} for {company} in {year_data['name']} is ${value:,.0f}")
-                return " and ".join(responses) + "."
-            else:
-                return f"No data available for {company} in {year}."
 
         if any(word in question.lower() for word in ["trend", "growth", "change"]):
             responses = []
