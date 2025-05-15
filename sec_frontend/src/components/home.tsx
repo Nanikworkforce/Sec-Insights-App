@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, DefaultTooltipContent } from 'recharts';
 import BoxPlot from './BoxPlot';
+import { useChat } from './chatbox';
 
 const BASE_URL = 'http://127.0.0.1:8000/api';
 
@@ -182,6 +183,19 @@ const Dashboard: React.FC = () => {
   const [fixed2024Data, setFixed2024Data] = useState<any>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [fixedTooltipPos, setFixedTooltipPos] = useState<{ left: number, top: number } | null>(null);
+
+  const {
+    messages,
+    inputValue,
+    setInputValue,
+    handleSendMessage
+  } = useChat({
+    chartData,
+    searchValue,
+    selectedPeriod,
+    selectedMetrics: selectedSearchMetrics,
+    activeChart
+  });
 
   // Add function to handle company selection
   const handleCompanySelection = (company: string) => {
@@ -1925,58 +1939,61 @@ const Dashboard: React.FC = () => {
                   
                   {/* Chat Messages */}
                   <div className="h-[400px] sm:h-[500px] xl:h-[600px] overflow-y-auto p-4 xl:p-6 space-y-4">
-                    {/* Message bubbles with responsive text and spacing */}
-                    <div className="flex gap-3 xl:gap-4">
-                      <div className="w-8 xl:w-10 h-8 xl:h-10 bg-[#1B5A7D] rounded-full flex items-center justify-center text-white text-sm xl:text-base">
-                        AI
-                      </div>
-                      <div className="flex-1">
-                        <div className="bg-[#E5F0F6] rounded-lg p-3 xl:p-4 text-sm xl:text-base">
-                          I can help you analyze this data. What would you like to know?
+                    {messages.map((message, index) => 
+                      message.role === 'assistant' ? (
+                        <div key={index} className="flex gap-3 xl:gap-4">
+                          <div className="w-8 xl:w-10 h-8 xl:h-10 bg-[#1B5A7D] rounded-full flex items-center justify-center text-white text-sm xl:text-base">
+                            AI
+                          </div>
+                          <div className="flex-1">
+                            <div className="bg-[#E5F0F6] rounded-lg p-3 xl:p-4 text-sm xl:text-base">
+                              {message.content}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* User Message */}
-                    <div className="flex gap-3 justify-end xl:gap-4">
-                      <div className="flex-1">
-                        <div className="bg-gray-100 rounded-lg p-3 xl:p-4 text-sm xl:text-base ml-auto max-w-[80%]">
-                          What's the trend in revenue growth?
+                      ) : (
+                        <div key={index} className="flex gap-3 justify-end xl:gap-4">
+                          <div className="flex-1">
+                            <div className="bg-gray-100 rounded-lg p-3 xl:p-4 text-sm xl:text-base ml-auto max-w-[80%]">
+                              {message.content}
+                            </div>
+                          </div>
+                          <div className="w-8 xl:w-10 h-8 xl:h-10 bg-gray-200 rounded-full flex items-center justify-center text-sm xl:text-base">
+                            AM
+                          </div>
                         </div>
-                      </div>
-                      <div className="w-8 xl:w-10 h-8 xl:h-10 bg-gray-200 rounded-full flex items-center justify-center text-sm xl:text-base">
-                        AM
-                      </div>
-                    </div>
-
-                    {/* AI Response */}
-                    <div className="flex gap-3 xl:gap-4">
-                      <div className="w-8 xl:w-10 h-8 xl:h-10 bg-[#1B5A7D] rounded-full flex items-center justify-center text-white text-sm xl:text-base">
-                        AI
-                      </div>
-                      <div className="flex-1">
-                        <div className="bg-[#E5F0F6] rounded-lg p-3 xl:p-4 text-sm xl:text-base">
-                          Based on the chart, revenue shows an overall upward trend from Jan '16 to Jul '18, with notable growth from $15,000 to $23,000. There was particularly strong growth in the last period, from Jan '18 to Jul '18.
-                        </div>
-                      </div>
-                    </div>
+                      )
+                    )}
                   </div>
 
                   {/* Chat Input */}
                   <div className="p-4 xl:p-6 border-t">
-                    <div className="flex gap-2 xl:gap-3">
-            <input 
-              type="text" 
+                    <form 
+                      className="flex gap-2 xl:gap-3"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSendMessage(inputValue);
+                        setInputValue('');
+                      }}
+                    >
+                      <input 
+                        type="text" 
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
                         placeholder="Ask Me Anything..."
                         className="flex-1 px-3 xl:px-4 py-2 xl:py-3 text-sm xl:text-base border rounded-lg"
                       />
-                      <button className="p-2 xl:p-3">
+                      <button type="button" className="p-2 xl:p-3">
                         <img src="/mic-icon.svg" alt="Voice" className="w-5 xl:w-6 h-5 xl:h-6" />
                       </button>
-                      <button className="p-2 xl:p-3">
+                      <button 
+                        type="submit" 
+                        className="p-2 xl:p-3"
+                        disabled={!inputValue.trim()}
+                      >
                         <img src="/send-icon.svg" alt="Send" className="w-5 xl:w-6 h-5 xl:h-6" />
                       </button>
-                    </div>
+                    </form>
                   </div>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 # from .models.metric import FinancialMetric
-from .models.period import FinancialPeriod
+from ..models.period import FinancialPeriod
 # from .models.company import Company
 from sec_app.models.company import Company
 from sec_app.models.filing import Filing

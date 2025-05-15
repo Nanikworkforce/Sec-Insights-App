@@ -4,7 +4,7 @@ from .views import (
     CompanyViewSet, FilingViewSet, FinancialMetricViewSet,
     ChartDataAPIView, InsightsAPIView, CustomQueryAPIView, IndustryComparisonAPIView,
     get_sec_data, extract_financials, test_sec_api, IndustryAPIView,BoxPlotDataAPIView,AggregatedDataAPIView,
-    get_available_metrics, check_company
+    get_available_metrics, check_company,ChartChatboxAPIView
 )
 
 # Create a router and register only ViewSets.
@@ -27,6 +27,7 @@ urlpatterns = [
     path('boxplot-data/', BoxPlotDataAPIView.as_view(), name='boxplot_data'),
     path('aggregated-data/',AggregatedDataAPIView.as_view(),name='aggregate'),
     path('companies/<str:ticker>/', check_company, name='check-company'),
+    path('chat/', ChartChatboxAPIView.as_view(), name='chat'),
     # Include router URLs (only for ViewSets)
     path('', include(router.urls)),
 ]

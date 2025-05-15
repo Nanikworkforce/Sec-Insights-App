@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 import pandas as pd
 import logging
 from sec_app.models.metric import FinancialMetric
-from sec_app.utils import create_default_company
+from backend.sec_app.utility.utils import create_default_company
 import os
 
 logger = logging.getLogger(__name__)

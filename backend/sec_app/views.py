@@ -14,15 +14,54 @@ from .models.query import Query
 from .serializer import *
 from rest_framework.decorators import api_view
 from .api_client import fetch_financial_data
-from .utils import *
+from .utility.utils import *
 from django.http import JsonResponse
 import logging
 import requests
 from django.conf import settings
 import pandas as pd
-import os
-
+import os 
+from .utility.chatbox import answer_question
 logger = logging.getLogger(__name__)
+
+class ChartChatboxAPIView(APIView):
+    def post(self, request):
+        try:
+            question = request.data.get("question", "").lower()
+            chart_context = {
+                "company": request.data.get("company", ""),
+                "period": request.data.get("period", ""),
+                "metrics": request.data.get("metrics", []),
+                "chart_type": request.data.get("chartType", "line")
+            }
+            chart_data = request.data.get("chartData", [])
+
+            logger.info(f"Question: {question}")
+            logger.info(f"Chart Context: {chart_context}")
+            logger.info(f"Chart Data Sample: {chart_data[:2] if chart_data else []}")
+
+            if not chart_context["company"]:
+                return Response({
+                    "answer": "No company is currently selected. Please select a company first."
+                })
+
+            if not chart_context["metrics"]:
+                return Response({
+                    "answer": "No metrics are currently selected. Please select at least one metric to analyze."
+                })
+
+            answer = answer_question(question, chart_context, chart_data)
+            
+            return Response({
+                "answer": answer,
+                "context": chart_context
+            })
+
+        except Exception as e:
+            logger.error(f"Error in ChartChatboxAPIView: {str(e)}")
+            return Response({
+                "error": "Failed to process question. Please try again."
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 def get_sec_data(request):
