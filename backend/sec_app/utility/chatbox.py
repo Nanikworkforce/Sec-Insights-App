@@ -14,30 +14,28 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
         company = chart_context.get("company", "")
         metrics = chart_context.get("metrics", [])
 
-        question_lower = re.sub(r'\s+', ' ', question.lower()).strip()
+        # Normalize the question to handle different formats
+        question_lower = question.lower().replace('  ', ' ')
         
-        metric_map = {
-            normalize_metric_name(m): m 
-            for m in metrics
-        }
+        # Create a mapping of normalized metric names to original metrics
+        metric_map = {normalize_metric_name(m): m for m in metrics}
         
+        # Determine the requested metric
         requested_metric = None
-        best_match_score = 0
         
-        for norm_metric, orig_metric in metric_map.items():
-            metric_words = set(norm_metric.split())
-            question_words = set(question_lower.split())
-            
-            # Calculate match score based on word overlap
-            match_score = len(metric_words & question_words)
-            
-            # Prioritize exact phrase matches but allow word order variations
-            if match_score > best_match_score or (
-                match_score == best_match_score and 
-                norm_metric in question_lower
-            ):
-                best_match_score = match_score
-                requested_metric = orig_metric
+        # First check for exact matches
+        for metric in metrics:
+            if metric.lower() in question_lower:
+                requested_metric = metric
+                break
+        
+        # If no exact match, check normalized forms
+        if not requested_metric:
+            for norm_metric, orig_metric in metric_map.items():
+                # Check if all words from normalized metric exist in question
+                if all(word in question_lower.split() for word in norm_metric.split()):
+                    requested_metric = orig_metric
+                    break
 
         if not chart_data:
             return "I don't have any data to analyze. Please ensure data is loaded for the selected company and metrics."
