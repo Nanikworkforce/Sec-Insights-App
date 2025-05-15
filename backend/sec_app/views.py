@@ -28,29 +28,46 @@ class ChartChatboxAPIView(APIView):
     def post(self, request):
         try:
             question = request.data.get("question", "").lower()
-            chart_context = {
-                "company": request.data.get("company", ""),
-                "period": request.data.get("period", ""),
-                "metrics": request.data.get("metrics", []),
-                "chart_type": request.data.get("chartType", "line")
-            }
+            company = request.data.get("company", "")
+            metrics = request.data.get("metrics", [])
             chart_data = request.data.get("chartData", [])
 
-            logger.info(f"Question: {question}")
-            logger.info(f"Chart Context: {chart_context}")
-            logger.info(f"Chart Data Sample: {chart_data[:2] if chart_data else []}")
-
-            if not chart_context["company"]:
+            # Validate required data
+            if not company:
                 return Response({
-                    "answer": "No company is currently selected. Please select a company first."
+                    "answer": "Please select a company to analyze."
                 })
 
-            if not chart_context["metrics"]:
+            if not metrics:
                 return Response({
-                    "answer": "No metrics are currently selected. Please select at least one metric to analyze."
+                    "answer": "Please select metrics to analyze."
                 })
 
-            answer = answer_question(question, chart_context, chart_data)
+            if not chart_data:
+                return Response({
+                    "answer": f"No data available for {company}."
+                })
+
+            # Validate data has values
+            valid_data = [
+                point for point in chart_data 
+                if any(point.get(metric) is not None for metric in metrics)
+            ]
+
+            if not valid_data:
+                return Response({
+                    "answer": f"No valid data points found for {company} with the selected metrics."
+                })
+
+            # Create context with validated data
+            chart_context = {
+                "company": company,
+                "period": request.data.get("period", ""),
+                "metrics": metrics,
+                "chart_type": request.data.get("chartType", "line")
+            }
+
+            answer = answer_question(question, chart_context, valid_data)
             
             return Response({
                 "answer": answer,

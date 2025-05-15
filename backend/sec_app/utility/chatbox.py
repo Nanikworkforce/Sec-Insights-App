@@ -10,21 +10,51 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
         period = chart_context.get("period", "")
         metrics = chart_context.get("metrics", [])
         
+        if any(word in question.lower() for word in ["selected company", "selected ticker", "which company", "which ticker"]):
+            if company:
+                metrics_str = ", ".join(f"'{m}'" for m in metrics)
+                time_range = f"from {chart_data[0]['name']} to {chart_data[-1]['name']}" if chart_data else ""
+                return f"The selected company is {company}. I can analyze {metrics_str} data {time_range}."
+            return "No company is currently selected. Please select a company to analyze."
+
+        if any(word in question.lower() for word in ["selected metric", "which metric"]):
+            if metrics:
+                metrics_str = ", ".join(f"'{m}'" for m in metrics)
+                return f"The selected metrics are: {metrics_str}"
+            return "No metrics are currently selected. Please select at least one metric to analyze."
+
         if not chart_data:
             return f"No data available for {company}."
-
-        # Sort data chronologically
         sorted_data = sorted(chart_data, key=lambda x: x.get('name', ''))
         
-        # Get latest and earliest data points
-        latest_data = sorted_data[-1] if sorted_data else {}
-        earliest_data = sorted_data[0] if sorted_data else {}
-        
-        # For specific value questions (e.g., "what is the revenue in 2024?")
-        year_match = re.search(r'\b\d{4}\b', question)  # Find 4-digit year in question
+        if "growth" in question.lower() and "percentage" in question.lower():
+            years = re.findall(r'\b\d{4}\b', question)
+            if len(years) == 2:
+                start_year, end_year = years
+                start_data = next((d for d in sorted_data if str(start_year) in d.get('name', '')), None)
+                end_data = next((d for d in sorted_data if str(end_year) in d.get('name', '')), None)
+                
+                if start_data and end_data:
+                    responses = []
+                    for metric in metrics:
+                        if metric in start_data and metric in end_data:
+                            start_value = start_data[metric]
+                            end_value = end_data[metric]
+                            if start_value and start_value != 0:  # Avoid division by zero
+                                change = end_value - start_value
+                                change_pct = (change / start_value) * 100
+                                direction = "increased" if change > 0 else "decreased"
+                                responses.append(
+                                    f"{metric} has {direction} by {abs(change_pct):.1f}% "
+                                    f"from ${start_value:,.0f} ({start_year}) "
+                                    f"to ${end_value:,.0f} ({end_year})"
+                                )
+                    return " and ".join(responses) + "." if responses else f"No valid data found for comparison between {start_year} and {end_year}."
+                return f"Unable to find data for both {start_year} and {end_year}."
+
+        year_match = re.search(r'\b\d{4}\b', question)  
         if year_match:
             year = year_match.group()
-            # Find data point for that year
             year_data = next((d for d in sorted_data if str(year) in d.get('name', '')), None)
             
             if year_data:
@@ -37,44 +67,40 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
             else:
                 return f"No data available for {company} in {year}."
 
-        # For trend/growth questions
         if any(word in question.lower() for word in ["trend", "growth", "change"]):
             responses = []
             for metric in metrics:
-                if metric in latest_data and metric in earliest_data:
-                    first_value = earliest_data[metric]
-                    last_value = latest_data[metric]
+                if metric in sorted_data[-1] and metric in sorted_data[0]:
+                    first_value = sorted_data[0][metric]
+                    last_value = sorted_data[-1][metric]
                     change = last_value - first_value
                     change_pct = (change / first_value) * 100 if first_value else 0
                     direction = "increased" if change > 0 else "decreased"
                     
                     responses.append(
                         f"{metric.title()} has {direction} from ${first_value:,.0f} "
-                        f"({earliest_data['name']}) to ${last_value:,.0f} "
-                        f"({latest_data['name']}), a {abs(change_pct):.1f}% {direction}"
+                        f"({sorted_data[0]['name']}) to ${last_value:,.0f} "
+                        f"({sorted_data[-1]['name']}), a {abs(change_pct):.1f}% {direction}"
                     )
             return " and ".join(responses) + "."
 
-        # For latest value questions
         if any(word in question.lower() for word in ["current", "latest", "now"]):
             responses = []
             for metric in metrics:
-                if metric in latest_data:
-                    value = latest_data[metric]
-                    responses.append(f"The latest {metric} ({latest_data['name']}) is ${value:,.0f}")
+                if metric in sorted_data[-1]:
+                    value = sorted_data[-1][metric]
+                    responses.append(f"The latest {metric} ({sorted_data[-1]['name']}) is ${value:,.0f}")
             return " and ".join(responses) + "."
 
-        # For specific metric questions (e.g., "what is the revenue?")
         for metric in metrics:
             if metric.lower() in question.lower():
-                if metric in latest_data:
-                    value = latest_data[metric]
-                    return f"The {metric} for {company} in {latest_data['name']} is ${value:,.0f}."
+                if metric in sorted_data[-1]:
+                    value = sorted_data[-1][metric]
+                    return f"The {metric} for {company} in {sorted_data[-1]['name']} is ${value:,.0f}."
 
-        # Default response
         available_metrics = ", ".join(f"'{m}'" for m in metrics)
         return (f"I can help you analyze {company}'s {available_metrics} data from "
-                f"{earliest_data.get('name', '')} to {latest_data.get('name', '')}. "
+                f"{sorted_data[0].get('name', '')} to {sorted_data[-1].get('name', '')}. "
                 f"What would you like to know?")
 
     except Exception as e:

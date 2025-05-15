@@ -53,26 +53,50 @@ export const useChat = ({
     setMessages(prev => [...prev, userMessage]);
 
     try {
-      // Format chart data to ensure it has the correct structure
-      const formattedChartData = chartData.map(point => {
-        const formattedPoint: Record<string, any> = {
-          name: point.date || point.name
-        };
-        // Only include selected metrics
-        selectedMetrics.forEach(metric => {
-          if (point[metric] !== undefined) {
-            formattedPoint[metric] = point[metric];
-          }
+      // Only include data points that have valid values for the selected metrics
+      const formattedChartData = chartData
+        .filter(point => {
+          // Check if any of the selected metrics have valid values
+          return selectedMetrics.some(metric => 
+            point[metric] !== null && point[metric] !== undefined
+          );
+        })
+        .map(point => {
+          const formattedPoint: Record<string, any> = {
+            name: point.date || point.name
+          };
+          selectedMetrics.forEach(metric => {
+            if (point[metric] !== null && point[metric] !== undefined) {
+              formattedPoint[metric] = point[metric];
+            }
+          });
+          return formattedPoint;
         });
-        return formattedPoint;
-      }).filter(point => Object.keys(point).length > 1); // Ensure point has more than just name
 
-      // Log the request data
-      console.log('Sending request:', {
-        company,
-        metrics: selectedMetrics,
-        chartData: formattedChartData
-      });
+      // Early validation
+      if (!company) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: 'Please select a company first to analyze the data.'
+        }]);
+        return;
+      }
+
+      if (!selectedMetrics?.length) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: 'Please select at least one metric to analyze.'
+        }]);
+        return;
+      }
+
+      if (!formattedChartData.length) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `No valid data available for ${company} with the selected metrics.`
+        }]);
+        return;
+      }
 
       const response = await fetch(`${BASE_URL}/chat/`, {
         method: 'POST',
@@ -95,24 +119,6 @@ export const useChat = ({
 
       const data = await response.json();
       
-      // If no company is selected, provide a specific message
-      if (!company) {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: 'Please select a company first to analyze the data.'
-        }]);
-        return;
-      }
-
-      // If no metrics are selected, provide a specific message
-      if (!selectedMetrics?.length) {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: 'Please select at least one metric to analyze.'
-        }]);
-        return;
-      }
-
       const aiMessage: Message = {
         role: 'assistant',
         content: data.answer || data.error || 'No response from server'
