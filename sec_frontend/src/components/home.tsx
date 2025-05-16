@@ -755,6 +755,51 @@ const Dashboard: React.FC = () => {
     }
   }, [selectedIndustry]);
 
+  const getChatboxPayload = () => {
+    if (activeChart === 'peers') {
+      // Get primary company from either:
+      // 1. First selected comparison company
+      // 2. The company currently being analyzed in peers view
+      const mainCompany = selectedCompanies.length > 0 
+        ? selectedCompanies[0].ticker 
+        : peerChartData.length > 0 
+          ? Object.keys(peerChartData[0]).find(k => k !== 'name') || ''
+          : '';
+
+      console.log('Selected Companies:', selectedCompanies);
+      console.log('Peer Chart Data:', peerChartData);
+      console.log('Main Company:', mainCompany);
+
+      return {
+        metrics: selectedPeerMetrics,
+        chartData: peerChartData,
+        tabContext: 'peers',
+        company: mainCompany,
+        period: selectedPeriod,
+        chartType: activeChart
+      };
+    } else if (activeChart === 'industry') {
+      return {
+        metrics: selectedIndustryMetrics,
+        chartData: industryChartData,
+        tabContext: 'industry',
+        company: selectedIndustry,
+        period: selectedPeriod,
+        chartType: activeChart
+      };
+    } else {
+      // For single company metrics
+      return {
+        metrics: selectedMetrics,
+        chartData: mainChartData,
+        tabContext: 'metrics',
+        company: searchValue.split(':')[0].trim(),  // Use the search input company
+        period: selectedPeriod,
+        chartType: activeChart
+      };
+    }
+  };
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       {/* Mobile Header */}
