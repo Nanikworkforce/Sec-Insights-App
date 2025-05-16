@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 class ChartChatboxAPIView(APIView):
     def post(self, request):
         try:
+            print("Raw request data:", request.data)
             question = request.data.get("question", "").lower()
             company = request.data.get("company", "")
             metrics = request.data.get("metrics", [])
@@ -47,10 +48,18 @@ class ChartChatboxAPIView(APIView):
                     "answer": f"No data available for {company}."
                 })
 
+            if not isinstance(chart_data, list):
+                return Response({"error": "Invalid chartData format"}, status=400)
+
+            for point in chart_data:
+                if not isinstance(point, dict) or 'name' not in point:
+                    return Response({"error": "Invalid data point structure"}, status=400)
+
             valid_data = [
                 point for point in chart_data 
-                if any(point.get(metric) is not None for metric in metrics)
+                if any(point.get(str(metric), None) is not None for metric in metrics)
             ]
+            print(f"Valid data points: {valid_data}")
 
             if not valid_data:
                 return Response({
@@ -65,7 +74,22 @@ class ChartChatboxAPIView(APIView):
                 "chart_type": request.data.get("chartType", "line")
             }
 
-            answer = answer_question(question, chart_context, valid_data)
+            try:
+                answer = answer_question(question, chart_context, valid_data)
+            except KeyError as ke:
+                logger.error(f"Missing key in data: {str(ke)}")
+                return Response({"error": f"Data format error: {str(ke)}"}, status=400)
+            except ValueError as ve:
+                logger.error(f"Data validation error: {str(ve)}")
+                return Response({"error": f"Invalid data: {str(ve)}"}, status=400)
+            except Exception as e:
+                logger.error(f"Error in ChartChatboxAPIView: {str(e)}")
+                return Response({
+                    "error": "Failed to process question. Please try again."
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            print(f"First data point: {chart_data[0] if chart_data else 'Empty'}")
+            print(f"Looking for metrics: {metrics}")
             
             return Response({
                 "answer": answer,
