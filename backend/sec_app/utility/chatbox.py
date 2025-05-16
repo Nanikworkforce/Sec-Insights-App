@@ -10,141 +10,168 @@ def normalize_metric_name(metric: str) -> str:
     return normalized
 
 def answer_question(question: str, chart_context: dict, chart_data: list) -> str:
-    chart_type = chart_context.get("chart_type", "line")
-    company = chart_context.get("company", "")
-    metrics = chart_context.get("metrics", [])
+    try:
+        chart_type = chart_context.get("chart_type", "line")
+        company = chart_context.get("company", "")
+        metrics = chart_context.get("metrics", [])
 
-    # Handle peer comparison format
-    if chart_type == 'peers' and metrics:
-        metric = metrics[0]
-        valid_data = [
-            p for p in chart_data
-            if metric in p and isinstance(p[metric], dict) and company in p[metric]
-        ]
-        
-        if not valid_data:
-            return f"No valid data available for {company} with {metric}"
+        logger.debug(f"Received question: {question}")
+        logger.debug(f"Chart context: {chart_context}")
+        logger.debug(f"Chart data sample: {chart_data[:2]}")
+
+        # Handle peer comparison format
+        if chart_type == 'peers' and metrics:
+            metric = metrics[0]
             
-        # Handle year-specific questions for peers
-        year_match = re.search(r'\b\d{4}\b', question)
-        if year_match:
-            year = year_match.group()
-            year_data = next((d for d in valid_data if str(year) in d.get('name', '')), None)
+            # Handle "selected metric" question first
+            if any(word in question.lower() for word in ["selected metric", "which metric"]):
+                return f"The selected metric is '{metric}'"
+
+            # Handle "selected company" question
+            if any(word in question.lower() for word in ["selected company", "selected ticker", "which company", "which ticker"]):
+                if company:
+                    time_range = f"from {chart_data[0]['name']} to {chart_data[-1]['name']}" if chart_data else ""
+                    return f"The selected company is {company}. I can analyze '{metric}' data {time_range}."
+                return "No company is currently selected. Please select a company to analyze."
+
+            logger.debug(f"Processing peer comparison for metric: {metric}")
+            logger.debug(f"Looking for company: {company}")
             
-            if not year_data:
+            valid_data = [
+                p for p in chart_data
+                if metric in p and isinstance(p[metric], dict) and company in p[metric]
+            ]
+            
+            logger.debug(f"Valid data points found: {len(valid_data)}")
+            if valid_data:
+                logger.debug(f"Sample valid data point: {valid_data[0]}")
+            
+            if not valid_data:
+                return f"No valid data available for {company} with {metric}"
+                
+            # Handle year-specific questions for peers
+            year_match = re.search(r'\b\d{4}\b', question)
+            if year_match:
+                year = year_match.group()
+                logger.debug(f"Looking for year: {year}")
+                
+                year_data = next((d for d in valid_data if str(year) in d.get('name', '')), None)
+                logger.debug(f"Found year data: {year_data}")
+                
+                if year_data:
+                    value = year_data[metric].get(company)
+                    logger.debug(f"Found value for {company}: {value}")
+                    
+                    if value is not None:
+                        return f"{company}'s {metric} in {year_data['name']} was ${value:,.0f}"
+                
                 available_years = [d['name'] for d in valid_data]
                 return f"No data for {year}. Available years: {', '.join(available_years)}"
-            
-            value = year_data[metric].get(company)
+
+            # If no specific year asked, return latest data
+            latest_data = valid_data[-1]
+            value = latest_data[metric].get(company)
             if value is not None:
-                return f"{company}'s {metric} in {year_data['name']} was ${value:,.0f}"
-            return f"No {metric} data available for {company} in {year_data['name']}"
+                return f"Latest {metric} for {company} ({latest_data['name']}) is ${value:,.0f}"
+            return f"No {metric} data available for {company}"
 
-        # If no specific year asked, return latest data
-        latest_data = valid_data[-1]
-        value = latest_data[metric].get(company)
-        if value is not None:
-            return f"Latest {metric} for {company} ({latest_data['name']}) is ${value:,.0f}"
-        return f"No {metric} data available for {company}"
-
-    try:
-        # Normalize the question to handle different formats
-        question_lower = question.lower().replace('  ', ' ')
-        
-        # Create a mapping of normalized metric names to original metrics
-        metric_map = {normalize_metric_name(m): m for m in metrics}
-        
-        # Determine the requested metric
-        requested_metric = None
-        
-        # First check for exact matches
-        for metric in metrics:
-            if metric.lower() in question_lower:
-                requested_metric = metric
-                break
-        
-        # If no exact match, check normalized forms
-        if not requested_metric:
-            for norm_metric, orig_metric in metric_map.items():
-                # Check if all words from normalized metric exist in question
-                if all(word in question_lower.split() for word in norm_metric.split()):
-                    requested_metric = orig_metric
-                    break
-
-        if not chart_data:
-            return "I don't have any data to analyze. Please ensure data is loaded for the selected company and metrics."
-            
-        sorted_data = sorted(chart_data, key=lambda x: x.get('name', ''))
-
-        # For specific year questions
-        year_match = re.search(r'\b\d{4}\b', question)  
-        if year_match:
-            year = year_match.group()
-            year_data = next((d for d in sorted_data if str(year) in d.get('name', '')), None)
-            
-            if not year_data:
-                return f"I don't have any data for {year}. The available years are: {', '.join(d['name'] for d in sorted_data)}."
-
-            # If specific metric mentioned, only show that metric
-            if requested_metric:
-                if requested_metric in year_data and year_data[requested_metric] is not None:
-                    value = year_data[requested_metric]
-                    return f"The {requested_metric} for {company} in {year_data['name']} is ${value:,.0f}"
-                else:
-                    return f"I can see the year {year} in the data, but there's no value available for {requested_metric}."
-
-        if any(word in question.lower() for word in ["selected company", "selected ticker", "which company", "which ticker"]):
-            if company:
-                metrics_str = ", ".join(f"'{m}'" for m in metrics)
-                time_range = f"from {chart_data[0]['name']} to {chart_data[-1]['name']}" if chart_data else ""
-                return f"The selected company is {company}. I can analyze {metrics_str} data {time_range}."
-            return "No company is currently selected. Please select a company to analyze."
-
-        if any(word in question.lower() for word in ["selected metric", "which metric"]):
-            if metrics:
-                metrics_str = ", ".join(f"'{m}'" for m in metrics)
-                return f"The selected metrics are: {metrics_str}"
-            return "No metrics are currently selected. Please select at least one metric to analyze."
-
-        if any(word in question.lower() for word in ["trend", "growth", "change"]):
-            responses = []
-            for metric in metrics:
-                if metric in sorted_data[-1] and metric in sorted_data[0]:
-                    first_value = sorted_data[0][metric]
-                    last_value = sorted_data[-1][metric]
-                    change = last_value - first_value
-                    change_pct = (change / first_value) * 100 if first_value else 0
-                    direction = "increased" if change > 0 else "decreased"
-                    
-                    responses.append(
-                        f"{metric.title()} has {direction} from ${first_value:,.0f} "
-                        f"({sorted_data[0]['name']}) to ${last_value:,.0f} "
-                        f"({sorted_data[-1]['name']}), a {abs(change_pct):.1f}% {direction}"
-                    )
-            return " and ".join(responses) + "."
-
-        if any(word in question.lower() for word in ["current", "latest", "now"]):
-            responses = []
-            for metric in metrics:
-                if metric in sorted_data[-1]:
-                    value = sorted_data[-1][metric]
-                    responses.append(f"The latest {metric} ({sorted_data[-1]['name']}) is ${value:,.0f}")
-            return " and ".join(responses) + "."
-
-        for metric in metrics:
-            if metric.lower() in question.lower():
-                if metric in sorted_data[-1]:
-                    value = sorted_data[-1][metric]
-                    return f"The {metric} for {company} in {sorted_data[-1]['name']} is ${value:,.0f}."
-
-        available_metrics = ", ".join(f"'{m}'" for m in metrics)
-        return (f"I can help you analyze {company}'s {available_metrics} data from "
-                f"{sorted_data[0].get('name', '')} to {sorted_data[-1].get('name', '')}. "
-                f"What would you like to know?")
+        # Handle non-peer comparison questions
+        return handle_regular_questions(question, metrics, chart_data)
 
     except Exception as e:
         logger.error(f"Error in answer_question: {str(e)}")
         return "I apologize, but I encountered an error analyzing the data. Please try asking in a different way."
+
+def handle_regular_questions(question: str, metrics: list, chart_data: list) -> str:
+    # Move the existing non-peer comparison logic here
+    question_lower = question.lower().replace('  ', ' ')
+    metric_map = {normalize_metric_name(m): m for m in metrics}
+    requested_metric = None
+    
+    # First check for exact matches
+    for metric in metrics:
+        if metric.lower() in question_lower:
+            requested_metric = metric
+            break
+    
+    # If no exact match, check normalized forms
+    if not requested_metric:
+        for norm_metric, orig_metric in metric_map.items():
+            # Check if all words from normalized metric exist in question
+            if all(word in question_lower.split() for word in norm_metric.split()):
+                requested_metric = orig_metric
+                break
+
+    if not chart_data:
+        return "I don't have any data to analyze. Please ensure data is loaded for the selected company and metrics."
+        
+    sorted_data = sorted(chart_data, key=lambda x: x.get('name', ''))
+
+    # For specific year questions
+    year_match = re.search(r'\b\d{4}\b', question)  
+    if year_match:
+        year = year_match.group()
+        year_data = next((d for d in sorted_data if str(year) in d.get('name', '')), None)
+        
+        if not year_data:
+            return f"I don't have any data for {year}. The available years are: {', '.join(d['name'] for d in sorted_data)}."
+
+        # If specific metric mentioned, only show that metric
+        if requested_metric:
+            if requested_metric in year_data and year_data[requested_metric] is not None:
+                value = year_data[requested_metric]
+                return f"The {requested_metric} for {company} in {year_data['name']} is ${value:,.0f}"
+            else:
+                return f"I can see the year {year} in the data, but there's no value available for {requested_metric}."
+
+    if any(word in question.lower() for word in ["selected company", "selected ticker", "which company", "which ticker"]):
+        if company:
+            metrics_str = ", ".join(f"'{m}'" for m in metrics)
+            time_range = f"from {chart_data[0]['name']} to {chart_data[-1]['name']}" if chart_data else ""
+            return f"The selected company is {company}. I can analyze {metrics_str} data {time_range}."
+        return "No company is currently selected. Please select a company to analyze."
+
+    if any(word in question.lower() for word in ["selected metric", "which metric"]):
+        if metrics:
+            metrics_str = ", ".join(f"'{m}'" for m in metrics)
+            return f"The selected metrics are: {metrics_str}"
+        return "No metrics are currently selected. Please select at least one metric to analyze."
+
+    if any(word in question.lower() for word in ["trend", "growth", "change"]):
+        responses = []
+        for metric in metrics:
+            if metric in sorted_data[-1] and metric in sorted_data[0]:
+                first_value = sorted_data[0][metric]
+                last_value = sorted_data[-1][metric]
+                change = last_value - first_value
+                change_pct = (change / first_value) * 100 if first_value else 0
+                direction = "increased" if change > 0 else "decreased"
+                
+                responses.append(
+                    f"{metric.title()} has {direction} from ${first_value:,.0f} "
+                    f"({sorted_data[0]['name']}) to ${last_value:,.0f} "
+                    f"({sorted_data[-1]['name']}), a {abs(change_pct):.1f}% {direction}"
+                )
+        return " and ".join(responses) + "."
+
+    if any(word in question.lower() for word in ["current", "latest", "now"]):
+        responses = []
+        for metric in metrics:
+            if metric in sorted_data[-1]:
+                value = sorted_data[-1][metric]
+                responses.append(f"The latest {metric} ({sorted_data[-1]['name']}) is ${value:,.0f}")
+        return " and ".join(responses) + "."
+
+    for metric in metrics:
+        if metric.lower() in question.lower():
+            if metric in sorted_data[-1]:
+                value = sorted_data[-1][metric]
+                return f"The {metric} for {company} in {sorted_data[-1]['name']} is ${value:,.0f}."
+
+    available_metrics = ", ".join(f"'{m}'" for m in metrics)
+    return (f"I can help you analyze {company}'s {available_metrics} data from "
+            f"{sorted_data[0].get('name', '')} to {sorted_data[-1].get('name', '')}. "
+            f"What would you like to know?")
 
 
 def handle_single_value(company, metric, year, data):
