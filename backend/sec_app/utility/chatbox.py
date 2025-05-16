@@ -25,8 +25,27 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
         if not valid_data:
             return f"No valid data available for {company} with {metric}"
             
-        # Rest of peer analysis logic
-        # ...
+        # Handle year-specific questions for peers
+        year_match = re.search(r'\b\d{4}\b', question)
+        if year_match:
+            year = year_match.group()
+            year_data = next((d for d in valid_data if str(year) in d.get('name', '')), None)
+            
+            if not year_data:
+                available_years = [d['name'] for d in valid_data]
+                return f"No data for {year}. Available years: {', '.join(available_years)}"
+            
+            value = year_data[metric].get(company)
+            if value is not None:
+                return f"{company}'s {metric} in {year_data['name']} was ${value:,.0f}"
+            return f"No {metric} data available for {company} in {year_data['name']}"
+
+        # If no specific year asked, return latest data
+        latest_data = valid_data[-1]
+        value = latest_data[metric].get(company)
+        if value is not None:
+            return f"Latest {metric} for {company} ({latest_data['name']}) is ${value:,.0f}"
+        return f"No {metric} data available for {company}"
 
     try:
         # Normalize the question to handle different formats
