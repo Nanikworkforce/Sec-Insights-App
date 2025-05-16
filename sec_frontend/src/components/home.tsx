@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import BoxPlot from './BoxPlot';
 import { useChat } from './chatbox';
 
-const BASE_URL = 'http://127.0.0.1:8000/api';
+const BASE_URL = 'http://localhost:8000/api';  // Changed from 127.0.0.1 to localhost
 
 const data = [
   { date: 'Jan 16', revenue: 15000, cost: 8000 },
@@ -138,7 +138,7 @@ const Dashboard: React.FC = () => {
   const [metricInput, setMetricInput] = useState('');
   const [selectedCompanies, setSelectedCompanies] = useState<CompanyTicker[]>([]);
   const [companyInput, setCompanyInput] = useState('');
-  const [selectedPeerMetric, setSelectedPeerMetric] = useState('');
+  const [selectedPeerMetric, setSelectedPeerMetric] = useState<string>('');
   const [selectedMetric1, setSelectedMetric1] = useState('Revenue');
   const [selectedMetric2, setSelectedMetric2] = useState('CostOfGoodsSold');
   const [selectedSearchMetrics, setSelectedSearchMetrics] = useState<string[]>(['revenue', 'netIncome']);
@@ -395,81 +395,63 @@ const Dashboard: React.FC = () => {
   }, [searchValue, selectedSearchMetrics, selectedPeriod]);
 
   const fetchPeerData = useCallback(async () => {
-    if (!selectedCompanies.length || !selectedPeerMetric) return;
-    
-    setPeerLoading(true);
-    setPeerError(null);
-
     try {
-      // Create array of time periods based on selectedPeriod
-      let timePoints: string[] = [];
-      if (selectedPeriod === '1Y') {
-        timePoints = Array.from({ length: 20 }, (_, i) => (2005 + i).toString());
-      } else {
-        switch (selectedPeriod) {
-          case '2Y':
-            timePoints = [
-              '2005-06', '2007-08', '2009-10', '2011-12', '2013-14',
-              '2015-16', '2017-18', '2019-20', '2021-22', '2023-24'
-            ];
-            break;
-          case '3Y':
-            timePoints = [
-              '2007-09', '2010-12', '2013-15', '2016-18',
-              '2019-21', '2022-24'
-            ];
-            break;
-          case '4Y':
-            timePoints = [
-              '2005-08', '2009-12', '2013-16', '2017-20', '2021-24'
-            ];
-            break;
-          case '5Y':
-            timePoints = [
-              '2005-09', '2010-14', '2015-19', '2020-24'
-            ];
-            break;
-          case '10Y':
-            timePoints = ['2005-14', '2015-24'];
-            break;
-          case '15Y':
-            timePoints = ['2010-24'];
-            break;
-          case '20Y':
-            timePoints = ['2005-24'];
-            break;
-        }
+      if (!selectedCompanies.length || !selectedPeerMetric) {
+        console.log('Missing required data for peer fetch:', { 
+          companies: selectedCompanies, 
+          metric: selectedPeerMetric 
+        });
+        return;
       }
-
-      // Initialize base data structure with all time points
-      const baseData = timePoints.map(period => ({
-        name: period,
-        ...selectedCompanies.reduce((acc, company) => ({
-          ...acc,
-          [company.ticker]: 0
-        }), {})
-      }));
+      
+      console.log('Fetching peer data for:', {
+        companies: selectedCompanies.map(c => c.ticker),
+        metric: selectedPeerMetric,
+        period: selectedPeriod
+      });
+      
+      setPeerLoading(true);
+      setPeerError(null);
 
       // Fetch data for each company
       const promises = selectedCompanies.map(async company => {
-        const url = `${BASE_URL}/aggregated-data/?tickers=${company.ticker}&metric=${selectedPeerMetric}&period=${selectedPeriod}`;
+        const url = `${BASE_URL}/aggregated-data/?tickers=${encodeURIComponent(company.ticker)}&metric=${encodeURIComponent(selectedPeerMetric)}&period=${encodeURIComponent(selectedPeriod)}`;
+        console.log('Fetching from:', url);
         const response = await fetch(url);
+        
         if (!response.ok) {
           throw new Error(`Failed to fetch data for ${company.ticker}`);
         }
+        
         const data = await response.json();
+        console.log(`Data for ${company.ticker}:`, data);
         return { company, data };
       });
 
       const results = await Promise.all(promises);
+      
+      if (results.length === 0 || results[0].data.length === 0) {
+        console.error('No data returned from API');
+        setPeerError('No data available for the selected companies and metric');
+        setPeerChartData([]);
+        return;
+      }
 
-      // Transform the data
-      const transformedData = baseData.map(basePoint => {
-        const point = { ...basePoint };
+      // Create a unified dataset with all companies
+      const transformedData = results[0].data.map(timePoint => {
+        const point: PeerDataPoint = { 
+          name: timePoint.name,
+          // Add metric name as key with company values
+          [selectedPeerMetric]: {} 
+        };
+        
         results.forEach(({ company, data }) => {
-          const matchingData = data.find(d => d.name === point.name);
-          point[company.ticker] = matchingData ? matchingData.value : null;  // Changed from 0 to null
+          const matchingPoint = data.find(d => d.name === timePoint.name);
+          if (matchingPoint) {
+            point[selectedPeerMetric][company.ticker] = matchingPoint.value;
+          }
         });
+        
         return point;
       });
 
@@ -478,11 +460,12 @@ const Dashboard: React.FC = () => {
 
     } catch (error) {
       console.error('Error fetching peer data:', error);
-      setPeerError('Failed to fetch peer data');
+      setPeerError(`Failed to connect to backend. Ensure it's running at ${BASE_URL}`);
+      setPeerChartData([]);
     } finally {
       setPeerLoading(false);
     }
-  }, [selectedCompanies, selectedPeerMetric, selectedPeriod]);
+  }, [selectedCompanies, selectedPeerMetric, selectedPeriod, BASE_URL]);
 
   const fetchIndustryData = useCallback(async () => {
     if (selectedIndustryMetrics.length === 0 || !selectedIndustry) return;
@@ -595,10 +578,11 @@ const Dashboard: React.FC = () => {
   }, [chartData, peerChartData, activeChart, selectedPeriod]);
 
   useEffect(() => {
-    if (activeChart === 'peers') {
+    if (activeChart === 'peers' && selectedPeerMetric && selectedCompanies.length > 0) {
+      console.log('Triggering peer data fetch');
       fetchPeerData();
     }
-  }, [activeChart, selectedCompanies, selectedPeerMetric, selectedPeriod, fetchPeerData]);
+  }, [activeChart, selectedPeerMetric, selectedCompanies, fetchPeerData]);
 
   useEffect(() => {
     if (activeChart === 'industry') {
@@ -767,21 +751,26 @@ const Dashboard: React.FC = () => {
     if (activeChart === 'peers') {
       const mainCompany = selectedCompanies.length > 0 
         ? selectedCompanies[0].ticker 
-        : peerChartData.length > 0 
-          ? Object.keys(peerChartData[0]).find(k => k !== 'name') || ''
-          : '';
+        : '';
 
-      // Use the selected peer metric
+      // Ensure we have the selected metric
       const metrics = selectedPeerMetric ? [selectedPeerMetric] : [];
 
+      // Filter out any null values from the chart data
+      const validChartData = peerChartData.filter(point => 
+        selectedCompanies.some(company => 
+          point[company.ticker] !== null && point[company.ticker] !== undefined
+        )
+      );
+
       console.log('Selected Companies:', selectedCompanies);
-      console.log('Peer Chart Data:', peerChartData);
+      console.log('Peer Chart Data:', validChartData);
       console.log('Main Company:', mainCompany);
       console.log('Selected Peer Metrics:', metrics);
 
       return {
         metrics,
-        chartData: peerChartData,
+        chartData: validChartData,
         tabContext: 'peers',
         company: mainCompany,
         period: selectedPeriod,
@@ -818,7 +807,9 @@ const Dashboard: React.FC = () => {
 
   // Update the peer metric selection handler
   const handlePeerMetricSelection = (metric: string) => {
+    console.log('Selected peer metric:', metric);
     setSelectedPeerMetric(metric);
+    setSelectedPeerMetrics([metric]); // Update the metrics array
     setShowPeerMetricDropdown(false);
   };
 
@@ -1641,14 +1632,12 @@ const Dashboard: React.FC = () => {
                             {/* Regular hover tooltip */}
                             <Tooltip
                               formatter={(value: number | null, name: string) => {
-                                // Assuming `searchValue` contains the ticker
-                                const ticker = searchValue.split(':')[0].trim().toUpperCase();
+                                // Split the name into metric and ticker
+                                const [metric, ticker] = name.split('.');
+                                const company = selectedCompanies.find(c => c.ticker === ticker);
                                 return [
-                                  value === null ? "N/A" : new Intl.NumberFormat('en-US', {
-                                    notation: 'compact',
-                                    maximumFractionDigits: 1
-                                  }).format(value),
-                                  `${name} (${ticker})`  // Include the ticker in the tooltip
+                                  value !== null ? new Intl.NumberFormat('en-US').format(value) : "N/A",
+                                  `${company?.name || ticker} - ${metric}`
                                 ];
                               }}
                               labelFormatter={(label) => {
@@ -1873,14 +1862,13 @@ const Dashboard: React.FC = () => {
                             <Legend />
                             {selectedCompanies.map((company, idx) => {
                               const color = generateColorPalette(selectedCompanies.length)[idx];
-                              const metricLabel = availableMetrics.find(m => m.value === selectedPeerMetric)?.label || selectedPeerMetric;
                               return (
                                 <Line
                                   key={company.ticker}
                                   type="monotone"
-                                  dataKey={company.ticker}
+                                  dataKey={`${selectedPeerMetric}.${company.ticker}`}
                                   stroke={color}
-                                  name={`${company.ticker} - ${metricLabel}`}
+                                  name={`${company.ticker} - ${selectedPeerMetric}`}
                                   strokeWidth={2}
                                   dot={{
                                     fill: color,

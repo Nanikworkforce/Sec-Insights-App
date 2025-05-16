@@ -10,10 +10,25 @@ def normalize_metric_name(metric: str) -> str:
     return normalized
 
 def answer_question(question: str, chart_context: dict, chart_data: list) -> str:
-    try:
-        company = chart_context.get("company", "")
-        metrics = chart_context.get("metrics", [])
+    chart_type = chart_context.get("chart_type", "line")
+    company = chart_context.get("company", "")
+    metrics = chart_context.get("metrics", [])
 
+    # Handle peer comparison format
+    if chart_type == 'peers' and metrics:
+        metric = metrics[0]
+        valid_data = [
+            p for p in chart_data
+            if metric in p and isinstance(p[metric], dict) and company in p[metric]
+        ]
+        
+        if not valid_data:
+            return f"No valid data available for {company} with {metric}"
+            
+        # Rest of peer analysis logic
+        # ...
+
+    try:
         # Normalize the question to handle different formats
         question_lower = question.lower().replace('  ', ' ')
         
