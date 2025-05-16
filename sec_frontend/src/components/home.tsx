@@ -765,21 +765,22 @@ const Dashboard: React.FC = () => {
 
   const getChatboxPayload = () => {
     if (activeChart === 'peers') {
-      // Get primary company from either:
-      // 1. First selected comparison company
-      // 2. The company currently being analyzed in peers view
       const mainCompany = selectedCompanies.length > 0 
         ? selectedCompanies[0].ticker 
         : peerChartData.length > 0 
           ? Object.keys(peerChartData[0]).find(k => k !== 'name') || ''
           : '';
 
+      // Use the selected peer metric
+      const metrics = selectedPeerMetric ? [selectedPeerMetric] : [];
+
       console.log('Selected Companies:', selectedCompanies);
       console.log('Peer Chart Data:', peerChartData);
       console.log('Main Company:', mainCompany);
+      console.log('Selected Peer Metrics:', metrics);
 
       return {
-        metrics: selectedPeerMetrics,
+        metrics,
         chartData: peerChartData,
         tabContext: 'peers',
         company: mainCompany,
@@ -806,6 +807,19 @@ const Dashboard: React.FC = () => {
         chartType: activeChart
       };
     }
+  };
+
+  // Add effect to update selectedPeerMetrics when selectedPeerMetric changes
+  useEffect(() => {
+    if (selectedPeerMetric) {
+      setSelectedPeerMetrics([selectedPeerMetric]);
+    }
+  }, [selectedPeerMetric]);
+
+  // Update the peer metric selection handler
+  const handlePeerMetricSelection = (metric: string) => {
+    setSelectedPeerMetric(metric);
+    setShowPeerMetricDropdown(false);
   };
 
   return (
