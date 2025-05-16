@@ -6,6 +6,7 @@ interface ChatboxProps {
   selectedPeriod: string;
   selectedMetrics: string[];
   activeChart: string;
+  selectedCompanies: { ticker: string; name: string }[];
 }
 
 interface Message {
@@ -21,6 +22,7 @@ export const useChat = ({
   selectedPeriod,
   selectedMetrics,
   activeChart,
+  selectedCompanies,
 }: ChatboxProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -32,18 +34,24 @@ export const useChat = ({
 
   // Log context changes
   useEffect(() => {
+    const company = activeChart === 'peers' && selectedCompanies.length > 0
+      ? selectedCompanies[0].ticker
+      : searchValue?.split(':')[0]?.trim() || '';
+
     console.log('Chart Context:', {
-      company: searchValue?.split(':')[0]?.trim() || '',
+      company,
       metrics: selectedMetrics,
       period: selectedPeriod,
       chartType: activeChart
     });
-  }, [searchValue, selectedMetrics, selectedPeriod, activeChart]);
+  }, [searchValue, selectedMetrics, selectedPeriod, activeChart, selectedCompanies]);
 
   const handleSendMessage = async (message: string) => {
     if (!message.trim()) return;
 
-    const company = searchValue?.split(':')[0]?.trim()?.toUpperCase() || '';
+    const company = activeChart === 'peers' && selectedCompanies.length > 0
+      ? selectedCompanies[0].ticker
+      : searchValue?.split(':')[0]?.trim()?.toUpperCase() || '';
     
     // Add user message
     const userMessage: Message = {
