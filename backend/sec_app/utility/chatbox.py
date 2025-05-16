@@ -76,13 +76,13 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
             return f"No {metric} data available for {company}"
 
         # Handle non-peer comparison questions
-        return handle_regular_questions(question, metrics, chart_data)
+        return handle_regular_questions(question, metrics, chart_data, company)
 
     except Exception as e:
         logger.error(f"Error in answer_question: {str(e)}")
         return "I apologize, but I encountered an error analyzing the data. Please try asking in a different way."
 
-def handle_regular_questions(question: str, metrics: list, chart_data: list) -> str:
+def handle_regular_questions(question: str, metrics: list, chart_data: list, company: str = "") -> str:
     # Move the existing non-peer comparison logic here
     question_lower = question.lower().replace('  ', ' ')
     metric_map = {normalize_metric_name(m): m for m in metrics}
