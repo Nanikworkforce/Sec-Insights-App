@@ -184,17 +184,25 @@ const Dashboard: React.FC = () => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [fixedTooltipPos, setFixedTooltipPos] = useState<{ left: number, top: number } | null>(null);
 
+  // Add these lines for peer metrics
+  const [selectedPeerMetrics, setSelectedPeerMetrics] = useState<string[]>([]);
+
   const {
     messages,
     inputValue,
     setInputValue,
     handleSendMessage
   } = useChat({
-    chartData,
+    chartData: activeChart === 'peers' ? peerChartData : 
+              activeChart === 'industry' ? industryChartData : 
+              chartData,
     searchValue,
     selectedPeriod,
-    selectedMetrics: selectedSearchMetrics,
-    activeChart
+    selectedMetrics: activeChart === 'peers' ? selectedPeerMetrics : 
+                 activeChart === 'industry' ? selectedIndustryMetrics : 
+                 selectedSearchMetrics,
+    activeChart,
+    selectedCompanies
   });
 
   // Add function to handle company selection
@@ -791,7 +799,7 @@ const Dashboard: React.FC = () => {
       // For single company metrics
       return {
         metrics: selectedMetrics,
-        chartData: mainChartData,
+        chartData: chartData,
         tabContext: 'metrics',
         company: searchValue.split(':')[0].trim(),  // Use the search input company
         period: selectedPeriod,

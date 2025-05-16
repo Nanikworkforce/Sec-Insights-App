@@ -6,7 +6,7 @@ interface ChatboxProps {
   selectedPeriod: string;
   selectedMetrics: string[];
   activeChart: string;
-  selectedCompanies: { ticker: string; name: string }[];
+  selectedCompanies: any[];
 }
 
 interface Message {
@@ -34,25 +34,22 @@ export const useChat = ({
 
   // Log context changes
   useEffect(() => {
-    const company = activeChart === 'peers' && selectedCompanies.length > 0
-      ? selectedCompanies[0].ticker
-      : searchValue?.split(':')[0]?.trim() || '';
-
     console.log('Chart Context:', {
-      company,
+      company: searchValue?.split(':')[0]?.trim() || '',
       metrics: selectedMetrics,
       period: selectedPeriod,
       chartType: activeChart
     });
-  }, [searchValue, selectedMetrics, selectedPeriod, activeChart, selectedCompanies]);
+  }, [searchValue, selectedMetrics, selectedPeriod, activeChart]);
 
   const handleSendMessage = async (message: string) => {
     if (!message.trim()) return;
 
+    // Determine company based on active chart
     const company = activeChart === 'peers' && selectedCompanies.length > 0
       ? selectedCompanies[0].ticker
-      : searchValue?.split(':')[0]?.trim()?.toUpperCase() || '';
-    
+      : searchValue.split(':')[0].trim().toUpperCase();
+
     // Add user message
     const userMessage: Message = {
       role: 'user',
@@ -61,18 +58,14 @@ export const useChat = ({
     setMessages(prev => [...prev, userMessage]);
 
     try {
-      // Only include data points that have valid values for the selected metrics
       const formattedChartData = chartData
         .filter(point => {
-          // Check if any of the selected metrics have valid values
           return selectedMetrics.some(metric => 
             point[metric] !== null && point[metric] !== undefined
           );
         })
         .map(point => {
-          const formattedPoint: Record<string, any> = {
-            name: point.date || point.name
-          };
+          const formattedPoint: Record<string, any> = { name: point.date || point.name };
           selectedMetrics.forEach(metric => {
             if (point[metric] !== null && point[metric] !== undefined) {
               formattedPoint[metric] = point[metric];
@@ -114,7 +107,7 @@ export const useChat = ({
         body: JSON.stringify({
           question: message,
           company,
-          period: selectedPeriod || '',
+          period: selectedPeriod || 'ALL',
           metrics: selectedMetrics || [],
           chartType: activeChart || 'line',
           chartData: formattedChartData
