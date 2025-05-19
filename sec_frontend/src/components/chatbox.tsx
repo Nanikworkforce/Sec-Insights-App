@@ -58,7 +58,10 @@ export const useChat = ({
     setMessages(prev => [...prev, userMessage]);
 
     try {
-      const formattedChartData = chartData
+      const allChartData = chartData;
+
+      // Use allChartData (full dataset) for chat, not just the displayed/filtered data
+      const formattedChartData = allChartData
         .filter(point => {
           return selectedMetrics.some(metric => 
             point[metric] !== null && point[metric] !== undefined
