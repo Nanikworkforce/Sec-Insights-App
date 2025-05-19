@@ -1,6 +1,9 @@
 import re
 from django.utils.translation import gettext_lazy as _
 import logging
+from sec_app.models.metric import FinancialMetric  
+from sec_app.models.period import FinancialPeriod
+from django.db import models
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +18,94 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
         company = chart_context.get("company", "")
         metrics = chart_context.get("metrics", [])
 
+        # Handle identity/purpose questions first
+        identity_keywords = ["who am i", "what am i", "what i'm trying", "what im trying", 
+                           "what am i trying to do?", "what is my goal", "what's my goal"]
+        if any(keyword in question.lower() for keyword in identity_keywords):
+            if not company:
+                return "You haven't selected a company yet. Please select a company to analyze."
+                
+            if chart_type == 'peers':
+                metric = metrics[0]
+                return f"You are comparing {metric} performance across different companies, with {company} as your primary focus."
+            else:
+                metrics_str = ", ".join(metrics)
+                return f"You are analyzing {company}'s performance across multiple metrics: {metrics_str}."
+
         logger.debug(f"Received question: {question}")
         logger.debug(f"Chart context: {chart_context}")
         logger.debug(f"Chart data sample: {chart_data[:2]}")
+
+        # Handle multi-year growth queries
+        growth_match = re.search(
+            r"(?:what is|show me|calculate)\s+(?:the)?\s+([\w\s]+?)\s+(?:over|in)\s+(?:the\s+)?last\s+(\d+)\s+years", 
+            question.lower()
+        )
+        if not growth_match:
+            growth_match = re.search(r"(\d+)\s+year\s+([\w\s]+)", question.lower())
+        
+        if growth_match:
+            years = int(growth_match.group(2) if growth_match.lastindex == 2 else growth_match.group(1))
+            metric_name = growth_match.group(1) if growth_match.lastindex == 2 else growth_match.group(2)
+            metric_name = metric_name.strip().lower()
+            
+            try:
+                # First try to find any period for this company
+                any_period = FinancialPeriod.objects.filter(
+                    company__ticker=company
+                ).first()
+                
+                if not any_period:
+                    logger.error(f"No periods found for company {company}")
+                    return "No financial data available for this company."
+                
+                # Get the most recent end date from all periods
+                latest_end_date = FinancialPeriod.objects.filter(
+                    company__ticker=company
+                ).aggregate(max_date=models.Max('end_date'))['max_date']
+                
+                if not latest_end_date:
+                    return "Could not determine latest financial period."
+                    
+                end_year = latest_end_date.year
+                start_year = end_year - years + 1
+                
+                # Look for matching aggregated period
+                agg_period = FinancialPeriod.objects.filter(
+                    company__ticker=company,
+                    start_date__year=start_year,
+                    end_date__year=end_year
+                ).first()
+                
+                if not agg_period:
+                    # Fallback to checking if we have individual years
+                    annual_data = FinancialMetric.objects.filter(
+                        company__ticker=company,
+                        metric_name__iexact=metric_name,
+                        period__start_date__year__gte=start_year,
+                        period__end_date__year__lte=end_year
+                    ).order_by('-period__end_date')
+                    
+                    if not annual_data.exists():
+                        return f"No data found for {metric_name} between {start_year}-{end_year}"
+                        
+                    # Calculate sum manually
+                    total = sum(float(m.value) for m in annual_data if m.value)
+                    return f"The total {metric_name} for {company} ({start_year}-{end_year}) is ${total:,.0f} (calculated from annual data)"
+                
+                # Found aggregated period - get the metric
+                aggregated_metric = FinancialMetric.objects.filter(
+                    period=agg_period,
+                    metric_name__iexact=metric_name
+                ).first()
+
+                if aggregated_metric:
+                    return f"The {metric_name} for {company} ({start_year}-{end_year}) is ${aggregated_metric.value:,.0f}."
+                return f"No {metric_name} data found for {start_year}-{end_year} period."
+
+            except Exception as e:
+                logger.error(f"Database error: {str(e)}")
+                return "Error retrieving financial data. Please try again."
 
         # Handle peer comparison format
         if chart_type == 'peers' and metrics:
@@ -136,6 +224,53 @@ def handle_regular_questions(question: str, metrics: list, chart_data: list, com
             metrics_str = ", ".join(f"'{m}'" for m in metrics)
             return f"The selected metrics are: {metrics_str}"
         return "No metrics are currently selected. Please select at least one metric to analyze."
+
+    # Handle multi-year growth queries (e.g., "revenue growth in last 3 years")
+    growth_match = re.search(
+        r"(?:what is|show me|calculate)\s+(?:the)?\s+([\w\s]+?)\s+growth\s+(?:over|in)\s+(?:the\s+)?last\s+(\d+)\s+years", 
+        question_lower
+    )
+    if not growth_match:
+        growth_match = re.search(r"(\d+)\s+year\s+([\w\s]+)\s+growth", question_lower)
+    
+    if growth_match:
+        years = int(growth_match.group(2) if growth_match.lastindex == 2 else growth_match.group(1))
+        metric_name = growth_match.group(1) if growth_match.lastindex == 2 else growth_match.group(2)
+        metric_name = metric_name.strip()
+        
+        # Metric name normalization
+        requested_metric = next(
+            (m for m in metrics 
+             if m.lower().replace(' ', '').replace('_', '') == metric_name.lower().replace(' ', '')),
+            None
+        )
+        
+        if requested_metric:
+            # Get annual data points sorted chronologically
+            annual_data = [d for d in sorted_data if re.match(r"^\d{4}$", d.get("name", ""))]
+            
+            if len(annual_data) >= years + 1:
+                # Get the starting year (current year - years)
+                end_year = int(annual_data[-1]['name'])
+                start_year = end_year - years
+                
+                # Find data points for the period
+                period_data = [d for d in annual_data if start_year <= int(d['name']) <= end_year]
+                
+                if len(period_data) >= 2 and requested_metric in period_data[-1] and requested_metric in period_data[0]:
+                    start_value = period_data[0][requested_metric]
+                    end_value = period_data[-1][requested_metric]
+                    
+                    if start_value == 0:
+                        return f"Cannot calculate {requested_metric} growth: starting value is zero."
+                    
+                    # Calculate total growth percentage
+                    total_growth = ((end_value - start_value) / start_value) * 100
+                    return (f"{company} {requested_metric} grew by {total_growth:.1f}% "
+                            f"from {period_data[0]['name']} to {period_data[-1]['name']}.")
+            
+            return f"Not enough data to calculate {years}-year growth for {requested_metric}."
+        return f"Metric '{metric_name}' not found. Available metrics: {', '.join(metrics)}."
 
     if any(word in question.lower() for word in ["trend", "growth", "change"]):
         responses = []
