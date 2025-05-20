@@ -17,11 +17,12 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
         chart_type = chart_context.get("chart_type", "line")
         company = chart_context.get("company", "")
         metrics = chart_context.get("metrics", [])
+        question_lower = question.lower()
 
         # Handle identity/purpose questions first
         identity_keywords = ["who am i", "what am i", "what i'm trying", "what im trying", 
                            "what am i trying to do?", "what is my goal", "what's my goal"]
-        if any(keyword in question.lower() for keyword in identity_keywords):
+        if any(keyword in question_lower for keyword in identity_keywords):
             if not company:
                 return "You haven't selected a company yet. Please select a company to analyze."
                 
@@ -36,13 +37,55 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
         logger.debug(f"Chart context: {chart_context}")
         logger.debug(f"Chart data sample: {chart_data[:2]}")
 
+        # Handle growth queries
+        growth_match = re.search(r"what is my growth in (\w+)", question_lower)
+        if growth_match:
+            metric_name = growth_match.group(1).strip().lower()
+            
+            try:
+                # Log the metric name and company for debugging
+                logger.debug(f"Fetching growth data for {metric_name} for company {company}")
+                
+                # Fetch metric values for 2023 and 2024
+                metric_2023 = FinancialMetric.objects.filter(
+                    company__ticker=company,
+                    metric_name__iexact=metric_name,
+                    period__start_date__year=2023,
+                    period__end_date__year=2023
+                ).first()
+                
+                metric_2024 = FinancialMetric.objects.filter(
+                    company__ticker=company,
+                    metric_name__iexact=metric_name,
+                    period__start_date__year=2024,
+                    period__end_date__year=2024
+                ).first()
+                
+                if not metric_2023 or not metric_2024:
+                    return f"Data for {metric_name} in 2023 or 2024 is not available."
+                
+                # Calculate growth percentage
+                value_2023 = float(metric_2023.value)
+                value_2024 = float(metric_2024.value)
+                
+                if value_2023 == 0:
+                    return f"Cannot calculate growth for {metric_name} from 2023 to 2024 as the 2023 value is zero."
+                
+                growth_percentage = ((value_2024 - value_2023) / value_2023) * 100
+                
+                return f"The {metric_name} for {company} grew by {growth_percentage:.2f}% from 2023 to 2024."
+            
+            except Exception as e:
+                logger.error(f"Error retrieving growth data: {str(e)}")
+                return "Error retrieving growth data. Please try again."
+
         # Handle multi-year growth queries
         growth_match = re.search(
             r"(?:what is|show me|calculate)\s+(?:the)?\s+([\w\s]+?)\s+(?:over|in)\s+(?:the\s+)?last\s+(\d+)\s+years", 
-            question.lower()
+            question_lower
         )
         if not growth_match:
-            growth_match = re.search(r"(\d+)\s+year\s+([\w\s]+)", question.lower())
+            growth_match = re.search(r"(\d+)\s+year\s+([\w\s]+)\s+growth", question_lower)
         
         if growth_match:
             years = int(growth_match.group(2) if growth_match.lastindex == 2 else growth_match.group(1))
@@ -112,11 +155,11 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
             metric = metrics[0]
             
             # Handle "selected metric" question first
-            if any(word in question.lower() for word in ["selected metric", "which metric"]):
+            if any(word in question_lower for word in ["selected metric", "which metric"]):
                 return f"The selected metric is '{metric}'"
 
             # Handle "selected company" question
-            if any(word in question.lower() for word in ["selected company", "selected ticker", "which company", "which ticker"]):
+            if any(word in question_lower for word in ["selected company", "selected ticker", "which company", "which ticker"]):
                 if company:
                     time_range = f"from {chart_data[0]['name']} to {chart_data[-1]['name']}" if chart_data else ""
                     return f"The selected company is {company}. I can analyze '{metric}' data {time_range}."
@@ -168,7 +211,7 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
 
     except Exception as e:
         logger.error(f"Error in answer_question: {str(e)}")
-        return "I apologize, but I encountered an error analyzing the data. Please try asking in a different way."
+        return "An error occurred while processing your request."
 
 def handle_regular_questions(question: str, metrics: list, chart_data: list, company: str = "") -> str:
     # Move the existing non-peer comparison logic here
