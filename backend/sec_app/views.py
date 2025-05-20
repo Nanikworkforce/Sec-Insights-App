@@ -66,7 +66,6 @@ class ChartChatboxAPIView(APIView):
                     "answer": f"No valid data points found for {company} with the selected metrics."
                 })
 
-            # Create context with validated data
             chart_context = {
                 "company": company,
                 "period": request.data.get("period", ""),
