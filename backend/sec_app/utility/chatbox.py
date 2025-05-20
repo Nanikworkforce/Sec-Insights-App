@@ -38,7 +38,7 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
         logger.debug(f"Chart data sample: {chart_data[:2]}")
 
         # Handle growth queries
-        growth_match = re.search(r"what is my growth in (\w+)", question_lower)
+        growth_match = re.search(r"what is the growth in (\w+)", question_lower)
         if growth_match:
             metric_name = growth_match.group(1).strip().lower()
             
