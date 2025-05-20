@@ -80,75 +80,51 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
                 return "Error retrieving growth data. Please try again."
 
         # Handle multi-year growth queries
-        growth_match = re.search(
-            r"(?:what is|show me|calculate)\s+(?:the)?\s+([\w\s]+?)\s+(?:over|in)\s+(?:the\s+)?last\s+(\d+)\s+years", 
-            question_lower
-        )
-        if not growth_match:
-            growth_match = re.search(r"(\d+)\s+year\s+([\w\s]+)\s+growth", question_lower)
-        
+        growth_match = re.search(r"what is the (\w+) growth in the last (\d+) years", question_lower)
         if growth_match:
-            years = int(growth_match.group(2) if growth_match.lastindex == 2 else growth_match.group(1))
-            metric_name = growth_match.group(1) if growth_match.lastindex == 2 else growth_match.group(2)
-            metric_name = metric_name.strip().lower()
+            metric_name = growth_match.group(1).strip().lower()
+            years = int(growth_match.group(2))
             
             try:
-                # First try to find any period for this company
-                any_period = FinancialPeriod.objects.filter(
-                    company__ticker=company
-                ).first()
+                # Log the metric name and company for debugging
+                logger.debug(f"Fetching growth data for {metric_name} for company {company} over the last {years} years")
                 
-                if not any_period:
-                    logger.error(f"No periods found for company {company}")
-                    return "No financial data available for this company."
+                # Determine the start and end years
+                current_year = 2024  # Assuming the current year is 2024
+                start_year = current_year - years + 1
                 
-                # Get the most recent end date from all periods
-                latest_end_date = FinancialPeriod.objects.filter(
-                    company__ticker=company
-                ).aggregate(max_date=models.Max('end_date'))['max_date']
-                
-                if not latest_end_date:
-                    return "Could not determine latest financial period."
-                    
-                end_year = latest_end_date.year
-                start_year = end_year - years + 1
-                
-                # Look for matching aggregated period
-                agg_period = FinancialPeriod.objects.filter(
+                # Fetch metric values for start and end years
+                metric_start = FinancialMetric.objects.filter(
                     company__ticker=company,
-                    start_date__year=start_year,
-                    end_date__year=end_year
+                    metric_name__iexact=metric_name,
+                    period__start_date__year=start_year,
+                    period__end_date__year=start_year
                 ).first()
                 
-                if not agg_period:
-                    # Fallback to checking if we have individual years
-                    annual_data = FinancialMetric.objects.filter(
-                        company__ticker=company,
-                        metric_name__iexact=metric_name,
-                        period__start_date__year__gte=start_year,
-                        period__end_date__year__lte=end_year
-                    ).order_by('-period__end_date')
-                    
-                    if not annual_data.exists():
-                        return f"No data found for {metric_name} between {start_year}-{end_year}"
-                        
-                    # Calculate sum manually
-                    total = sum(float(m.value) for m in annual_data if m.value)
-                    return f"The total {metric_name} for {company} ({start_year}-{end_year}) is ${total:,.0f} (calculated from annual data)"
-                
-                # Found aggregated period - get the metric
-                aggregated_metric = FinancialMetric.objects.filter(
-                    period=agg_period,
-                    metric_name__iexact=metric_name
+                metric_end = FinancialMetric.objects.filter(
+                    company__ticker=company,
+                    metric_name__iexact=metric_name,
+                    period__start_date__year=current_year,
+                    period__end_date__year=current_year
                 ).first()
-
-                if aggregated_metric:
-                    return f"The {metric_name} for {company} ({start_year}-{end_year}) is ${aggregated_metric.value:,.0f}."
-                return f"No {metric_name} data found for {start_year}-{end_year} period."
-
+                
+                if not metric_start or not metric_end:
+                    return f"Data for {metric_name} from {start_year} to {current_year} is not available."
+                
+                # Calculate growth percentage
+                value_start = float(metric_start.value)
+                value_end = float(metric_end.value)
+                
+                if value_start == 0:
+                    return f"Cannot calculate growth for {metric_name} from {start_year} to {current_year} as the start year value is zero."
+                
+                growth_percentage = ((value_end - value_start) / value_start) * 100
+                
+                return f"{company} {metric_name} grew by {growth_percentage:.2f}% from {start_year}-{current_year}."
+            
             except Exception as e:
-                logger.error(f"Database error: {str(e)}")
-                return "Error retrieving financial data. Please try again."
+                logger.error(f"Error retrieving growth data: {str(e)}")
+                return "Error retrieving growth data. Please try again."
 
         # Handle peer comparison format
         if chart_type == 'peers' and metrics:
