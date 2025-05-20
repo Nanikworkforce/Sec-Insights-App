@@ -4,13 +4,25 @@ import logging
 from sec_app.models.metric import FinancialMetric  
 from sec_app.models.period import FinancialPeriod
 from django.db import models
-
+import feedparser 
 logger = logging.getLogger(__name__)
 
 def normalize_metric_name(metric: str) -> str:
-    """Convert camelCase to space-separated lowercase"""
     normalized = re.sub(r'(?<!^)(?=[A-Z])', ' ', metric).lower()
     return normalized
+
+def fetch_google_news(company):
+    query = company.replace(" ", "+")
+    rss_url = f"https://news.google.com/rss/search?q={query}+stock"
+    feed = feedparser.parse(rss_url)
+
+    if not feed.entries:
+        return f"No recent news found for {company}."
+
+    articles = feed.entries[:5]
+    links = [f"- [{entry.title}]({entry.link})" for entry in articles]
+    return f"📰 Here are the latest news articles related to **{company}**:\n\n" + "\n".join(links)
+
 
 def answer_question(question: str, chart_context: dict, chart_data: list) -> str:
     try:
@@ -19,7 +31,15 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
         metrics = chart_context.get("metrics", [])
         question_lower = question.lower()
 
-        # Handle identity/purpose questions first
+        if "news" in question or "latest news" in question:
+            return fetch_google_news(company)
+        else:
+            "I'm still learning how to answer that question. Try rephrasing or ask about metrics or trends."
+
+        if "stock" in question and ("perform" in question or "price" in question):
+            return f"📈 Here is the Google Finance page for {company}:\nhttps://www.google.com/finance/quote/{company}:NASDAQ"
+
+
         identity_keywords = ["who am i", "what am i", "what i'm trying", "what im trying", 
                            "what am i trying to do?", "what is my goal", "what's my goal"]
         if any(keyword in question_lower for keyword in identity_keywords):
@@ -37,7 +57,6 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
         logger.debug(f"Chart context: {chart_context}")
         logger.debug(f"Chart data sample: {chart_data[:2]}")
 
-        # Handle growth queries
         growth_match = re.search(r"what is the growth in (\w+)", question_lower)
         if growth_match:
             metric_name = growth_match.group(1).strip().lower()
@@ -46,7 +65,6 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
                 # Log the metric name and company for debugging
                 logger.debug(f"Fetching growth data for {metric_name} for company {company}")
                 
-                # Fetch metric values for 2023 and 2024
                 metric_2023 = FinancialMetric.objects.filter(
                     company__ticker=company,
                     metric_name__iexact=metric_name,
@@ -182,16 +200,13 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
                 return f"Latest {metric} for {company} ({latest_data['name']}) is ${value:,.0f}"
             return f"No {metric} data available for {company}"
 
-        # Handle trend queries
         if "what are the trends" in question_lower:
             try:
-                # Define time frames
                 current_year = 2024  # Assuming the current year is 2024
                 short_term_start = 2023
                 medium_term_start = 2020
                 long_term_start = 2015
 
-                # Function to fetch metric value for a given year
                 def fetch_metric_value(metric_name, year):
                     metric = FinancialMetric.objects.filter(
                         company__ticker=company,
@@ -201,7 +216,6 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
                     ).first()
                     return float(metric.value) if metric else None
 
-                # Function to calculate growth percentage
                 def calculate_growth(start_value, end_value):
                     if start_value is None or end_value is None:
                         return None
@@ -213,7 +227,6 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
                 result = f"{company} selected metrics trends:\n"
 
                 for metric_name in metrics:
-                    # Fetch metric values for each time frame
                     value_short_start = fetch_metric_value(metric_name, short_term_start)
                     value_short_end = fetch_metric_value(metric_name, current_year)
                     value_medium_start = fetch_metric_value(metric_name, medium_term_start)
