@@ -242,6 +242,68 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
                 logger.error(f"Error retrieving trend data: {str(e)}")
                 return "Error retrieving trend data. Please try again."
 
+        # Handle specific metric trend queries
+        trend_match = re.search(r"how is my company's (\w+) trending", question_lower)
+        if trend_match:
+            metric_name = trend_match.group(1).strip().lower()
+            
+            try:
+                # Log the metric name and company for debugging
+                logger.debug(f"Fetching trend data for {metric_name} for company {company}")
+                
+                # Define time frames
+                current_year = 2024  # Assuming the current year is 2024
+                short_term_start = 2023
+                medium_term_start = 2020
+                long_term_start = 2015
+
+                # Function to fetch metric value for a given year
+                def fetch_metric_value(metric_name, year):
+                    metric = FinancialMetric.objects.filter(
+                        company__ticker=company,
+                        metric_name__iexact=metric_name,
+                        period__start_date__year=year,
+                        period__end_date__year=year
+                    ).first()
+                    return float(metric.value) if metric else None
+
+                # Function to calculate growth percentage
+                def calculate_growth(start_value, end_value):
+                    if start_value is None or end_value is None:
+                        return None
+                    if start_value == 0:
+                        return None
+                    return ((end_value - start_value) / start_value) * 100
+
+                # Fetch metric values for each time frame
+                value_short_start = fetch_metric_value(metric_name, short_term_start)
+                value_short_end = fetch_metric_value(metric_name, current_year)
+                value_medium_start = fetch_metric_value(metric_name, medium_term_start)
+                value_long_start = fetch_metric_value(metric_name, long_term_start)
+
+                # Calculate growth percentages
+                short_term_growth = calculate_growth(value_short_start, value_short_end)
+                medium_term_growth = calculate_growth(value_medium_start, value_short_end)
+                long_term_growth = calculate_growth(value_long_start, value_short_end)
+
+                # Format the result
+                result = f"{company} {metric_name} trends:\n"
+                if short_term_growth is not None:
+                    trend = "increase" if short_term_growth > 0 else "decrease"
+                    result += f"  Short-term trend (1Y) is {abs(short_term_growth):.2f}% {trend}.\n"
+                if medium_term_growth is not None:
+                    trend = "increase" if medium_term_growth > 0 else "decrease"
+                    result += f"  Medium-term trend (last 5Y) is {abs(medium_term_growth):.2f}% {trend}.\n"
+                if long_term_growth is not None:
+                    trend = "increase" if long_term_growth > 0 else "decrease"
+                    result += f"  Long-term trend (last 10Y) is {abs(long_term_growth):.2f}% {trend}.\n"
+
+                return result.strip()
+
+            except Exception as e:
+                logger.error(f"Error retrieving trend data: {str(e)}")
+                return "Error retrieving trend data. Please try again."
+
         # Handle non-peer comparison questions
         return handle_regular_questions(question, metrics, chart_data, company)
 
