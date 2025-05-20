@@ -39,6 +39,9 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
         if "stock" in question and ("perform" in question or "price" in question):
             return f"📈 Here is the Google Finance page for {company}:\nhttps://www.google.com/finance/quote/{company}:NASDAQ"
 
+        if any(keyword in question for keyword in ["how is market perceiving", "how is the market reacting", "market sentiment", "perceiving us", "perceiving our stock"]):
+            return f"📰 Here’s how the market is perceiving **{company}**:\n" + get_bloomberg_sentiment_news(company)
+
 
         identity_keywords = ["who am i", "what am i", "what i'm trying", "what im trying", 
                            "what am i trying to do?", "what is my goal", "what's my goal"]
