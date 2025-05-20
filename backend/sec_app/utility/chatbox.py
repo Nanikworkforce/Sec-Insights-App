@@ -227,11 +227,14 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
                     # Append results for each metric
                     result += f"\nMetric: {metric_name}\n"
                     if short_term_growth is not None:
-                        result += f"  Short-term trend (last 1Y): {short_term_growth:.2f}%\n"
+                        trend = "increase" if short_term_growth > 0 else "decrease"
+                        result += f"  Short-term trend of {metric_name} (last 1Y) is {abs(short_term_growth):.2f}% {trend}.\n"
                     if medium_term_growth is not None:
-                        result += f"  Medium-term trend (last 5Y): {medium_term_growth:.2f}%\n"
+                        trend = "increase" if medium_term_growth > 0 else "decrease"
+                        result += f"  Medium-term trend of {metric_name} (last 5Y) is {abs(medium_term_growth):.2f}% {trend}.\n"
                     if long_term_growth is not None:
-                        result += f"  Long-term trend (last 10Y): {long_term_growth:.2f}%\n"
+                        trend = "increase" if long_term_growth > 0 else "decrease"
+                        result += f"  Long-term trend of {metric_name} (last 10Y) is {abs(long_term_growth):.2f}% {trend}.\n"
 
                 return result.strip()
 
