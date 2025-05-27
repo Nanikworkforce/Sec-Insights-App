@@ -9,6 +9,7 @@ from .models.analysis import SentimentAnalysis
 from .models.period import FinancialPeriod
 from .models.filling import FilingDocument
 from .models.metric import FinancialMetric
+from .models.chatlog import ChatLog
 from django.db.models import Avg, Sum
 from .models.query import Query
 from .serializer import *
@@ -23,83 +24,47 @@ import pandas as pd
 import os 
 from .utility.chatbox import answer_question
 logger = logging.getLogger(__name__)
+from .utility.bot import *
 
-class ChartChatboxAPIView(APIView):
+class ChatbotAPIView(APIView):
     def post(self, request):
         try:
-            print("Raw request data:", request.data)
-            question = request.data.get("question", "").lower()
-            company = request.data.get("company", "")
-            metrics = request.data.get("metrics", [])
-            chart_data = request.data.get("chartData", [])
+            question = request.data.get("question")
+            payload = request.data.get("payload", {})
 
-            if not company:
-                return Response({
-                    "answer": "Please select a company to analyze."
-                })
+            keywords = extract_keywords(question)
 
-            if not metrics:
-                return Response({
-                    "answer": "Please select metrics to analyze."
-                })
+            # Step 1: Valid keywords in question
+            if keywords.get("company") or keywords.get("metric_name") or keywords.get("year"):
+                context = keywords
+                answer = query_data_from_db(context)
 
-            if not chart_data:
-                return Response({
-                    "answer": f"No data available for {company}."
-                })
+            # Step 2: Introspective question → use payload
+            elif is_introspective_question(question):
+                if payload:
+                    answer = describe_payload_intent(payload)
+                else:
+                    answer = "You're exploring business performance insights."
 
-            if not isinstance(chart_data, list):
-                return Response({"error": "Invalid chartData format"}, status=400)
+            # Step 3: No keywords, use payload context
+            elif payload:
+                answer = query_data_from_db(payload)
 
-            for point in chart_data:
-                if not isinstance(point, dict) or 'name' not in point:
-                    return Response({"error": "Invalid data point structure"}, status=400)
+            # Step 4: Fallback to asking user
+            else:
+                answer = "Can you please specify the company, metric, or year you're interested in?"
 
-            valid_data = [
-                point for point in chart_data 
-                if any(point.get(str(metric), None) is not None for metric in metrics)
-            ]
-            print(f"Valid data points: {valid_data}")
+            # Optional: Save to chat log
+            ChatLog.objects.create(question=question, answer=answer)
 
-            if not valid_data:
-                return Response({
-                    "answer": f"No valid data points found for {company} with the selected metrics."
-                })
-
-            chart_context = {
-                "company": company,
-                "period": request.data.get("period", ""),
-                "metrics": metrics,
-                "chart_type": request.data.get("chartType", "line")
-            }
-
-            try:
-                answer = answer_question(question, chart_context, valid_data)
-            except KeyError as ke:
-                logger.error(f"Missing key in data: {str(ke)}")
-                return Response({"error": f"Data format error: {str(ke)}"}, status=400)
-            except ValueError as ve:
-                logger.error(f"Data validation error: {str(ve)}")
-                return Response({"error": f"Invalid data: {str(ve)}"}, status=400)
-            except Exception as e:
-                logger.error(f"Error in ChartChatboxAPIView: {str(e)}")
-                return Response({
-                    "error": "Failed to process question. Please try again."
-                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-            print(f"First data point: {chart_data[0] if chart_data else 'Empty'}")
-            print(f"Looking for metrics: {metrics}")
-            
-            return Response({
-                "answer": answer,
-                "context": chart_context
-            })
-
+            return Response({"answer": answer})
         except Exception as e:
-            logger.error(f"Error in ChartChatboxAPIView: {str(e)}")
+            logger.error(f"Error in ChatbotAPIView: {str(e)}")
             return Response({
                 "error": "Failed to process question. Please try again."
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 @api_view(['GET'])
 def get_sec_data(request):

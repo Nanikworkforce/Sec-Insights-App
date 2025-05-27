@@ -7,8 +7,12 @@ from .models.filing import Filing
 from .models.analysis import SentimentAnalysis
 from .models.query import Query
 from .models.mapping import MetricMapping
-
+from .models.chatlog import ChatLog
 # Register your models here.
+
+@admin.register(ChatLog)
+class ChatlogAdmin(admin.ModelAdmin):
+    list_display = ('question','answer')
 
 @admin.register(Filing)
 class FilingAdmin(admin.ModelAdmin):
