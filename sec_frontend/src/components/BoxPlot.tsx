@@ -2,9 +2,9 @@ import React, { useEffect } from 'react';
 import Plot from 'react-plotly.js';
 
 interface BoxPlotProps {
-  data: { [metric: string]: number[] };  // Changed to object with metric keys
+  data: { [metric: string]: number[] };
   title: string;
-  companyNames: { [metric: string]: string[] };  // Changed to object with metric keys
+  companyNames: { [metric: string]: string[] };
   selectedTicker?: string;
 }
 
@@ -54,7 +54,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
       y: completeValues.filter(v => v !== null) as number[],
       type: 'box' as const,
       boxpoints: false,
-      showbox: true,  // Explicitly show the box
+      showbox: true,
       line: { 
         color: '#1B5A7D',
         width: 2
@@ -64,11 +64,12 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
       showlegend: false,
       whiskerwidth: 0.4,
       boxwidth: 0.6,
-      quartilemethod: 'linear',  // Ensure quartiles are calculated
+      quartilemethod: 'linear',
       name: metric,
       hoverinfo: 'y',
       x0: metricIndex,
       xaxis: 'x',
+      yaxis: `y${metricIndex + 1}`, // Assign different y-axes
       jitter: 0.2,
       pointpos: -1.8
     };
@@ -83,13 +84,12 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
     const scatterTrace = {
       y: pointsData.map(p => p.value),
       x: pointsData.map(() => {
-        // Add horizontal jitter between -0.2 and 0.2
         return metricIndex + (Math.random() - 0.5) * 0.2;
       }),
       type: 'scatter' as const,
       mode: 'markers' as const,
       marker: {
-        size: 14,  // Increased from 10
+        size: 14,
         color: pointsData.map(p => p.color),
         opacity: pointsData.map(p => p.value === null ? 0.3 : 0.8),
         line: {
@@ -101,27 +101,64 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
       hoverinfo: 'text+y' as const,
       hovertemplate: `Company: %{text}<br>Value: %{y:,.1f}${unitSuffix}<extra></extra>`,
       showlegend: false,
-      name: metric
+      name: metric,
+      yaxis: `y${metricIndex + 1}` // Assign same y-axis as corresponding box plot
     };
 
     return [boxTrace, scatterTrace];
   });
 
+  // Create layout with multiple y-axes
+  const layout = {
+    title: title,
+    width: 800,
+    height: 550,
+    xaxis: {
+      ticktext: Object.keys(data),
+      tickvals: Object.keys(data).map((_, i) => i),
+      showgrid: false,
+      domain: [0.1, 0.9] // Give space on both sides for y-axes
+    },
+    margin: { l: 50, r: 50, t: 50, b: 50 },
+    // Add multiple y-axes
+    ...Object.entries(data).reduce((acc, [metric, _], index) => {
+      const totalMetrics = Object.keys(data).length;
+      const segmentWidth = 0.8 / totalMetrics; // 0.8 is the width of xaxis domain
+      const xPos = 0.1 + (index * segmentWidth) + (segmentWidth / 2); // Center of each segment
+
+      if (index === 0) {
+        // First y-axis
+        return {
+          ...acc,
+          yaxis: {
+            title: metric,
+            side: 'left',
+            position: xPos - 0.05, // Slightly to the left of its box plot
+            anchor: 'free',
+            showgrid: false
+          }
+        };
+      }
+
+      // Additional y-axes
+      return {
+        ...acc,
+        [`yaxis${index + 1}`]: {
+          title: metric,
+          side: index === 1 ? 'right' : 'left', // Middle axis on right, last on left
+          position: index === 1 ? xPos + 0.05 : xPos - 0.05, // Adjust position based on side
+          overlaying: 'y',
+          anchor: 'free',
+          showgrid: false
+        }
+      };
+    }, {})
+  };
+
   return (
     <Plot
       data={traces}
-      layout={{
-        title: title,
-        yaxis: { title: 'Values' },
-        width: 800,
-        height: 550,
-        xaxis: {
-          ticktext: Object.keys(data),  // Show metric names as labels
-          tickvals: Object.keys(data).map((_, i) => i),
-          showgrid: false
-        },
-        margin: { l: 50, r: 50, t: 50, b: 50 }  // Adjust margins for better fit
-      }}
+      layout={layout}
       style={{ width: '100%', height: '100%' }}
     />
   );

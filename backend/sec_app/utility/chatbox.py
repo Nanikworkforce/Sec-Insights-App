@@ -45,7 +45,7 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
 
         if "what are the trends of selected peers" in question_lower:
             try:
-                current_year = 2024  # Assuming the current year is 2024
+                current_year = 2024  # Assuming the current year is 2024 
                 short_term_start = 2023
                 medium_term_start = 2020
                 long_term_start = 2015
@@ -348,7 +348,7 @@ def answer_question(question: str, chart_context: dict, chart_data: list) -> str
                 medium_term_start = 2020
                 long_term_start = 2015
 
-                # Function to fetch metric value for a given year
+                # Function to fetch metric value for a given year last
                 def fetch_metric_value(company, metric_name, year):
                     metric = FinancialMetric.objects.filter(
                         company__ticker=company,
@@ -608,3 +608,69 @@ def handle_top_companies(n, metric, year, data):
     if not top:
         return "No data found."
     return "\n".join([f"{i+1}. {r['company']} - {r['value']}" for i, r in enumerate(top)])
+
+def handle_trend_query(question: str, chart_context: dict, chart_data: list) -> str:
+    try:
+        question_lower = question.lower()
+        
+        company_match = re.search(r'\b([A-Za-z]{2,5})\b', question, re.IGNORECASE)
+        company = company_match.group(1).upper() if company_match else chart_context.get("company", "").upper()
+        
+        # Extract metrics from chart context or default to common metrics
+        metrics = chart_context.get("metrics", ['revenue', 'netIncome', 'cash'])
+        
+        # Log the company and metrics for debugging
+        logger.debug(f"Fetching trends for {company} with metrics: {metrics}")
+        
+        # Define time frames
+        current_year = 2024
+        short_term_start = 2023
+        medium_term_start = 2020
+        long_term_start = 2015
+
+        # Function to fetch metric value for a given year
+        def fetch_metric_value(company, metric_name, year):
+            metric = FinancialMetric.objects.filter(
+                company__ticker=company,
+                metric_name__iexact=metric_name,
+                period__start_date__year=year,
+                period__end_date__year=year
+            ).first()
+            return float(metric.value) if metric else None
+
+        # Function to calculate growth percentage
+        def calculate_growth(start_value, end_value):
+            if start_value is None or end_value is None:
+                return None
+            if start_value == 0:
+                return None
+            return ((end_value - start_value) / start_value) * 100
+
+        # Fetch and calculate trends for each metric
+        result = f"{company} selected metrics trends:\n"
+        for metric in metrics:
+            value_short_start = fetch_metric_value(company, metric, short_term_start)
+            value_short_end = fetch_metric_value(company, metric, current_year)
+            value_medium_start = fetch_metric_value(company, metric, medium_term_start)
+            value_long_start = fetch_metric_value(company, metric, long_term_start)
+
+            short_term_growth = calculate_growth(value_short_start, value_short_end)
+            medium_term_growth = calculate_growth(value_medium_start, value_short_end)
+            long_term_growth = calculate_growth(value_long_start, value_short_end)
+
+            result += f"Metric: {metric.title()}\n"
+            if short_term_growth is not None:
+                trend = "increase" if short_term_growth > 0 else "decrease"
+                result += f"  Short-term trend (1Y) is {abs(short_term_growth):.2f}% {trend}.\n"
+            if medium_term_growth is not None:
+                trend = "increase" if medium_term_growth > 0 else "decrease"
+                result += f"  Medium-term trend (5Y) is {abs(medium_term_growth):.2f}% {trend}.\n"
+            if long_term_growth is not None:
+                trend = "increase" if long_term_growth > 0 else "decrease"
+                result += f"  Long-term trend (10Y) is {abs(long_term_growth):.2f}% {trend}.\n"
+
+        return result.strip()
+
+    except Exception as e:
+        logger.error(f"Error retrieving trend data: {str(e)}")
+        return "Error retrieving trend data. Please try again."
