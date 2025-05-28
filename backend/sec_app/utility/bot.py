@@ -5,6 +5,8 @@ from sec_app.models.metric import FinancialMetric
 from sec_app.models.period import FinancialPeriod
 from django.db import models
 import feedparser 
+import time
+
 logger = logging.getLogger(__name__)
 
 def fetch_google_news(company):
@@ -21,15 +23,42 @@ def fetch_google_news(company):
 
 
 def extract_keywords(text):
-    company_match = re.search(r"\b(?:Apple|Tesla|Amazon|Meta|Google)\b", text, re.I)
-    year_match = re.search(r"\b(20\d{2})\b", text)
-    metric_match = re.search(r"\b(revenue|net income|eps|assets|liabilities)\b", text, re.I)
+    # First try to match ticker format (2-5 uppercase letters)
+    ticker_match = re.search(r"\b([A-Z]{2,5})\b", text)
+    if ticker_match:
+        ticker = ticker_match.group(1)
+        from sec_app.models.company import Company
+        if not Company.objects.filter(ticker__iexact=ticker).exists():
+            return {
+                "invalid_company": ticker,
+                "year": re.search(r"\b(20\d{2})\b", text).group(0) if re.search(r"\b(20\d{2})\b", text) else None,
+                "metric": extract_metric(text)
+            }
+        return {
+            "company": ticker,
+            "year": re.search(r"\b(20\d{2})\b", text).group(0) if re.search(r"\b(20\d{2})\b", text) else None,
+            "metric": extract_metric(text)
+        }
 
+    # Fallback to company name matching
+    company_match = re.search(r"\b(Apple|Tesla|Amazon|Meta|Google|Acadian Asset Management|AAON)\b", text, re.I)
+    year_match = re.search(r"\b(20\d{2})\b", text)
     return {
         "company": company_match.group(0) if company_match else None,
         "year": year_match.group(0) if year_match else None,
-        "metric": metric_match.group(0).lower() if metric_match else None,
+        "metric": extract_metric(text)
     }
+
+def extract_metric(text):
+    # Prefer metric between "is the" and "of"/"for" and ticker
+    match = re.search(r"is the ([\w\s\-]+?) (?:of|for) [A-Z]{2,5}", text, re.I)
+    if match:
+        return match.group(1).strip().lower()
+    # fallback: phrase after "of"/"for" and before "in"/end
+    match = re.search(r"(?:of|for)\s+([a-zA-Z0-9 \-\_]+?)(?:\s+in\b|$)", text, re.I)
+    if match:
+        return match.group(1).strip().lower()
+    return None
 
 def is_introspective_question(text):
     introspective_patterns = [
@@ -40,21 +69,64 @@ def is_introspective_question(text):
     ]
     return any(re.search(p, text, re.I) for p in introspective_patterns)
 
+def to_camel_case(s):
+    parts = s.split()
+    return parts[0].lower() + ''.join(word.capitalize() for word in parts[1:])
+
 def query_data_from_db(context):
     filters = {}
     if context.get("company"):
-        filters["company__name__iexact"] = context["company"]
-    if context.get("metric_name"):
-        filters["metric_name__iexact"] = context["metric_name"]
-    if context.get("period"):
-        filters["period"] = context["period"]
+        filters["company__ticker__iexact"] = context["company"].upper()
+    elif context.get("companies"):
+        filters["company__ticker__in"] = context["companies"]
+    
+    metric_name = context.get("metric_name")
+    if metric_name:
+        if isinstance(metric_name, list):
+            filters["metric_name__in"] = metric_name
+        else:
+            filters["metric_name__iexact"] = metric_name
 
-    qs = FinancialMetric.objects.filter(**filters)
-    if not qs.exists():
+    year = context.get("year")
+    tried_year = False
+    if year:
+        filters["period__start_date__year"] = year
+        tried_year = True
+
+    try:
+        start = time.time()
+        qs = FinancialMetric.objects.filter(**filters)\
+            .select_related('company', 'period')\
+            .only('value', 'metric_name', 'company__ticker', 'period__start_date')\
+            .order_by('-period__start_date')
+
+        duration = time.time() - start
+        print(f"FinancialMetric query time: {duration:.4f} seconds")
+        print(f"Query filters: {filters}")
+
+        # If no results and we tried a specific year, fallback to latest year
+        if not qs.exists() and tried_year:
+            print("No data found for the specified year, trying to find the latest available year.")
+            filters.pop("period__start_date__year", None)
+            latest = FinancialMetric.objects.filter(**filters)\
+                .order_by('-period__start_date').first()
+            if latest:
+                filters["period__start_date__year"] = latest.period.start_date.year
+                qs = FinancialMetric.objects.filter(**filters)\
+                    .select_related('company', 'period')\
+                    .only('value', 'metric_name', 'company__ticker', 'period__start_date')\
+                    .order_by('-period__start_date')
+
+        if not qs.exists():
+            print(f"No data found with filters: {filters}")
+            return f"No data found for {context.get('year', 'the latest period')}."
+
+        data = qs.first()
+        response_year = context.get('year') or data.period.start_date.year
+        return f"{data.company.ticker} {data.metric_name} for {response_year} is {data.value}."
+    except Exception as e:
+        logger.error(f"Error in query_data_from_db: {str(e)}")
         return "Sorry, I couldn't find data based on your query."
-
-    data = qs.first()
-    return f"{data.company.name} had a {data.metric_name} of {data.value} in {data.period}."
 
 def describe_payload_intent(payload):
     parts = []
