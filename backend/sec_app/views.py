@@ -59,11 +59,8 @@ class ChatbotAPIView(APIView):
                 asked_metric = keywords.get("metric", "").lower() if keywords.get("metric") else None
                 
                 # If user asked for a specific metric, find it in payload metrics
-                if asked_metric and isinstance(payload["metric_name"], list):
-                    # Case-insensitive matching of metrics
-                    matching_metrics = [m for m in payload["metric_name"] 
-                                     if m.lower() == asked_metric or to_camel_case(m.lower()) == asked_metric]
-                    metric_to_use = matching_metrics[0] if matching_metrics else payload["metric_name"][0]
+                if asked_metric:
+                    metric_to_use = to_camel_case(asked_metric)  # Always use camelCase for metric name
                 else:
                     # Default to first metric if no specific metric asked
                     metric_to_use = payload["metric_name"][0] if isinstance(payload["metric_name"], list) else payload["metric_name"]
