@@ -23,8 +23,8 @@ def fetch_google_news(company):
 
 
 def extract_keywords(text):
-    # Extract time range patterns
-    time_range_match = re.search(r"(?:last|past)\s+(\d+)\s*(?:year|years|yr|yrs)", text, re.I)
+    # Extract time range patterns - make pattern more flexible
+    time_range_match = re.search(r"(?:in |over |during |for )?(?:the )?(?:last|past)\s+(\d+)\s*(?:year|years|yr|yrs)", text, re.I)
     year_range_match = re.search(r"(\d{4})\s*(?:to|-)\s*(\d{4})", text, re.I)
     
     # First try to match ticker format (2-5 uppercase letters)
@@ -48,13 +48,15 @@ def extract_keywords(text):
             "year_range": (year_range_match.group(1), year_range_match.group(2)) if year_range_match else None
         }
 
-    # Fallback to company name matching
+    # Fallback to company name matching or no company
     company_match = re.search(r"\b(Apple|Tesla|Amazon|Meta|Google|Acadian Asset Management|AAON)\b", text, re.I)
     year_match = re.search(r"\b(20\d{2})\b", text)
     return {
         "company": company_match.group(0) if company_match else None,
         "year": year_match.group(0) if year_match else None,
-        "metric": extract_metric(text)
+        "metric": extract_metric(text),
+        "time_range": time_range_match.group(1) if time_range_match else None,
+        "year_range": (year_range_match.group(1), year_range_match.group(2)) if year_range_match else None
     }
 
 def to_camel_case(s):
