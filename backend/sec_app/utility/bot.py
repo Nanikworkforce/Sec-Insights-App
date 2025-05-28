@@ -23,6 +23,10 @@ def fetch_google_news(company):
 
 
 def extract_keywords(text):
+    # Extract time range patterns
+    time_range_match = re.search(r"(?:last|past)\s+(\d+)\s*(?:year|years|yr|yrs)", text, re.I)
+    year_range_match = re.search(r"(\d{4})\s*(?:to|-)\s*(\d{4})", text, re.I)
+    
     # First try to match ticker format (2-5 uppercase letters)
     ticker_match = re.search(r"\b([A-Z]{2,5})\b", text)
     if ticker_match:
@@ -32,12 +36,16 @@ def extract_keywords(text):
             return {
                 "invalid_company": ticker,
                 "year": re.search(r"\b(20\d{2})\b", text).group(0) if re.search(r"\b(20\d{2})\b", text) else None,
-                "metric": extract_metric(text)
+                "metric": extract_metric(text),
+                "time_range": time_range_match.group(1) if time_range_match else None,
+                "year_range": (year_range_match.group(1), year_range_match.group(2)) if year_range_match else None
             }
         return {
             "company": ticker,
             "year": re.search(r"\b(20\d{2})\b", text).group(0) if re.search(r"\b(20\d{2})\b", text) else None,
-            "metric": extract_metric(text)
+            "metric": extract_metric(text),
+            "time_range": time_range_match.group(1) if time_range_match else None,
+            "year_range": (year_range_match.group(1), year_range_match.group(2)) if year_range_match else None
         }
 
     # Fallback to company name matching
@@ -57,13 +65,23 @@ def to_camel_case(s):
     return words[0] + ''.join(word.capitalize() for word in words[1:])
 
 def extract_metric(text):
-    # Handle simple "what is my X" pattern first
-    simple_match = re.search(r"what is (?:my|the) ([\w\s\-]+?)(?:\s+in|\s*$)", text, re.I)
-    if simple_match:
-        return to_camel_case(simple_match.group(1).strip())
+    # Try to match "the X of Y" or "the X for Y"
+    match = re.search(r"(?:what is|show|give|display|provide)?\s*(?:the|my)?\s*([\w\s\-]+?)\s*(?:of|for)\s+[A-Z]{2,5}", text, re.I)
+    if match:
+        return to_camel_case(match.group(1).strip())
 
-    # Prefer metric between "is the" and "of"/"for" and ticker
-    match = re.search(r"is the ([\w\s\-]+?) (?:of|for) [A-Z]{2,5}", text, re.I)
+    # Try to match "the X of Y from YEAR to YEAR"
+    match = re.search(r"(?:what is|show|give|display|provide)?\s*(?:the|my)?\s*([\w\s\-]+?)\s*(?:of|for)\s+[A-Z]{2,5}.*?(?:from|between)?\s*\d{4}.*?\d{4}", text, re.I)
+    if match:
+        return to_camel_case(match.group(1).strip())
+
+    # Try to match "the X in the last N years"
+    match = re.search(r"(?:what is|show|give|display|provide)?\s*(?:the|my)?\s*([\w\s\-]+?)\s*(?:in|over)?\s*(?:the)?\s*last\s*\d+\s*years?", text, re.I)
+    if match:
+        return to_camel_case(match.group(1).strip())
+
+    # Try to match "what is my X"
+    match = re.search(r"what is (?:my|the) ([\w\s\-]+?)(?:\s+in|\s*$)", text, re.I)
     if match:
         return to_camel_case(match.group(1).strip())
 
@@ -97,11 +115,19 @@ def query_data_from_db(context):
         else:
             filters["metric_name__iexact"] = metric_name
 
-    year = context.get("year")
-    tried_year = False
-    if year:
-        filters["period__start_date__year"] = year
-        tried_year = True
+    # Handle time ranges
+    current_year = 2024  # Or dynamically get the latest year
+    if context.get("time_range"):
+        years = int(context["time_range"])
+        start_year = current_year - years + 1
+        filters["period__start_date__year__gte"] = start_year
+        filters["period__start_date__year__lte"] = current_year
+    elif context.get("year_range"):
+        start_year, end_year = context["year_range"]
+        filters["period__start_date__year__gte"] = int(start_year)
+        filters["period__start_date__year__lte"] = int(end_year)
+    elif context.get("year"):
+        filters["period__start_date__year"] = context["year"]
 
     try:
         start = time.time()
@@ -110,30 +136,27 @@ def query_data_from_db(context):
             .only('value', 'metric_name', 'company__ticker', 'period__start_date')\
             .order_by('-period__start_date')
 
-        duration = time.time() - start
-        print(f"FinancialMetric query time: {duration:.4f} seconds")
-        print(f"Query filters: {filters}")
-
-        # If no results and we tried a specific year, fallback to latest year
-        if not qs.exists() and tried_year:
-            print("No data found for the specified year, trying to find the latest available year.")
-            filters.pop("period__start_date__year", None)
-            latest = FinancialMetric.objects.filter(**filters)\
-                .order_by('-period__start_date').first()
-            if latest:
-                filters["period__start_date__year"] = latest.period.start_date.year
-                qs = FinancialMetric.objects.filter(**filters)\
-                    .select_related('company', 'period')\
-                    .only('value', 'metric_name', 'company__ticker', 'period__start_date')\
-                    .order_by('-period__start_date')
-
         if not qs.exists():
-            print(f"No data found with filters: {filters}")
-            return f"No data found for {context.get('year', 'the latest period')}."
+            return f"No data found for the specified period."
 
+        # If it's a time range query, return all values
+        if context.get("time_range") or context.get("year_range"):
+            data = list(qs)
+            # Format values with billions
+            values = [f"{d.period.start_date.year}: ${d.value/1000000000:.2f}B" for d in data]
+            
+            if context.get("year_range"):
+                period_str = f"{context['year_range'][0]} to {context['year_range'][1]}"
+            else:
+                period_str = f"last {context['time_range']} years ({current_year-int(context['time_range'])+1} to {current_year})"
+            
+            return f"{data[0].company.ticker} {data[0].metric_name} for {period_str}:\n" + "\n".join(values)
+        
+        # Single year query (existing logic)
         data = qs.first()
         response_year = context.get('year') or data.period.start_date.year
-        return f"{data.company.ticker} {data.metric_name} for {response_year} is {data.value}."
+        return f"{data.company.ticker} {data.metric_name} for {response_year} is ${data.value/1000000000:.2f}B"
+
     except Exception as e:
         logger.error(f"Error in query_data_from_db: {str(e)}")
         return "Sorry, I couldn't find data based on your query."
