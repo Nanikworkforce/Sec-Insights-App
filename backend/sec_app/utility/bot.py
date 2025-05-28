@@ -49,15 +49,24 @@ def extract_keywords(text):
         "metric": extract_metric(text)
     }
 
+def to_camel_case(s):
+    """Convert 'net income' -> 'netIncome'"""
+    # Remove any extra spaces and split
+    words = s.strip().lower().split()
+    # Capitalize all words after first one and join
+    return words[0] + ''.join(word.capitalize() for word in words[1:])
+
 def extract_metric(text):
     # Prefer metric between "is the" and "of"/"for" and ticker
     match = re.search(r"is the ([\w\s\-]+?) (?:of|for) [A-Z]{2,5}", text, re.I)
     if match:
-        return match.group(1).strip().lower()
+        # Convert to camelCase before returning
+        return to_camel_case(match.group(1).strip())
     # fallback: phrase after "of"/"for" and before "in"/end
     match = re.search(r"(?:of|for)\s+([a-zA-Z0-9 \-\_]+?)(?:\s+in\b|$)", text, re.I)
     if match:
-        return match.group(1).strip().lower()
+        # Convert to camelCase before returning
+        return to_camel_case(match.group(1).strip())
     return None
 
 def is_introspective_question(text):
@@ -68,10 +77,6 @@ def is_introspective_question(text):
         r"what.*going on",
     ]
     return any(re.search(p, text, re.I) for p in introspective_patterns)
-
-def to_camel_case(s):
-    parts = s.split()
-    return parts[0].lower() + ''.join(word.capitalize() for word in parts[1:])
 
 def query_data_from_db(context):
     filters = {}
