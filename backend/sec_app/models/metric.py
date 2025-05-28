@@ -17,3 +17,8 @@ class FinancialMetric(TimeBaseModel):
     class Meta:
         ordering = ['period', 'metric_name']
         unique_together = ('metric_name', 'period', 'company')
+        indexes = [
+            models.Index(fields=['company', 'metric_name', 'period']),
+            models.Index(fields=['metric_name']),
+            models.Index(fields=['period']),
+        ]

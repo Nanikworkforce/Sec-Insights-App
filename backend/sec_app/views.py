@@ -25,37 +25,47 @@ import os
 from .utility.chatbox import answer_question
 logger = logging.getLogger(__name__)
 from .utility.bot import *
+from django.db import transaction
 
 class ChatbotAPIView(APIView):
     def post(self, request):
         try:
             question = request.data.get("question")
             payload = request.data.get("payload", {})
+            context = {}
 
             keywords = extract_keywords(question)
+            
+            logger.info(f"Payload received: {payload}")
+            logger.info(f"Keywords extracted: {keywords}")
 
             # Step 1: Valid keywords in question
-            if keywords.get("company") or keywords.get("metric_name") or keywords.get("year"):
+            if keywords.get("company"):
                 context = keywords
+                if "metric" in context:
+                    context["metric_name"] = context["metric"]
                 answer = query_data_from_db(context)
-
-            # Step 2: Introspective question → use payload
-            elif is_introspective_question(question):
-                if payload:
-                    answer = describe_payload_intent(payload)
-                else:
-                    answer = "You're exploring business performance insights."
-
-            # Step 3: No keywords, use payload context
-            elif payload:
-                answer = query_data_from_db(payload)
-
-            # Step 4: Fallback to asking user
+            # Step 2: If not all keywords, check payload
+            elif payload and payload.get("company"):
+                # Use payload data
+                context = {
+                    "company": payload["company"],
+                    "metric_name": payload["metric_name"][0] if isinstance(payload["metric_name"], list) else payload["metric_name"],  # Get first metric if multiple
+                    "year": keywords.get("year") or payload["year"]  # Use year from question if provided, otherwise from payload
+                }
+                logger.info(f"Using payload context: {context}")
+                answer = query_data_from_db(context)
+            # Step 3: If neither, fallback
             else:
                 answer = "Can you please specify the company, metric, or year you're interested in?"
+                context = {}
 
-            # Optional: Save to chat log
-            ChatLog.objects.create(question=question, answer=answer)
+            # Save to chat log
+            with transaction.atomic():
+                ChatLog.objects.create(
+                    question=question,
+                    answer=answer,
+                )
 
             return Response({"answer": answer})
         except Exception as e:
@@ -73,21 +83,13 @@ def get_sec_data(request):
 @api_view(['GET'])
 def extract_financials(request):
     ticker = request.GET.get('ticker', 'AAPL')
-    logger.info(f"Fetching financial data for {ticker}")
     
     data = fetch_financial_data(ticker)
     if data and data.get('filings'):
         try:
             # Log sample filing details
             sample_filing = data['filings'][0]
-            logger.info(f"Sample filing type: {sample_filing.get('formType')}")
-            logger.info(f"Sample filing date: {sample_filing.get('filedAt')}")
-            logger.info(f"Sample docs: {sample_filing.get('documentFormatFiles')}")
-            
             # Check if the data has the expected structure for save_financial_data_to_db
-            logger.info(f"Data structure: ticker={data.get('ticker')}, cik={data.get('cik')}")
-            logger.info(f"First filing data keys: {list(sample_filing.keys())}")
-            
             # Check if there's any 'data' field in the filing that would contain metrics
             if 'data' in sample_filing:
                 logger.info(f"Sample metrics: {list(sample_filing['data'].keys())[:5]}")
@@ -105,7 +107,6 @@ def extract_financials(request):
                 } 
             })
         except Exception as e:
-            logger.error(f"Error saving data: {str(e)}")
             return JsonResponse({"error": f"Error saving data: {str(e)}"}, status=500)
     return JsonResponse({"error": "No valid 10-K filings found"}, status=500)
 
@@ -128,10 +129,6 @@ def test_sec_api(request):
             "size": "10",
             "sort": [{"filedAt": {"order": "desc"}}]
         }
-        
-        logger.info(f"Testing API with URL: {api_url}")
-        logger.info(f"Headers: {headers}")
-        logger.info(f"Payload: {payload}")
         
         response = requests.post(api_url, headers=headers, json=payload)
         
@@ -189,15 +186,10 @@ class ChartDataAPIView(APIView):
             
             all_metrics = []
             all_periods = set()
-            
-            # Add logging to debug
-            logger.info(f"Fetching data for tickers: {tickers}, metric: {metric}")
-            
+                        
             for ticker in tickers:
                 company = Company.objects.filter(ticker=ticker).first()
                 if company:
-                    # Log the query parameters
-                    logger.info(f"Querying for company: {company}, metric: {metric}")
                     
                     metrics = FinancialMetric.objects.filter(
                         company=company,
@@ -229,9 +221,7 @@ class ChartDataAPIView(APIView):
                 }
                 period_data.append(period_values)
             
-            # Log the response data
-            logger.info(f"Returning data with {len(period_data)} periods")
-            
+            # Log the response data            
             return Response({
                 "tickers": tickers,
                 "metrics": period_data,
@@ -239,7 +229,6 @@ class ChartDataAPIView(APIView):
             }, status=status.HTTP_200_OK)
             
         except Exception as e:
-            logger.error(f"Error in ChartDataAPIView: {str(e)}")
             return Response(
                 {"error": f"Internal server error: {str(e)}"}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -248,7 +237,6 @@ class ChartDataAPIView(APIView):
     @staticmethod
     def get_available_metrics(request):
         metrics = FinancialMetric.objects.values_list('metric_name', flat=True).distinct()
-        logger.info(f"Available metrics in database: {list(metrics)}")
         return Response({
             "metrics": list(metrics)
         })
@@ -308,7 +296,6 @@ class IndustryComparisonAPIView(APIView):
             industry_tickers = {}
             for industry in industries:
                 industry_tickers[industry] = df[df['Industry'] == industry]['Symbol'].tolist()
-                logger.info(f"Industry {industry} has tickers: {industry_tickers[industry]}")
             
             # Get all metrics for these companies
             all_metrics = []
@@ -343,17 +330,13 @@ class IndustryComparisonAPIView(APIView):
                     )
                     data_point[f"{industry}_total"] = avg  # Keep the key name for frontend compatibility
                 chart_data.append(data_point)
-            
-            logger.info(f"Returning chart data: {chart_data[:2]}")  # Log first two points
-            
+                        
             return Response({
                 "industries": industries,
                 "comparisons": chart_data
             })
             
         except Exception as e:
-            logger.error(f"Error in IndustryComparisonAPIView: {str(e)}")
-            logger.error("Full traceback:", exc_info=True)
             return Response({"error": str(e)}, status=500)
 
 class FinancialMetricsAPIView(APIView):
@@ -364,7 +347,6 @@ class FinancialMetricsAPIView(APIView):
         
         metrics = FinancialMetric.objects.filter(company__ticker=ticker)
         
-        logger.info(f"Metrics for {ticker}: {list(metrics)}")
         
         if not metrics.exists():
             return Response({"error": "No financial data available for this ticker."}, status=status.HTTP_404_NOT_FOUND)
@@ -384,7 +366,6 @@ class FinancialMetricsAPIView(APIView):
             for metric in metrics
         ]
         
-        logger.info(f"Data returned for {ticker}: {data}")
         return Response(data, status=status.HTTP_200_OK)
 
 class IndustryAPIView(APIView):
@@ -414,7 +395,6 @@ class IndustryAPIView(APIView):
                 ]
             })
         except Exception as e:
-            logger.error(f"Error fetching industries: {str(e)}")
             return Response(
                 {"error": "Failed to fetch industries"}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -426,8 +406,6 @@ class BoxPlotDataAPIView(APIView):
         period = request.GET.get('period')
         industry = request.GET.get('industry')
 
-        logger.info(f"Querying for metrics: {metrics}, period: {period}, industry: {industry}")
-
         if metrics and period:
             try:
                 file_path = os.path.join('sec_app', 'data', 'stocks_perf_data.xlsx')
@@ -435,7 +413,6 @@ class BoxPlotDataAPIView(APIView):
                 
                 if industry:
                     industry_companies = df[df['Industry'] == industry]['Symbol'].tolist()
-                    logger.info(f"Companies in {industry}: {industry_companies}")
                     
                     current_year = 2024
                     period_str = ""
@@ -485,13 +462,11 @@ class BoxPlotDataAPIView(APIView):
                         "values": result_data,
                         "companyNames": result_companies
                     }
-                    logger.info(f"Returning data: {data}")
                     return Response(data, status=status.HTTP_200_OK)
                 
                 return Response({"error": "Industry parameter required"}, status=status.HTTP_400_BAD_REQUEST)
             
             except Exception as e:
-                logger.error(f"Error fetching data: {str(e)}")
                 return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({"error": "Invalid parameters"}, status=status.HTTP_400_BAD_REQUEST)
@@ -579,14 +554,11 @@ def get_available_metrics(request):
         
         # Sort metrics alphabetically
         metrics.sort()
-        
-        logger.info(f"Available metrics from CSV: {metrics}")
-        
+                
         return Response({
             "metrics": metrics
         })
     except Exception as e:
-        logger.error(f"Error fetching available metrics: {str(e)}")
         return Response(
             {"error": "Failed to fetch metrics"}, 
             status=500
@@ -594,7 +566,6 @@ def get_available_metrics(request):
 
 @api_view(['GET'])
 def check_company(request, ticker):
-    """Check if a company exists and has data."""
     try:
         company = Company.objects.get(ticker=ticker)
         metrics_count = FinancialMetric.objects.filter(company=company).count()
