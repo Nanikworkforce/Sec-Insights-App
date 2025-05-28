@@ -115,6 +115,9 @@ def query_data_from_db(context):
         else:
             filters["metric_name__iexact"] = metric_name
 
+    # Only annual periods
+    filters["period__period__regex"] = r"^\d{4}$"
+
     # Handle time ranges
     current_year = 2024  # Or dynamically get the latest year
     if context.get("time_range"):
@@ -133,7 +136,7 @@ def query_data_from_db(context):
         start = time.time()
         qs = FinancialMetric.objects.filter(**filters)\
             .select_related('company', 'period')\
-            .only('value', 'metric_name', 'company__ticker', 'period__start_date')\
+            .only('value', 'metric_name', 'company__ticker', 'period__start_date', 'period__period')\
             .order_by('-period__start_date')
 
         if not qs.exists():
@@ -142,20 +145,30 @@ def query_data_from_db(context):
         # If it's a time range query, return all values
         if context.get("time_range") or context.get("year_range"):
             data = list(qs)
-            # Format values with billions
-            values = [f"{d.period.start_date.year}: ${d.value/1000000000:.2f}B" for d in data]
-            
+            # Group by year, take the latest value for each year
+            year_to_metric = {}
+            for d in data:
+                year = d.period.start_date.year
+                # If multiple entries for the same year, keep the latest (qs is ordered by -period__start_date)
+                if year not in year_to_metric:
+                    year_to_metric[year] = d
+
+            # Sort years descending (latest first)
+            sorted_years = sorted(year_to_metric.keys(), reverse=True)
+            # Adjust the scaling here based on your database!
+            values = [f"{year}: ${year_to_metric[year].value:.2f}B" for year in sorted_years]
+
             if context.get("year_range"):
                 period_str = f"{context['year_range'][0]} to {context['year_range'][1]}"
             else:
                 period_str = f"last {context['time_range']} years ({current_year-int(context['time_range'])+1} to {current_year})"
-            
+
             return f"{data[0].company.ticker} {data[0].metric_name} for {period_str}:\n" + "\n".join(values)
         
         # Single year query (existing logic)
         data = qs.first()
         response_year = context.get('year') or data.period.start_date.year
-        return f"{data.company.ticker} {data.metric_name} for {response_year} is ${data.value/1000000000:.2f}B"
+        return f"{data.company.ticker} {data.metric_name} for {response_year} is ${data.value:.2f}B"
 
     except Exception as e:
         logger.error(f"Error in query_data_from_db: {str(e)}")
