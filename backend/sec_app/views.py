@@ -39,6 +39,12 @@ class ChatbotAPIView(APIView):
             logger.info(f"Payload received: {payload}")
             logger.info(f"Keywords extracted: {keywords}")
 
+            # Handle invalid company/ticker
+            if keywords.get("invalid_company"):
+                return Response({
+                    "answer": f"'{keywords['invalid_company']}' is not a valid ticker or company. Please provide a valid ticker or company name."
+                })
+
             # Step 1: Valid keywords in question
             if keywords.get("company"):
                 context = keywords
@@ -69,8 +75,13 @@ class ChatbotAPIView(APIView):
                 context = {
                     "company": payload["company"],
                     "metric_name": metric_to_use,
-                    "year": keywords.get("year") or payload["year"]
+                    "year": keywords.get("year") or payload.get("year"),
                 }
+                # Add time_range and year_range if present in keywords
+                if keywords.get("time_range"):
+                    context["time_range"] = keywords["time_range"]
+                if keywords.get("year_range"):
+                    context["year_range"] = keywords["year_range"]
                 logger.info(f"Using payload context: {context}")
                 answer = query_data_from_db(context)
             # Step 3: If neither, fallback
@@ -204,7 +215,7 @@ class ChartDataAPIView(APIView):
             
             all_metrics = []
             all_periods = set()
-                        
+            
             for ticker in tickers:
                 company = Company.objects.filter(ticker=ticker).first()
                 if company:
@@ -239,7 +250,7 @@ class ChartDataAPIView(APIView):
                 }
                 period_data.append(period_values)
             
-            # Log the response data            
+            # Log the response data
             return Response({
                 "tickers": tickers,
                 "metrics": period_data,
@@ -348,7 +359,7 @@ class IndustryComparisonAPIView(APIView):
                     )
                     data_point[f"{industry}_total"] = avg  # Keep the key name for frontend compatibility
                 chart_data.append(data_point)
-                        
+            
             return Response({
                 "industries": industries,
                 "comparisons": chart_data
@@ -572,7 +583,7 @@ def get_available_metrics(request):
         
         # Sort metrics alphabetically
         metrics.sort()
-                
+        
         return Response({
             "metrics": metrics
         })
