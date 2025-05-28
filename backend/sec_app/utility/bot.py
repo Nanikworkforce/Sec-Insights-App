@@ -155,15 +155,22 @@ def query_data_from_db(context):
 
             # Sort years descending (latest first)
             sorted_years = sorted(year_to_metric.keys(), reverse=True)
-            # Adjust the scaling here based on your database!
             values = [f"{year}: ${year_to_metric[year].value:.2f}B" for year in sorted_years]
+
+            # Calculate the sum
+            total = sum([year_to_metric[year].value for year in sorted_years])
 
             if context.get("year_range"):
                 period_str = f"{context['year_range'][0]} to {context['year_range'][1]}"
             else:
                 period_str = f"last {context['time_range']} years ({current_year-int(context['time_range'])+1} to {current_year})"
 
-            return f"{data[0].company.ticker} {data[0].metric_name} for {period_str}:\n" + "\n".join(values)
+            # Compose the response with the sum at the end
+            return (
+                f"{data[0].company.ticker} {data[0].metric_name} for {period_str}:\n"
+                + " ".join(values)
+                + f"\nThis means the sum of {data[0].company.ticker} {data[0].metric_name} for the last {context.get('time_range') or (int(context['year_range'][1]) - int(context['year_range'][0]) + 1)} years is ${total:.2f}B"
+            )
         
         # Single year query (existing logic)
         data = qs.first()
