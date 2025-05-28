@@ -57,16 +57,21 @@ def to_camel_case(s):
     return words[0] + ''.join(word.capitalize() for word in words[1:])
 
 def extract_metric(text):
+    # Handle simple "what is my X" pattern first
+    simple_match = re.search(r"what is (?:my|the) ([\w\s\-]+?)(?:\s+in|\s*$)", text, re.I)
+    if simple_match:
+        return to_camel_case(simple_match.group(1).strip())
+
     # Prefer metric between "is the" and "of"/"for" and ticker
     match = re.search(r"is the ([\w\s\-]+?) (?:of|for) [A-Z]{2,5}", text, re.I)
     if match:
-        # Convert to camelCase before returning
         return to_camel_case(match.group(1).strip())
+
     # fallback: phrase after "of"/"for" and before "in"/end
     match = re.search(r"(?:of|for)\s+([a-zA-Z0-9 \-\_]+?)(?:\s+in\b|$)", text, re.I)
     if match:
-        # Convert to camelCase before returning
         return to_camel_case(match.group(1).strip())
+
     return None
 
 def is_introspective_question(text):

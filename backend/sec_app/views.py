@@ -47,11 +47,24 @@ class ChatbotAPIView(APIView):
                 answer = query_data_from_db(context)
             # Step 2: If not all keywords, check payload
             elif payload and payload.get("company"):
+                # Get the metric the user is asking about
+                asked_metric = keywords.get("metric", "").lower() if keywords.get("metric") else None
+                
+                # If user asked for a specific metric, find it in payload metrics
+                if asked_metric and isinstance(payload["metric_name"], list):
+                    # Case-insensitive matching of metrics
+                    matching_metrics = [m for m in payload["metric_name"] 
+                                     if m.lower() == asked_metric or to_camel_case(m.lower()) == asked_metric]
+                    metric_to_use = matching_metrics[0] if matching_metrics else payload["metric_name"][0]
+                else:
+                    # Default to first metric if no specific metric asked
+                    metric_to_use = payload["metric_name"][0] if isinstance(payload["metric_name"], list) else payload["metric_name"]
+
                 # Use payload data
                 context = {
                     "company": payload["company"],
-                    "metric_name": payload["metric_name"][0] if isinstance(payload["metric_name"], list) else payload["metric_name"],  # Get first metric if multiple
-                    "year": keywords.get("year") or payload["year"]  # Use year from question if provided, otherwise from payload
+                    "metric_name": metric_to_use,
+                    "year": keywords.get("year") or payload["year"]
                 }
                 logger.info(f"Using payload context: {context}")
                 answer = query_data_from_db(context)
