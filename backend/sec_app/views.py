@@ -47,6 +47,14 @@ class ChatbotAPIView(APIView):
                 answer = query_data_from_db(context)
             # Step 2: If not all keywords, check payload
             elif payload and payload.get("company"):
+                # Check if multiple companies are selected
+                companies = payload.get("companies", [])
+                if len(companies) > 1 and not keywords.get("company"):
+                    # If multiple companies and user didn't specify one, ask them to choose
+                    company_list = ", ".join(companies)
+                    answer = f"There are {len(companies)} companies selected on the chart, {company_list}. Please specify which company you want to find its {payload['metric_name'][0] if isinstance(payload['metric_name'], list) else payload['metric_name']}."
+                    return Response({"answer": answer})
+
                 # Get the metric the user is asking about
                 asked_metric = keywords.get("metric", "").lower() if keywords.get("metric") else None
                 
