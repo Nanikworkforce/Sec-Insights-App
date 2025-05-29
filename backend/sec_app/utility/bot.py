@@ -56,11 +56,10 @@ def extract_keywords(text):
                 "growth": bool(growth_match)
             }
 
-    # Fallback to company name matching or no company
-    company_match = re.search(r"\b(Apple|Tesla|Amazon|Meta|Google|Acadian Asset Management|AAON)\b", text, re.I)
+    # If no company found, just return None for company (no hardcoded fallback)
     year_match = re.search(r"\b(20\d{2})\b", text)
     return {
-        "company": company_match.group(0) if company_match else None,
+        "company": company,
         "year": year_match.group(0) if year_match else None,
         "metric": extract_metric(text),
         "time_range": time_range_match.group(1) if time_range_match else None,
@@ -226,40 +225,32 @@ def query_data_from_db(context):
         if not qs.exists():
             return f"No data found for the specified period."
 
-        # If it's a time range query, return all values
+        # If it's a time range query, return only the total (not all values)
         if context.get("time_range") or context.get("year_range"):
             data = list(qs)
-            # Group by year, take the latest value for each year
             year_to_metric = {}
             for d in data:
                 year = d.period.start_date.year
-                # If multiple entries for the same year, keep the latest (qs is ordered by -period__start_date)
                 if year not in year_to_metric:
                     year_to_metric[year] = d
 
-            # Sort years descending (latest first)
             sorted_years = sorted(year_to_metric.keys(), reverse=True)
-            values = [f"{year}: ${year_to_metric[year].value:.2f}B" for year in sorted_years]
-
-            # Calculate the sum
             total = sum([year_to_metric[year].value for year in sorted_years])
 
             if context.get("year_range"):
                 period_str = f"{context['year_range'][0]} to {context['year_range'][1]}"
             else:
-                period_str = f"last {context['time_range']} years ({current_year-int(context['time_range'])+1} to {current_year})"
+                period_str = f"the last {context['time_range']} years"
 
-            # Compose the response with the sum at the end
+            # Compose the response with only the total
             return (
-                f"{data[0].company.ticker} {data[0].metric_name} for {period_str}:\n"
-                + " ".join(values)
-                + f"\nThis means the sum of {data[0].company.ticker} {data[0].metric_name} for the last {context.get('time_range') or (int(context['year_range'][1]) - int(context['year_range'][0]) + 1)} years is ${total:.2f}B"
+                f"{data[0].company.ticker}'s {data[0].metric_name.capitalize()} for {period_str} is ${total/1e9:.1f}B"
             )
         
         # Single year query (existing logic)
         data = qs.first()
         response_year = context.get('year') or data.period.start_date.year
-        return f"{data.company.ticker} {data.metric_name} for {response_year} is ${data.value:.2f}B"
+        return f"{data.company.ticker} {data.metric_name} for {response_year} is ${data.value/1e9:.1f}B"
 
     except Exception as e:
         logger.error(f"Error in query_data_from_db: {str(e)}")

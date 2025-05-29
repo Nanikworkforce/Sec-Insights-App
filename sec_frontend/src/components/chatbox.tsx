@@ -78,31 +78,6 @@ export const useChat = ({
           return formattedPoint;
         });
 
-      // Early validation
-      if (!company) {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: 'Please select a company first to analyze the data.'
-        }]);
-        return;
-      }
-
-      if (!selectedMetrics?.length) {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: 'Please select at least one metric to analyze.'
-        }]);
-        return;
-      }
-
-      if (!formattedChartData.length) {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: `No valid data available for ${company} with the selected metrics.`
-        }]);
-        return;
-      }
-
       // Prepare payload
       const getLatestYear = () => {
         // Try to find the latest year in your chart data

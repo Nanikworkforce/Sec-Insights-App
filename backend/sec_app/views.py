@@ -49,8 +49,19 @@ class ChatbotAPIView(APIView):
                     "answer": f"'{keywords['invalid_company']}' is not a valid ticker or company. Please provide a valid ticker or company name."
                 })
 
-            # Step 1: Valid keywords in question
-            if keywords.get("growth"):
+            # Step 1: If we have company and metric in keywords, use those directly
+            if keywords.get("company") and keywords.get("metric"):
+                context = {
+                    "company": keywords["company"],
+                    "metric_name": to_camel_case(keywords["metric"]),
+                    "year": keywords.get("year"),
+                    "time_range": keywords.get("time_range"),
+                    "year_range": keywords.get("year_range"),
+                    "growth": keywords.get("growth", False)
+                }
+                answer = query_data_from_db(context)
+            # Step 2: Valid keywords with growth intent
+            elif keywords.get("growth"):
                 # Use payload company if not in keywords
                 company = keywords.get("company") or payload.get("company")
                 metric = keywords.get("metric") or (payload["metric_name"][0] if isinstance(payload.get("metric_name"), list) else payload.get("metric_name"))
@@ -60,12 +71,13 @@ class ChatbotAPIView(APIView):
                     "growth": True
                 }
                 answer = query_data_from_db(context)
+            # Step 3: Valid company in keywords
             elif keywords.get("company"):
                 context = keywords
                 if "metric" in context:
                     context["metric_name"] = context["metric"]
                 answer = query_data_from_db(context)
-            # Step 2: If not all keywords, check payload
+            # Step 4: If not all keywords, check payload
             elif payload and payload.get("company"):
                 # Check if multiple companies are selected
                 companies = payload.get("companies", [])
@@ -98,7 +110,7 @@ class ChatbotAPIView(APIView):
                     context["year_range"] = keywords["year_range"]
                 logger.info(f"Using payload context: {context}")
                 answer = query_data_from_db(context)
-            # Step 3: If neither, fallback
+            # Step 5: If neither, fallback
             else:
                 answer = "Can you please specify the company, metric, or year you're interested in?"
                 context = {}
