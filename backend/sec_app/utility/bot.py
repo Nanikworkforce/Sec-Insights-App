@@ -38,25 +38,29 @@ def extract_keywords(text):
                 "year": re.search(r"\b(20\d{2})\b", text).group(0) if re.search(r"\b(20\d{2})\b", text) else None,
                 "metric": extract_metric(text),
                 "time_range": time_range_match.group(1) if time_range_match else None,
-                "year_range": (year_range_match.group(1), year_range_match.group(2)) if year_range_match else None
+                "year_range": (year_range_match.group(1), year_range_match.group(2)) if year_range_match else None,
+                "growth": False
             }
         return {
             "company": ticker,
             "year": re.search(r"\b(20\d{2})\b", text).group(0) if re.search(r"\b(20\d{2})\b", text) else None,
             "metric": extract_metric(text),
             "time_range": time_range_match.group(1) if time_range_match else None,
-            "year_range": (year_range_match.group(1), year_range_match.group(2)) if year_range_match else None
+            "year_range": (year_range_match.group(1), year_range_match.group(2)) if year_range_match else None,
+            "growth": False
         }
 
     # Fallback to company name matching or no company
     company_match = re.search(r"\b(Apple|Tesla|Amazon|Meta|Google|Acadian Asset Management|AAON)\b", text, re.I)
     year_match = re.search(r"\b(20\d{2})\b", text)
+    growth_match = re.search(r"\bgrowth\b", text, re.I)
     return {
         "company": company_match.group(0) if company_match else None,
         "year": year_match.group(0) if year_match else None,
         "metric": extract_metric(text),
         "time_range": time_range_match.group(1) if time_range_match else None,
-        "year_range": (year_range_match.group(1), year_range_match.group(2)) if year_range_match else None
+        "year_range": (year_range_match.group(1), year_range_match.group(2)) if year_range_match else None,
+        "growth": bool(growth_match)
     }
 
 def to_camel_case(s):
@@ -67,30 +71,47 @@ def to_camel_case(s):
     return words[0] + ''.join(word.capitalize() for word in words[1:])
 
 def extract_metric(text):
+    metric = None
+    
     # Try to match "the X of Y" or "the X for Y"
     match = re.search(r"(?:what is|show|give|display|provide)?\s*(?:the|my)?\s*([\w\s\-]+?)\s*(?:of|for)\s+[A-Z]{2,5}", text, re.I)
     if match:
-        return to_camel_case(match.group(1).strip())
+        metric = match.group(1)
 
     # Try to match "the X of Y from YEAR to YEAR"
-    match = re.search(r"(?:what is|show|give|display|provide)?\s*(?:the|my)?\s*([\w\s\-]+?)\s*(?:of|for)\s+[A-Z]{2,5}.*?(?:from|between)?\s*\d{4}.*?\d{4}", text, re.I)
-    if match:
-        return to_camel_case(match.group(1).strip())
+    if not metric:
+        match = re.search(r"(?:what is|show|give|display|provide)?\s*(?:the|my)?\s*([\w\s\-]+?)\s*(?:of|for)\s+[A-Z]{2,5}.*?(?:from|between)?\s*\d{4}.*?\d{4}", text, re.I)
+        if match:
+            metric = match.group(1)
 
     # Try to match "the X in the last N years"
-    match = re.search(r"(?:what is|show|give|display|provide)?\s*(?:the|my)?\s*([\w\s\-]+?)\s*(?:in|over)?\s*(?:the)?\s*last\s*\d+\s*years?", text, re.I)
-    if match:
-        return to_camel_case(match.group(1).strip())
+    if not metric:
+        match = re.search(r"(?:what is|show|give|display|provide)?\s*(?:the|my)?\s*([\w\s\-]+?)\s*(?:in|over)?\s*(?:the)?\s*last\s*\d+\s*years?", text, re.I)
+        if match:
+            metric = match.group(1)
 
     # Try to match "what is my X"
-    match = re.search(r"what is (?:my|the) ([\w\s\-]+?)(?:\s+in|\s*$)", text, re.I)
-    if match:
-        return to_camel_case(match.group(1).strip())
+    if not metric:
+        match = re.search(r"what is (?:my|the) ([\w\s\-]+?)(?:\s+in|\s*$)", text, re.I)
+        if match:
+            metric = match.group(1)
 
     # fallback: phrase after "of"/"for" and before "in"/end
-    match = re.search(r"(?:of|for)\s+([a-zA-Z0-9 \-\_]+?)(?:\s+in\b|$)", text, re.I)
-    if match:
-        return to_camel_case(match.group(1).strip())
+    if not metric:
+        match = re.search(r"(?:of|for)\s+([a-zA-Z0-9 \-\_]+?)(?:\s+in\b|$)", text, re.I)
+        if match:
+            metric = match.group(1)
+
+    if not metric:
+        # Final attempt: look for word "growth" and take what's before it
+        match = re.search(r"([\w\s\-]+?)\s*growth\b", text, re.I)
+        if match:
+            metric = match.group(1)
+
+    if metric:
+        # Always strip 'growth' from the end and clean up
+        metric = re.sub(r"\s*growth\b", "", metric, flags=re.I).strip()
+        return to_camel_case(metric)
 
     return None
 
@@ -104,6 +125,32 @@ def is_introspective_question(text):
     return any(re.search(p, text, re.I) for p in introspective_patterns)
 
 def query_data_from_db(context):
+    # Growth query support
+    if context.get("growth"):
+        company = context.get("company")
+        metric_name = context.get("metric_name")
+        if not company or not metric_name:
+            return "Please specify a company and metric to calculate growth."
+        # Only annual periods
+        filters = {
+            "company__ticker__iexact": company.upper(),
+            "metric_name__iexact": metric_name,
+            "period__period__regex": r"^\d{4}$"
+        }
+        qs = FinancialMetric.objects.filter(**filters).select_related('period').order_by('-period__start_date')
+        if qs.count() < 2:
+            return f"Not enough data to calculate {metric_name} growth for {company}."
+        latest = qs[0]
+        prev = qs[1]
+        try:
+            growth = ((latest.value - prev.value) / prev.value) * 100 if prev.value else 0
+            return (
+                f"{latest.company.ticker} {latest.metric_name} grew by {growth:.2f}% "
+                f"in the last year ({prev.period.start_date.year} to {latest.period.start_date.year})"
+            )
+        except Exception:
+            return f"Could not calculate growth for {company} {metric_name}."
+
     filters = {}
     if context.get("company"):
         filters["company__ticker__iexact"] = context["company"].upper()

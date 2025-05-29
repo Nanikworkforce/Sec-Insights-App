@@ -46,7 +46,17 @@ class ChatbotAPIView(APIView):
                 })
 
             # Step 1: Valid keywords in question
-            if keywords.get("company"):
+            if keywords.get("growth"):
+                # Use payload company if not in keywords
+                company = keywords.get("company") or payload.get("company")
+                metric = keywords.get("metric") or (payload["metric_name"][0] if isinstance(payload.get("metric_name"), list) else payload.get("metric_name"))
+                context = {
+                    "company": company,
+                    "metric_name": to_camel_case(metric) if metric else None,
+                    "growth": True
+                }
+                answer = query_data_from_db(context)
+            elif keywords.get("company"):
                 context = keywords
                 if "metric" in context:
                     context["metric_name"] = context["metric"]
