@@ -78,10 +78,22 @@ def to_camel_case(s):
 def extract_metric(text):
     metric = None
     
-    # Pattern: "COMPANY's METRIC growth"
-    match = re.search(r"[A-Z]{2,5}'s\s+([\w\s\-]+?)\s*growth", text, re.I)
+    # Pattern: "growth in METRIC in the last X years" or "from YEAR to YEAR"
+    match = re.search(r"growth\s+(?:in|of|for)\s+([\w\s\-]+?)(?:\s+(?:in|over|during|for|from)\s|$)", text, re.I)
     if match:
         metric = match.group(1)
+
+    # Pattern: "METRIC growth in the last X years" or "from YEAR to YEAR"
+    if not metric:
+        match = re.search(r"([\w\s\-]+?)\s+growth(?:\s+(?:in|over|during|for|from)\s|$)", text, re.I)
+        if match:
+            metric = match.group(1)
+
+    # Pattern: "COMPANY's METRIC growth"
+    if not metric:
+        match = re.search(r"[A-Z]{2,5}'s\s+([\w\s\-]+?)\s*growth", text, re.I)
+        if match:
+            metric = match.group(1)
 
     # Pattern: "growth in METRIC" or "growth of METRIC"
     if not metric:
