@@ -27,33 +27,38 @@ def extract_keywords(text):
     time_range_match = re.search(r"(?:in |over |during |for )?(?:the )?(?:last|past)\s+(\d+)\s*(?:year|years|yr|yrs)", text, re.I)
     year_range_match = re.search(r"(\d{4})\s*(?:to|-)\s*(\d{4})", text, re.I)
     
-    # First try to match ticker format (2-5 uppercase letters)
-    ticker_match = re.search(r"\b([A-Z]{2,5})\b", text)
-    if ticker_match:
-        ticker = ticker_match.group(1)
+    # Extract growth intent before any use
+    growth_match = re.search(r"\bgrowth\b", text, re.I)
+
+    # Extract company from possessive or "of/for" forms
+    company = None
+    possessive_match = re.search(r"\b([A-Z]{2,5})'s\b", text)
+    if possessive_match:
+        company = possessive_match.group(1)
+    else:
+        of_for_match = re.search(r"(?:of|for)\s+([A-Z]{2,5})\b", text, re.I)
+        if of_for_match:
+            company = of_for_match.group(1)
+    if not company:
+        ticker_match = re.search(r"\b([A-Z]{2,5})\b", text)
+        if ticker_match:
+            company = ticker_match.group(1)
+
+    if company:
         from sec_app.models.company import Company
-        if not Company.objects.filter(ticker__iexact=ticker).exists():
+        if not Company.objects.filter(ticker__iexact=company).exists():
             return {
-                "invalid_company": ticker,
+                "invalid_company": company,
                 "year": re.search(r"\b(20\d{2})\b", text).group(0) if re.search(r"\b(20\d{2})\b", text) else None,
                 "metric": extract_metric(text),
                 "time_range": time_range_match.group(1) if time_range_match else None,
                 "year_range": (year_range_match.group(1), year_range_match.group(2)) if year_range_match else None,
-                "growth": False
+                "growth": bool(growth_match)
             }
-        return {
-            "company": ticker,
-            "year": re.search(r"\b(20\d{2})\b", text).group(0) if re.search(r"\b(20\d{2})\b", text) else None,
-            "metric": extract_metric(text),
-            "time_range": time_range_match.group(1) if time_range_match else None,
-            "year_range": (year_range_match.group(1), year_range_match.group(2)) if year_range_match else None,
-            "growth": False
-        }
 
     # Fallback to company name matching or no company
     company_match = re.search(r"\b(Apple|Tesla|Amazon|Meta|Google|Acadian Asset Management|AAON)\b", text, re.I)
     year_match = re.search(r"\b(20\d{2})\b", text)
-    growth_match = re.search(r"\bgrowth\b", text, re.I)
     return {
         "company": company_match.group(0) if company_match else None,
         "year": year_match.group(0) if year_match else None,
@@ -73,10 +78,28 @@ def to_camel_case(s):
 def extract_metric(text):
     metric = None
     
-    # Try to match "the X of Y" or "the X for Y"
-    match = re.search(r"(?:what is|show|give|display|provide)?\s*(?:the|my)?\s*([\w\s\-]+?)\s*(?:of|for)\s+[A-Z]{2,5}", text, re.I)
+    # Pattern: "COMPANY's METRIC growth"
+    match = re.search(r"[A-Z]{2,5}'s\s+([\w\s\-]+?)\s*growth", text, re.I)
     if match:
         metric = match.group(1)
+
+    # Pattern: "growth in METRIC" or "growth of METRIC"
+    if not metric:
+        match = re.search(r"growth\s+(?:in|of|for)\s+([\w\s\-]+)", text, re.I)
+        if match:
+            metric = match.group(1)
+
+    # Pattern: "the METRIC growth of COMPANY"
+    if not metric:
+        match = re.search(r"(?:the\s+)?([\w\s\-]+?)\s+growth\s+(?:of|for)\s+[A-Z]{2,5}", text, re.I)
+        if match:
+            metric = match.group(1)
+
+    # Existing patterns...
+    if not metric:
+        match = re.search(r"(?:what is|show|give|display|provide)?\s*(?:the|my)?\s*([\w\s\-]+?)\s*(?:of|for)\s+[A-Z]{2,5}", text, re.I)
+        if match:
+            metric = match.group(1)
 
     # Try to match "the X of Y from YEAR to YEAR"
     if not metric:
