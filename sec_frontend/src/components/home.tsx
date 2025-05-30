@@ -1702,7 +1702,7 @@ const Dashboard: React.FC = () => {
                           </LineChart>
                         </ResponsiveContainer>
                         {/* Fixed tooltip for 2024 */}
-                        {fixed2024Data && fixedTooltipPos && (
+                        {selectedSearchMetrics.length > 0 && fixed2024Data && fixedTooltipPos && (
                           <div
                             style={{
                               position: 'absolute',
