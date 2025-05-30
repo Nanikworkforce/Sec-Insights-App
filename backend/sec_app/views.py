@@ -60,6 +60,11 @@ class ChatbotAPIView(APIView):
                     "growth": keywords.get("growth", False)
                 }
                 answer = query_data_from_db(context)
+            # Step 1.5: If only company or only metric is present, ask for clarification
+            elif keywords.get("company") and not keywords.get("metric"):
+                answer = f"What would you like to know about {keywords['company']}? Please refine your search with a metric or year."
+            elif keywords.get("metric") and not keywords.get("company"):
+                answer = f"Which company would you like to know about {keywords['metric']}? Please specify a company."
             # Step 2: Valid keywords with growth intent
             elif keywords.get("growth"):
                 # Use payload company if not in keywords
