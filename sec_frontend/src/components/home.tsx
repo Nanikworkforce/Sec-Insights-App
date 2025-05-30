@@ -191,7 +191,8 @@ const Dashboard: React.FC = () => {
     messages,
     inputValue,
     setInputValue,
-    handleSendMessage
+    handleSendMessage,
+    setMessages
   } = useChat({
     chartData: activeChart === 'peers' ? peerChartData : 
               activeChart === 'industry' ? industryChartData : 
@@ -812,6 +813,19 @@ const Dashboard: React.FC = () => {
     setSelectedPeerMetrics([metric]); // Update the metrics array
     setShowPeerMetricDropdown(false);
   };
+
+  useEffect(() => {
+    const clearHandler = () => {
+      setMessages([
+        {
+          role: 'assistant',
+          content: 'I can help you analyze this data. What would you like to know?'
+        }
+      ]);
+    };
+    window.addEventListener('clearChat', clearHandler);
+    return () => window.removeEventListener('clearChat', clearHandler);
+  }, []);
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
@@ -1987,9 +2001,26 @@ const Dashboard: React.FC = () => {
                       <h2 className="text-lg sm:text-xl xl:text-2xl font-medium">Insights Generation</h2>
                       <button className="w-8 xl:w-10 h-8 xl:h-10 bg-[#1B5A7D] text-white rounded text-xl">+</button>
                     </div>
-                    <button className="px-3 xl:px-4 py-2 text-sm xl:text-base bg-[#1B5A7D] text-white rounded">
-                      Save Report
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {/* Clear Chat Button */}
+                      <button
+                        className="px-2 py-2 text-sm xl:text-base bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        title="Clear Chat"
+                        onClick={() => {
+                          const event = new CustomEvent('clearChat');
+                          window.dispatchEvent(event);
+                        }}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <svg width="18" height="18" fill="none" viewBox="0 0 20 20">
+                          <path d="M6 6l8 8M6 14L14 6" stroke="#1B5A7D" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                      {/* Save Report Button */}
+                      <button className="px-3 xl:px-4 py-2 text-sm xl:text-base bg-[#1B5A7D] text-white rounded">
+                        Save Report
+                      </button>
+                    </div>
                   </div>
                   
                   {/* Chat Messages */}
