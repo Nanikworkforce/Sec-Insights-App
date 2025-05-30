@@ -1584,7 +1584,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-                <div className="h-[300px] sm:h-[400px] xl:h-[500px]">
+                <div className="h-[300px] sm:h-[350px] xl:h-[400px] overflow-y-auto p-4 xl:p-6 space-y-4">
                   {activeChart === 'metrics' ? (
                     // Metrics Chart
                     isLoading ? (
@@ -1984,11 +1984,20 @@ const Dashboard: React.FC = () => {
 
               {/* Search Input */}
               <div className="mt-3 xl:mt-4">
-          <input 
-            type="text" 
-            placeholder="Search saved charts or reports"
+                <input 
+                  type="text" 
+                  placeholder="Search saved charts or reports"
                   className="w-full px-3 xl:px-4 py-2 xl:py-3 text-sm xl:text-base border rounded-lg"
                 />
+              </div>
+              {/* Footer - adjust spacing on mobile */}
+              <div className="mt-2 sm:mt-2 xl:mt-2 px-3 sm:px-4 lg:px-6 xl:px-8">
+                <div className="flex flex-wrap gap-3 sm:gap-4 xl:gap-6 text-xs sm:text-sm xl:text-base text-gray-600">
+                  <a href="#" className="hover:text-gray-800">Customer Stories</a>
+                  <a href="#" className="hover:text-gray-800">About Us</a>
+                  <a href="#" className="hover:text-gray-800">Careers</a>
+                  <a href="#" className="hover:text-gray-800">Contact Us</a>
+                </div>
               </div>
             </div>
 
@@ -2024,7 +2033,7 @@ const Dashboard: React.FC = () => {
                   </div>
                   
                   {/* Chat Messages */}
-                  <div className="h-[400px] sm:h-[500px] xl:h-[600px] overflow-y-auto p-4 xl:p-6 space-y-4">
+                  <div className="h-[300px] sm:h-[350px] xl:h-[550px] overflow-y-auto p-4 xl:p-6 space-y-4">
                     {messages.map((message, index) => 
                       message.role === 'assistant' ? (
                         <div key={index} className="flex gap-3 xl:gap-4">
@@ -2085,16 +2094,6 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Footer - adjust spacing on mobile */}
-        <div className="mt-2 sm:mt-2 xl:mt-2 px-3 sm:px-4 lg:px-6 xl:px-8">
-          <div className="flex flex-wrap gap-3 sm:gap-4 xl:gap-6 text-xs sm:text-sm xl:text-base text-gray-600">
-            <a href="#" className="hover:text-gray-800">Customer Stories</a>
-            <a href="#" className="hover:text-gray-800">About Us</a>
-            <a href="#" className="hover:text-gray-800">Careers</a>
-            <a href="#" className="hover:text-gray-800">Contact Us</a>
-        </div>
         </div>
       </div>
     </div>
