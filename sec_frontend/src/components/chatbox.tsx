@@ -155,7 +155,8 @@ export const useChat = ({
     messages,
     inputValue,
     setInputValue,
-    handleSendMessage
+    handleSendMessage,
+    setMessages,
   };
 };
 
