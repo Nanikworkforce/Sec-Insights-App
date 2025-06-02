@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import React from "react";
 import BoxPlot from './BoxPlot';
 
 const BASE_URL = 'http://127.0.0.1:8000/api';  // Make sure this matches your Django server
@@ -33,35 +32,12 @@ interface ChartDataPoint {
   [key: string]: string | number; // Allow dynamic metric keys
 }
 
-interface IndustryDataPoint {
-  period: string;
-  industry_avg: number;
-  companies: {
-    [ticker: string]: number;
-  };
-}
-
-interface Industry {
-  id: string;
-  name: string;
-}
-
-interface IndustryOption {
-  name: string;
-  companies: string[];
-}
-
 interface IndustryData {
   name: string;
   companies: string[];
 }
 
-interface IndustryMetricData {
-  [key: string]: any;  // This will allow dynamic keys for industry data
-}
-
 interface OverviewProps {
-  ticker: string;
   selectedTicker: string;
 }
 
@@ -101,23 +77,16 @@ type TickerKey = keyof typeof TICKER_COLORS;
 
 // Define available metrics and periods
 const AVAILABLE_METRICS = ['revenue', 'netIncome', 'operatingCashFlow'];
-const AVAILABLE_PERIODS = ['2023', '2024', '2025'];
 
-export function Overview({ ticker, selectedTicker }: OverviewProps) {
+export function Overview({ selectedTicker }: OverviewProps) {
   const [data, setData] = useState<ChartDataPoint[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("revenue");
   const [tickers, setTickers] = useState<string[]>([]);
-  const [industryData, setIndustryData] = useState<IndustryDataPoint[]>([]);
   const [activeTab, setActiveTab] = useState("metrics");
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [availableIndustries, setAvailableIndustries] = useState<IndustryData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [combinedData, setCombinedData] = useState<any[]>([]);
   const [selectedBoxPlotMetric, setSelectedBoxPlotMetric] = useState(AVAILABLE_METRICS[0]);
-  const [selectedBoxPlotPeriod, setSelectedBoxPlotPeriod] = useState(AVAILABLE_PERIODS[0]);
-  const [exampleData, setExampleData] = useState<number[]>([]);
-  const [exampleCompanyNames, setExampleCompanyNames] = useState<string[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState('1Y');
   const [searchQueries, setSearchQueries] = useState<string[]>([]);
   const [industryCompanyNames, setIndustryCompanyNames] = useState<Record<string, string[]>>({});
@@ -211,7 +180,7 @@ export function Overview({ ticker, selectedTicker }: OverviewProps) {
   const fetchIndustryData = useCallback(async () => {
     if (selectedIndustries.length === 0) return;
     
-    setIsLoading(true);
+    setError(null);
     try {
       // Create URLSearchParams without pre-encoding the industry names
       const queryParams = new URLSearchParams();
@@ -253,12 +222,9 @@ export function Overview({ ticker, selectedTicker }: OverviewProps) {
 
       setData(transformedData);
       console.log('Transformed Industry Data:', transformedData);
-      setError(null);
     } catch (error) {
       console.error('Error fetching industry data:', error);
       setError('Failed to fetch industry data');
-    } finally {
-      setIsLoading(false);
     }
   }, [selectedIndustries, selectedMetric]);
 
@@ -273,7 +239,6 @@ export function Overview({ ticker, selectedTicker }: OverviewProps) {
   // Update the fetchIndustries function
   const fetchIndustries = async () => {
     try {
-      setIsLoading(true);  // Add loading state if you haven't already
       const response = await fetch(`${BASE_URL}/industries/`);
       
       if (!response.ok) {
@@ -288,8 +253,6 @@ export function Overview({ ticker, selectedTicker }: OverviewProps) {
     } catch (error) {
       console.error('Error fetching industries:', error);
       setError('Failed to fetch industries');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -326,7 +289,6 @@ export function Overview({ ticker, selectedTicker }: OverviewProps) {
         return;
       }
 
-      setIsLoading(true);
       setError(null);
 
       try {
@@ -382,43 +344,14 @@ export function Overview({ ticker, selectedTicker }: OverviewProps) {
           });
         }
 
-        // Convert to array and sort
-        const combinedData = Array.from(periodMap.values())
-          .sort((a, b) => a.period.localeCompare(b.period));
-
-        setCombinedData(combinedData);
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('Failed to fetch data');
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchAllData();
   }, [activeTab, tickers, selectedIndustries, selectedMetric, selectedPeriod]);
-
-  useEffect(() => {
-    const fetchDataForBoxPlot = async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/boxplot-data?metric=${selectedBoxPlotMetric}&period=${selectedBoxPlotPeriod}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch box plot data');
-        }
-        const data = await response.json();
-
-        console.log('API Response:', data);
-
-        // Assuming the API returns an array of values and company names
-        setExampleData(data.values);
-        setExampleCompanyNames(data.companyNames);
-      } catch (error) {
-        console.error('Error fetching box plot data:', error);
-      }
-    };
-
-    fetchDataForBoxPlot();
-  }, [selectedBoxPlotMetric, selectedBoxPlotPeriod]);
 
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period);
@@ -435,11 +368,6 @@ export function Overview({ ticker, selectedTicker }: OverviewProps) {
   // Add a function to remove search queries
   const handleRemoveSearchQuery = (query: string) => {
     setSearchQueries(searchQueries.filter(q => q !== query));
-  };
-
-  // Transform industry data before passing to BoxPlot
-  const industryBoxData = {
-    industry_avg: industryData.map(d => d.industry_avg)
   };
 
   return (
@@ -591,11 +519,7 @@ export function Overview({ ticker, selectedTicker }: OverviewProps) {
               }}
               className="h-[300px]"
             >
-              {isLoading ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                </div>
-              ) : error ? (
+              {error ? (
                 <div className="flex items-center justify-center h-full text-center text-red-500">
                   {error}
                 </div>
@@ -698,7 +622,7 @@ export function Overview({ ticker, selectedTicker }: OverviewProps) {
             </div>
 
             <BoxPlot
-              data={industryBoxData}
+              data={[]}
               title={selectedIndustries.map(industry => 
                 availableIndustries.find(i => i.name === industry)?.name || industry
               ).join(' vs ')}
