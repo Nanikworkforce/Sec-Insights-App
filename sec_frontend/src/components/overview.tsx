@@ -78,7 +78,7 @@ type TickerKey = keyof typeof TICKER_COLORS;
 // Define available metrics and periods
 const AVAILABLE_METRICS = ['revenue', 'netIncome', 'operatingCashFlow'];
 
-export function Overview({ selectedTicker }: OverviewProps) {
+const Overview: React.FC<OverviewProps> = ({ selectedTicker: ticker }) => {
   const [data, setData] = useState<ChartDataPoint[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("revenue");
@@ -631,7 +631,7 @@ export function Overview({ selectedTicker }: OverviewProps) {
                   selectedIndustries.map(industry => [industry, industryCompanyNames[industry] || []])
                 )
               }}
-              selectedTicker={selectedTicker}
+              selectedTicker={ticker}
             />
           </div>
         </TabsContent>

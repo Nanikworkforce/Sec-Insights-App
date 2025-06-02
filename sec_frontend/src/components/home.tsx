@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import BoxPlot from './BoxPlot';
 import { useChat } from './chatbox';
+import { TooltipProps } from 'recharts';
 
 const BASE_URL = 'http://localhost:8000/api';  // Changed from 127.0.0.1 to localhost
 
@@ -135,7 +136,6 @@ const Dashboard: React.FC = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [activeChart, setActiveChart] = useState<'metrics' | 'peers' | 'industry'>('metrics');
   const [searchValue, setSearchValue] = useState('AAPL');
-  const [selectedMetrics] = useState<string[]>(['Revenue', 'CostOfGoodsSold']);
   const [selectedCompanies, setSelectedCompanies] = useState<CompanyTicker[]>([]);
   const [companyInput, setCompanyInput] = useState('');
   const [selectedPeerMetric, setSelectedPeerMetric] = useState<string>('');
@@ -625,39 +625,39 @@ const Dashboard: React.FC = () => {
   // };
 
   // Update DefaultTooltipContent usage
-  const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
-    if (!active || !payload) return null;
-    return (
-      <div className="custom-tooltip bg-white p-2 border rounded shadow">
-        <p className="label">{label}</p>
-        {payload.map((entry: any) => (
-          <p key={entry.name} style={{ color: entry.color }}>
-            {entry.name}: {entry.value}
-          </p>
-        ))}
-      </div>
-    );
-  };
+  // const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
+  //   if (!active || !payload) return null;
+  //   return (
+  //     <div className="custom-tooltip bg-white p-2 border rounded shadow">
+  //       <p className="label">{label}</p>
+  //       {payload.map((entry: any) => (
+  //         <p key={entry.name} style={{ color: entry.color }}>
+  //           {entry.name}: {entry.value}
+  //         </p>
+  //       ))}
+  //     </div>
+  //   );
+  // };
 
   // Example of fetching companies
-  const fetchCompanies = async (tickers: string[]) => {
-    try {
-      console.log('Fetching companies for tickers:', tickers);
-      const response = await fetch(`http://127.0.0.1:8000/api/companies?tickers=${tickers.join(',')}`);
-      const data = await response.json();
-      console.log('Received company data:', data);
+  // const fetchCompanies = async (tickers: string[]) => {
+  //   try {
+  //     console.log('Fetching companies for tickers:', tickers);
+  //     const response = await fetch(`http://127.0.0.1:8000/api/companies?tickers=${tickers.join(',')}`);
+  //     const data = await response.json();
+  //     console.log('Received company data:', data);
       
-      // Transform the data to match our expected structure
-      const companies = data.map((company: any) => ({
-        ticker: company.ticker,
-        name: company.name
-      }));
+  //     // Transform the data to match our expected structure
+  //     const companies = data.map((company: any) => ({
+  //       ticker: company.ticker,
+  //       name: company.name
+  //     }));
       
-      setSelectedCompanies(companies);
-    } catch (error) {
-      console.error('Error fetching companies:', error);
-    }
-  };
+  //     setSelectedCompanies(companies);
+  //   } catch (error) {
+  //     console.error('Error fetching companies:', error);
+  //   }
+  // };
 
   useEffect(() => {
     console.log('Current selectedCompanies:', selectedCompanies);
@@ -1526,7 +1526,7 @@ const Dashboard: React.FC = () => {
                             
                             {/* Regular hover tooltip */}
                             <Tooltip
-                              formatter={(value: number | string | null | undefined, name: string) => {
+                              formatter={((value: string | number, name: string) => {
                                 // Split the name into metric and ticker
                                 const [metric, ticker] = name.split('.');
                                 const company = selectedCompanies.find(c => c.ticker === ticker);
@@ -1536,7 +1536,7 @@ const Dashboard: React.FC = () => {
                                     : "N/A";
                                 const displayName = `${company?.name || ticker} - ${metric}`;
                                 return [formattedValue, displayName];
-                              }}
+                              }) as TooltipProps<string | number, string>['formatter']}
                               labelFormatter={(label) => {
                                 if (typeof label === 'string' && label.includes('-')) {
                                   if (selectedPeriod !== '1Y') {
