@@ -1,6 +1,6 @@
 import { AlertCircle, ArrowDown, ArrowUp, TrendingDown, TrendingUp } from "lucide-react"
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "./alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function InsightsPanel() {
@@ -12,7 +12,7 @@ export function InsightsPanel() {
           <CardDescription>AI-generated analysis of your financial data</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Alert variant="default" className="border-green-200 bg-green-50 text-green-800">
+          <Alert className="border-green-200 bg-green-50 text-green-800">
             <TrendingUp className="h-4 w-4 text-green-600" aria-label="Positive Trend Icon" />
             <AlertTitle className="text-green-800">Positive Trend</AlertTitle>
             <AlertDescription className="text-green-700">
@@ -21,7 +21,7 @@ export function InsightsPanel() {
             </AlertDescription>
           </Alert>
 
-          <Alert variant="default" className="border-red-200 bg-red-50 text-red-800">
+          <Alert className="border-red-200 bg-red-50 text-red-800">
             <TrendingDown className="h-4 w-4 text-red-600" aria-label="Negative Trend Icon" />
             <AlertTitle className="text-red-800">Negative Trend</AlertTitle>
             <AlertDescription className="text-red-700">
@@ -30,7 +30,7 @@ export function InsightsPanel() {
             </AlertDescription>
           </Alert>
 
-          <Alert variant="default" className="border-amber-200 bg-amber-50 text-amber-800">
+          <Alert className="border-amber-200 bg-amber-50 text-amber-800">
             <AlertCircle className="h-4 w-4 text-amber-600" aria-label="Opportunity Icon" />
             <AlertTitle className="text-amber-800">Opportunity</AlertTitle>
             <AlertDescription className="text-amber-700">

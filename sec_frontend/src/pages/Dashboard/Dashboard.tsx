@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardShell } from "@/components/dashboard-shell"
-import { Overview } from "@/components/overview"
+import Overview from "@/components/overview"
 // import { RecentQueries } from "@/components/RecentQueries"
 import { Search } from "@/components/search"
 import { RecentQueries } from "@/components/recent-queries"

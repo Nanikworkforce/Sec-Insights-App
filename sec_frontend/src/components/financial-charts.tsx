@@ -1,4 +1,3 @@
-
 import {
   Bar,
   BarChart,
@@ -15,7 +14,6 @@ import {
   YAxis,
 } from "recharts"
 
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -178,7 +176,7 @@ export function FinancialCharts() {
                   dataKey="value"
                   label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
                 >
-                  {marketShareData.map((entry, index) => (
+                  {marketShareData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
