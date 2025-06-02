@@ -7,8 +7,7 @@ import { Overview } from "@/components/overview"
 // import { RecentQueries } from "@/components/RecentQueries"
 import { Search } from "@/components/search"
 import { RecentQueries } from "@/components/recent-queries"
-import React, { useState } from "react"
-
+import { useState } from "react"
 export default function DashboardPage() {
   const [ticker, setTicker] = useState("AAPL")
 
@@ -129,7 +128,10 @@ export default function DashboardPage() {
                   <CardTitle>Revenue Overview</CardTitle>
                 </CardHeader>
                 <CardContent className="pl-2">
-                  <Overview ticker={ticker} />
+                  <Overview 
+                    ticker={ticker}
+                    selectedTicker={ticker}
+                  />
                 </CardContent>
               </Card>
               <Card className="col-span-3">

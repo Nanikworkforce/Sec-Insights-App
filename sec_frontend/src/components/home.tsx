@@ -1,36 +1,36 @@
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, DefaultTooltipContent } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import BoxPlot from './BoxPlot';
 import { useChat } from './chatbox';
 
 const BASE_URL = 'http://localhost:8000/api';  // Changed from 127.0.0.1 to localhost
 
-const data = [
-  { date: 'Jan 16', revenue: 15000, cost: 8000 },
-  { date: 'Jul 16', revenue: 19000, cost: 8500 },
-  { date: 'Jan 17', revenue: 16500, cost: 9000 },
-  { date: 'Jul 17', revenue: 17500, cost: 9800 },
-  { date: 'Jan 18', revenue: 19000, cost: 8500 },
-  { date: 'Jul 18', revenue: 23000, cost: 9000 },
-];
+// const data = [
+//   { date: 'Jan 16', revenue: 15000, cost: 8000 },
+//   { date: 'Jul 16', revenue: 19000, cost: 8500 },
+//   { date: 'Jan 17', revenue: 16500, cost: 9000 },
+//   { date: 'Jul 17', revenue: 17500, cost: 9800 },
+//   { date: 'Jan 18', revenue: 19000, cost: 8500 },
+//   { date: 'Jul 18', revenue: 23000, cost: 9000 },
+// ];
 
-const peersData = [
-  { date: 'Jan 16', apple: 15000, microsoft: 12000, google: 14000 },
-  { date: 'Jul 16', apple: 19000, microsoft: 15000, google: 18000 },
-  { date: 'Jan 17', apple: 16500, microsoft: 14500, google: 16000 },
-  { date: 'Jul 17', apple: 17500, microsoft: 16000, google: 19000 },
-  { date: 'Jan 18', apple: 19000, microsoft: 18000, google: 21000 },
-  { date: 'Jul 18', apple: 23000, microsoft: 20000, google: 24000 },
-];
+// const peersData = [
+//   { date: 'Jan 16', apple: 15000, microsoft: 12000, google: 14000 },
+//   { date: 'Jul 16', apple: 19000, microsoft: 15000, google: 18000 },
+//   { date: 'Jan 17', apple: 16500, microsoft: 14500, google: 16000 },
+//   { date: 'Jul 17', apple: 17500, microsoft: 16000, google: 19000 },
+//   { date: 'Jan 18', apple: 19000, microsoft: 18000, google: 21000 },
+//   { date: 'Jul 18', apple: 23000, microsoft: 20000, google: 24000 },
+// ];
 
-const industryData = [
-  { date: 'Jan 16', automotive: 12000, technology: 15000, healthcare: 13000 },
-  { date: 'Jul 16', automotive: 14000, technology: 18000, healthcare: 16000 },
-  { date: 'Jan 17', automotive: 13500, technology: 16500, healthcare: 15500 },
-  { date: 'Jul 17', automotive: 15500, technology: 19500, healthcare: 17500 },
-  { date: 'Jan 18', automotive: 16000, technology: 21000, healthcare: 19000 },
-  { date: 'Jul 18', automotive: 18000, technology: 24000, healthcare: 21000 },
-];
+// const industryData = [
+//   { date: 'Jan 16', automotive: 12000, technology: 15000, healthcare: 13000 },
+//   { date: 'Jul 16', automotive: 14000, technology: 18000, healthcare: 16000 },
+//   { date: 'Jan 17', automotive: 13500, technology: 16500, healthcare: 15500 },
+//   { date: 'Jul 17', automotive: 15500, technology: 19500, healthcare: 17500 },
+//   { date: 'Jan 18', automotive: 16000, technology: 21000, healthcare: 19000 },
+//   { date: 'Jul 18', automotive: 18000, technology: 24000, healthcare: 21000 },
+// ];
 
 // Define metric colors and interface
 interface MetricConfig {
@@ -85,16 +85,6 @@ interface ChartDataPoint {
   [key: string]: string | number;
 }
 
-// Add type for the chart click event
-interface ChartClickEvent {
-  activePayload?: Array<{
-    value: number;
-    payload: any;
-  }>;
-  chartX?: number;
-  chartY?: number;
-}
-
 // Add this interface near other interfaces
 interface StickyTooltip {
   x: number;
@@ -103,9 +93,9 @@ interface StickyTooltip {
 }
 
 // Add these interfaces at the top of the file
-interface YourChartDataType {
-  [metric: string]: number[];
-}
+// interface YourChartDataType {
+//   [metric: string]: number[];
+// }
 
 // Update the activeTooltip interface
 interface ActiveTooltip {
@@ -126,21 +116,18 @@ interface ActiveTooltip {
 //   // Add more mappings as needed
 // };
 
-function getCompanyNameFromTicker(ticker: string): string | undefined {
-  return tickerToCompanyNameMap[ticker];
-}
+// function getCompanyNameFromTicker(ticker: string): string | undefined {
+//   return tickerToCompanyNameMap[ticker];
+// }
 
 const Dashboard: React.FC = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [activeChart, setActiveChart] = useState<'metrics' | 'peers' | 'industry'>('metrics');
   const [searchValue, setSearchValue] = useState('AAPL');
-  const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['Revenue', 'CostOfGoodsSold']);
-  const [metricInput, setMetricInput] = useState('');
+  const [selectedMetrics] = useState<string[]>(['Revenue', 'CostOfGoodsSold']);
   const [selectedCompanies, setSelectedCompanies] = useState<CompanyTicker[]>([]);
   const [companyInput, setCompanyInput] = useState('');
   const [selectedPeerMetric, setSelectedPeerMetric] = useState<string>('');
-  const [selectedMetric1, setSelectedMetric1] = useState('Revenue');
-  const [selectedMetric2, setSelectedMetric2] = useState('CostOfGoodsSold');
   const [selectedSearchMetrics, setSelectedSearchMetrics] = useState<string[]>(['revenue', 'netIncome']);
   const [searchMetricInput, setSearchMetricInput] = useState('');
   const [availableMetrics, setAvailableMetrics] = useState<{ value: string; label: string }[]>([]);
@@ -155,7 +142,6 @@ const Dashboard: React.FC = () => {
   const [selectedIndustryCompanies, setSelectedIndustryCompanies] = useState<CompanyTicker[]>([
     { ticker: 'AAPL', name: 'Apple Inc.' }
   ]);
-  const [industryCompanyInput, setIndustryCompanyInput] = useState('');
   const [selectedIndustryMetrics, setSelectedIndustryMetrics] = useState<string[]>([]);
   const [industryMetricInput, setIndustryMetricInput] = useState('');
   const [industryChartData, setIndustryChartData] = useState<ChartDataPoint[]>([]);
@@ -165,8 +151,6 @@ const Dashboard: React.FC = () => {
   const [availableIndustries, setAvailableIndustries] = useState<{ value: string; label: string; companies: string[] }[]>([]);
   const [industryCompanyNames, setIndustryCompanyNames] = useState<{ [metric: string]: string[] }>({});
   const [selectedTicker, setSelectedTicker] = useState('');
-  const [metricSearch, setMetricSearch] = useState('');
-  const [isMetricDropdownOpen, setIsMetricDropdownOpen] = useState(false);
   const [showMetricDropdown, setShowMetricDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const industryDropdownRef = useRef<HTMLDivElement>(null);
@@ -179,7 +163,6 @@ const Dashboard: React.FC = () => {
   const [showPeerMetricDropdown, setShowPeerMetricDropdown] = useState(false);
   const peerDropdownRef = useRef<HTMLDivElement>(null);
   const [activeTooltip, setActiveTooltip] = useState<ActiveTooltip | null>(null);
-  const [stickyTooltips, setStickyTooltips] = useState<StickyTooltip[]>([]);
   const [fixed2024Data, setFixed2024Data] = useState<any>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [fixedTooltipPos, setFixedTooltipPos] = useState<{ left: number, top: number } | null>(null);
@@ -236,43 +219,6 @@ const Dashboard: React.FC = () => {
     } catch (error) {
       console.error('Error fetching metrics:', error);
     }
-  };
-
-  const transformData = (data: any[]) => {
-    const transformedData: { [key: string]: any } = {};
-    
-    data.forEach((item) => {
-      const year = parseInt(item.name.split('-')[0]);
-      const period = selectedPeriod.replace('Y', '');
-      const periodNum = parseInt(period);
-      
-      // Calculate the range
-      const startYear = Math.floor(year / periodNum) * periodNum;
-      const endYear = startYear + periodNum - 1;
-      const periodKey = `${startYear}-${endYear}`;
-      
-      if (!transformedData[periodKey]) {
-        transformedData[periodKey] = {
-          name: periodKey,
-          ...selectedSearchMetrics.reduce((acc, metric) => ({
-            ...acc,
-            [metric]: 0
-          }), {})
-        };
-      }
-      
-      // Aggregate values for the period
-      selectedSearchMetrics.forEach(metric => {
-        transformedData[periodKey][metric] += (item[metric] || 0) / periodNum;
-      });
-    });
-    
-    // Sort by start year
-    return Object.values(transformedData).sort((a, b) => {
-      const yearA = parseInt(a.name.split('-')[0]);
-      const yearB = parseInt(b.name.split('-')[0]);
-      return yearA - yearB;
-    });
   };
 
   const fetchMetricData = useCallback(async () => {
@@ -1645,14 +1591,16 @@ const Dashboard: React.FC = () => {
                             
                             {/* Regular hover tooltip */}
                             <Tooltip
-                              formatter={(value: number | null, name: string) => {
+                              formatter={(value: number | string | null | undefined, name: string) => {
                                 // Split the name into metric and ticker
                                 const [metric, ticker] = name.split('.');
                                 const company = selectedCompanies.find(c => c.ticker === ticker);
-                                return [
-                                  value !== null ? new Intl.NumberFormat('en-US').format(value) : "N/A",
-                                  `${company?.name || ticker} - ${metric}`
-                                ];
+                                const formattedValue =
+                                  value !== null && value !== undefined
+                                    ? new Intl.NumberFormat('en-US').format(Number(value))
+                                    : "N/A";
+                                const displayName = `${company?.name || ticker} - ${metric}`;
+                                return [formattedValue, displayName];
                               }}
                               labelFormatter={(label) => {
                                 if (typeof label === 'string' && label.includes('-')) {
@@ -1836,34 +1784,23 @@ const Dashboard: React.FC = () => {
                             <Tooltip 
                               content={({ active, payload, label }) => {
                                 if (active && payload && payload.length > 0) {
+                                  const point = payload[0].payload;
+                                  const ticker = searchValue.split(':')[0].trim().toUpperCase(); // Define ticker here as well
+                                  if ((selectedPeriod === '1Y' && point.name?.startsWith('2024')) || 
+                                      (selectedPeriod !== '1Y' && point.name === peerChartData[peerChartData.length - 1]?.name)) {
+                                    return null;
+                                  }
                                   return (
                                     <div className="custom-tooltip bg-white p-2 border rounded shadow">
                                       <p className="label">{label}</p>
-                                      {payload.map((entry: any) => {
-                                        // Split the name into parts (ticker and metric)
-                                        const [ticker, metric] = entry.name.split('-').map(part => part.trim());
-                                        
-                                        // Get company name from selectedCompanies
-                                        const company = selectedCompanies.find(c => c.ticker === ticker);
-                                        
-                                        // Format the display name
-                                        const displayName = company 
-                                          ? `${company.name} (${ticker})` 
-                                          : `Company (${ticker})`; // Fallback if name not found
-
-                                        return (
-                                          <p key={entry.name} style={{ color: entry.color }}>
-                                            {`${displayName} - ${metric}: ${
-                                              entry.value === null 
-                                                ? "N/A" 
-                                                : new Intl.NumberFormat('en-US', {
-                                                    notation: 'compact',
-                                                    maximumFractionDigits: 1
-                                                  }).format(entry.value)
-                                            }`}
-                                          </p>
-                                        );
-                                      })}
+                                      {payload.map((entry: any) => (
+                                        <p key={entry.name} style={{ color: entry.color }}>
+                                          {`${entry.name} (${ticker})`}: {entry.value === null ? "N/A" : new Intl.NumberFormat('en-US', {
+                                            notation: 'compact',
+                                            maximumFractionDigits: 1
+                                          }).format(entry.value)}
+                                        </p>
+                                      ))}
                                     </div>
                                   );
                                 }
@@ -1969,7 +1906,9 @@ const Dashboard: React.FC = () => {
                       </div>
                     ) : (
                       <BoxPlot
-                        data={industryChartData}
+                        data={Object.fromEntries(
+                          industryChartData.map((d: any) => [d.metric, d.values])
+                        )}
                         title={selectedIndustryMetrics.map(metric => 
                           availableMetrics.find(m => m.value === metric)?.label || metric
                         ).join(' vs ')}
