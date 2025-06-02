@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
+import { useState, useEffect } from 'react';
 
 interface ChatboxProps {
   chartData: any[];
@@ -88,7 +87,7 @@ export const useChat = ({
             if (point.name) return parseInt(point.name);
             return null;
           })
-          .filter(y => y && !isNaN(y));
+          .filter((y): y is number => y !== null && !isNaN(y));
         return years.length ? Math.max(...years) : new Date().getFullYear();
       };
 
@@ -161,28 +160,3 @@ export const useChat = ({
 };
 
 export default useChat;
-
-const NewsComponent = ({ newsContent }) => {
-  return (
-    <div>
-      <ReactMarkdown
-        components={{
-          a: ({ node, ...props }) => (
-            <a 
-              {...props} 
-              style={{ 
-                color: '#007bff',  // Blue color
-                textDecoration: 'none',
-                cursor: 'pointer' 
-              }}
-              target="_blank" 
-              rel="noopener noreferrer"
-            />
-          )
-        }}
-      >
-        {newsContent}
-      </ReactMarkdown>
-    </div>
-  );
-};
