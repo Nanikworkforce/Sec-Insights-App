@@ -2,13 +2,13 @@ import React, { useEffect } from 'react';
 import Plot from 'react-plotly.js';
 
 interface BoxPlotProps {
-  data: { [metric: string]: number[] };
+  data: { [metric: string]: (number | null)[] };
   title: string;
   companyNames: { [metric: string]: string[] };
-  selectedTicker?: string;
+  selectedTicker: string;
 }
 
-const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selectedTicker = '' }) => {
+const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames, selectedTicker }) => {
   useEffect(() => {
     console.log('Box Plot Data:', data);
     console.log('Company Names:', companyNames);
@@ -36,6 +36,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
     // Create map of company to value
     const valueMap = new Map<string, number>();
     values.forEach((v, index) => {
+      if (v === null) return;  // Add null check
       const company = allCompanies[index] || `Company ${index + 1}`;
       valueMap.set(company, v);
     });
@@ -46,14 +47,16 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
     // Create values array with null for missing data
     const completeValues = industryCompanies.map(company => {
       const value = valueMap.get(company);
-      return value !== undefined ? Number((value / scaleFactor).toFixed(1)) : null;
+      return value !== null && value !== undefined 
+        ? Number((value / scaleFactor).toFixed(1)) 
+        : null;
     });
 
     // Box plot trace
     const boxTrace = {
       y: completeValues.filter(v => v !== null) as number[],
       type: 'box' as const,
-      boxpoints: false,
+      boxpoints: false as const,
       showbox: true,
       line: { 
         color: '#1B5A7D',
@@ -64,9 +67,9 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
       showlegend: false,
       whiskerwidth: 0.4,
       boxwidth: 0.6,
-      quartilemethod: 'linear',
+      quartilemethod: 'linear' as const,
       name: metric,
-      hoverinfo: 'y',
+      hoverinfo: 'y' as const,
       x0: metricIndex,
       xaxis: 'x',
       yaxis: `y${metricIndex + 1}`, // Assign different y-axes
@@ -98,7 +101,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
         }
       },
       text: pointsData.map(p => p.name),
-      hoverinfo: 'text+y' as const,
+      hoverinfo: 'y+text' as const,
       hovertemplate: `Company: %{text}<br>Value: %{y:,.1f}${unitSuffix}<extra></extra>`,
       showlegend: false,
       name: metric,
@@ -110,7 +113,10 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames = {}, selec
 
   // Create layout with multiple y-axes
   const layout = {
-    title: title,
+    title: {
+      text: title,
+      font: { size: 16 }
+    },
     width: 800,
     height: 550,
     xaxis: {

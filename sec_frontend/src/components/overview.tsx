@@ -62,6 +62,7 @@ interface IndustryMetricData {
 
 interface OverviewProps {
   ticker: string;
+  selectedTicker: string;
 }
 
 // Define available metrics
@@ -102,7 +103,7 @@ type TickerKey = keyof typeof TICKER_COLORS;
 const AVAILABLE_METRICS = ['revenue', 'netIncome', 'operatingCashFlow'];
 const AVAILABLE_PERIODS = ['2023', '2024', '2025'];
 
-export function Overview({ ticker }: OverviewProps) {
+export function Overview({ ticker, selectedTicker }: OverviewProps) {
   const [data, setData] = useState<ChartDataPoint[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("revenue");
@@ -119,6 +120,16 @@ export function Overview({ ticker }: OverviewProps) {
   const [exampleCompanyNames, setExampleCompanyNames] = useState<string[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState('1Y');
   const [searchQueries, setSearchQueries] = useState<string[]>([]);
+  const [industryCompanyNames, setIndustryCompanyNames] = useState<Record<string, string[]>>({});
+
+  // Optional: Add sample data initialization
+  useEffect(() => {
+    setIndustryCompanyNames({
+      automotive: ['Ford', 'GM', 'Tesla'],
+      technology: ['Apple', 'Microsoft', 'Google'],
+      healthcare: ['Pfizer', 'Moderna', 'Johnson & Johnson']
+    });
+  }, []);
 
   // Fetch historical data from backend
   useEffect(() => {
@@ -687,11 +698,17 @@ export function Overview({ ticker }: OverviewProps) {
               </Select>
             </div>
 
-            <BoxPlot 
-              data={exampleData} 
-              title={`Box Plot for ${selectedBoxPlotMetric}`} 
-              companyNames={exampleCompanyNames}
-              selectedTickers={searchQueries}  // Update prop name to reflect multiple tickers
+            <BoxPlot
+              data={industryData}
+              title={selectedIndustries.map(industry => 
+                availableIndustries.find(i => i.name === industry)?.name || industry
+              ).join(' vs ')}
+              companyNames={{
+                ...Object.fromEntries(
+                  selectedIndustries.map(industry => [industry, industryCompanyNames[industry] || []])
+                )
+              }}
+              selectedTicker={selectedTicker}
             />
           </div>
         </TabsContent>
