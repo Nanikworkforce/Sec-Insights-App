@@ -622,7 +622,7 @@ export function Overview({ selectedTicker }: OverviewProps) {
             </div>
 
             <BoxPlot
-              data={[]}
+              data={{} as { [metric: string]: (number | null)[] }}
               title={selectedIndustries.map(industry => 
                 availableIndustries.find(i => i.name === industry)?.name || industry
               ).join(' vs ')}

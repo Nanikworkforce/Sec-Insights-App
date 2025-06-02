@@ -86,11 +86,11 @@ interface ChartDataPoint {
 }
 
 // Add this interface near other interfaces
-interface StickyTooltip {
-  x: number;
-  y: number;
-  payload: any[];
-}
+// interface StickyTooltip {
+//   x: number;
+//   y: number;
+//   payload: any[];
+// }
 
 // Add these interfaces at the top of the file
 // interface YourChartDataType {
@@ -199,14 +199,6 @@ const Dashboard: React.FC = () => {
     activeChart,
     selectedCompanies
   });
-
-  // Add function to handle company selection
-  const handleCompanySelection = (company: string) => {
-    const [ticker, name] = company.split(':').map(s => s.trim());
-    if (!selectedCompanies.some(c => c.ticker === ticker)) {
-      setSelectedCompanies([...selectedCompanies, { ticker, name: name || ticker }]);
-    }
-  };
 
   const fetchAvailableMetrics = async () => {
     try {
@@ -601,8 +593,7 @@ const Dashboard: React.FC = () => {
     const chartDiv = chartContainerRef.current;
     if (!chartDiv) return;
     // Find the tick element whose label is 2024
-    const tickEls = chartDiv.querySelectorAll<HTMLElement>(`.xAxis .recharts-cartesian-axis-tick:last-child`);
-    let tick2024 = document.querySelector(`.xAxis .recharts-cartesian-axis-tick:last-child`) as HTMLElement | null;
+    const tick2024 = document.querySelector(`.xAxis .recharts-cartesian-axis-tick:last-child`) as HTMLElement | null;
     if (!tick2024) return;
     const tickRect = tick2024.getBoundingClientRect();
     const chartRect = chartDiv.getBoundingClientRect();
@@ -616,9 +607,10 @@ const Dashboard: React.FC = () => {
     });
   }, [fixed2024Data, chartData, activeChart]);
 
-  const toggleSidebar = () => {
-    setIsSidebarVisible(!isSidebarVisible);
-  };
+  // Remove this function if not used
+  // const toggleSidebar = () => {
+  //   setIsSidebarVisible(!isSidebarVisible);
+  // };
 
   console.log('chartData:', chartData);
   console.log('fixed2024Data:', fixed2024Data);
@@ -627,13 +619,13 @@ const Dashboard: React.FC = () => {
   console.log('fixed2024Data:', fixed2024Data);
 
   // Update the diff calculation to handle null
-  const calculatePercentage = (current: number, previous: number | null) => {
-    if (previous === null || previous === 0) return null;
-    return ((current - previous) / previous) * 100;
-  };
+  // const calculatePercentage = (current: number, previous: number | null) => {
+  //   if (previous === null || previous === 0) return null;
+  //   return ((current - previous) / previous) * 100;
+  // };
 
   // Update DefaultTooltipContent usage
-  const CustomTooltip: React.FC<any> = ({ active, payload, label, ...props }) => {
+  const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
     if (!active || !payload) return null;
     return (
       <div className="custom-tooltip bg-white p-2 border rounded shadow">
@@ -683,57 +675,6 @@ const Dashboard: React.FC = () => {
     }
   }, [selectedIndustry]);
 
-  const getChatboxPayload = () => {
-    if (activeChart === 'peers') {
-      const mainCompany = selectedCompanies.length > 0 
-        ? selectedCompanies[0].ticker 
-        : '';
-
-      // Ensure we have the selected metric
-      const metrics = selectedPeerMetric ? [selectedPeerMetric] : [];
-
-      // Filter out any null values from the chart data
-      const validChartData = peerChartData.filter(point => 
-        selectedCompanies.some(company => 
-          point[company.ticker] !== null && point[company.ticker] !== undefined
-        )
-      );
-
-      console.log('Selected Companies:', selectedCompanies);
-      console.log('Peer Chart Data:', validChartData);
-      console.log('Main Company:', mainCompany);
-      console.log('Selected Peer Metrics:', metrics);
-
-      return {
-        metrics,
-        chartData: validChartData,
-        tabContext: 'peers',
-        company: mainCompany,
-        period: selectedPeriod,
-        chartType: activeChart
-      };
-    } else if (activeChart === 'industry') {
-      return {
-        metrics: selectedIndustryMetrics,
-        chartData: industryChartData,
-        tabContext: 'industry',
-        company: selectedIndustry,
-        period: selectedPeriod,
-        chartType: activeChart
-      };
-    } else {
-      // For single company metrics
-      return {
-        metrics: selectedMetrics,
-        chartData: chartData,
-        tabContext: 'metrics',
-        company: searchValue.split(':')[0].trim(),  // Use the search input company
-        period: selectedPeriod,
-        chartType: activeChart
-      };
-    }
-  };
-
   // Add effect to update selectedPeerMetrics when selectedPeerMetric changes
   useEffect(() => {
     if (selectedPeerMetric) {
@@ -742,12 +683,12 @@ const Dashboard: React.FC = () => {
   }, [selectedPeerMetric]);
 
   // Update the peer metric selection handler
-  const handlePeerMetricSelection = (metric: string) => {
-    console.log('Selected peer metric:', metric);
-    setSelectedPeerMetric(metric);
-    setSelectedPeerMetrics([metric]); // Update the metrics array
-    setShowPeerMetricDropdown(false);
-  };
+  // const handlePeerMetricSelection = (metric: string) => {
+  //   console.log('Selected peer metric:', metric);
+  //   setSelectedPeerMetric(metric);
+  //   setSelectedPeerMetrics([metric]); // Update the metrics array
+  //   setShowPeerMetricDropdown(false);
+  // };
 
   useEffect(() => {
     const clearHandler = () => {
@@ -761,6 +702,11 @@ const Dashboard: React.FC = () => {
     window.addEventListener('clearChat', clearHandler);
     return () => window.removeEventListener('clearChat', clearHandler);
   }, []);
+
+  // Example usage:
+  // const getChatboxPayload = () => {
+  //   // ... (original implementation)
+  // };
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
@@ -1601,7 +1547,7 @@ const Dashboard: React.FC = () => {
                                 }
                                 return label;
                               }}
-                              content={({ active, payload, label, ...props }) => {
+                              content={({ active, payload, label }) => {
                                 if (active && payload && payload.length > 0) {
                                   const point = payload[0].payload;
                                   const ticker = searchValue.split(':')[0].trim().toUpperCase(); // Define ticker here as well
@@ -1931,7 +1877,7 @@ const Dashboard: React.FC = () => {
 
             {/* Insights Generation - full width on mobile */}
             <div className="lg:col-span-4 lg:mr-[-11rem]">
-              <div className="mt-0 lg:mt-2 sm:mt-3 lg:mt-4">
+              <div className="mt-0 sm:mt-3 lg:mt-4">
                 <div className="bg-white rounded-lg shadow-sm">
                   <div className="p-4 xl:p-6 border-b flex justify-between items-center">
                     <div className="flex items-center gap-2 xl:gap-3">
