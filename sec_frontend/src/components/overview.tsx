@@ -420,12 +420,6 @@ export function Overview({ ticker, selectedTicker }: OverviewProps) {
     fetchDataForBoxPlot();
   }, [selectedBoxPlotMetric, selectedBoxPlotPeriod]);
 
-  const handleAddBoxPlotTicker = (newTicker: string) => {
-    if (!tickers.includes(newTicker)) {
-      setTickers([...tickers, newTicker]);
-    }
-  };
-
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period);
     // You might want to trigger data fetching here based on the selected period
@@ -441,6 +435,11 @@ export function Overview({ ticker, selectedTicker }: OverviewProps) {
   // Add a function to remove search queries
   const handleRemoveSearchQuery = (query: string) => {
     setSearchQueries(searchQueries.filter(q => q !== query));
+  };
+
+  // Transform industry data before passing to BoxPlot
+  const industryBoxData = {
+    industry_avg: industryData.map(d => d.industry_avg)
   };
 
   return (
@@ -699,7 +698,7 @@ export function Overview({ ticker, selectedTicker }: OverviewProps) {
             </div>
 
             <BoxPlot
-              data={industryData}
+              data={industryBoxData}
               title={selectedIndustries.map(industry => 
                 availableIndustries.find(i => i.name === industry)?.name || industry
               ).join(' vs ')}

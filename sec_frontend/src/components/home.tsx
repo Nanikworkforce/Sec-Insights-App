@@ -68,7 +68,7 @@ type PeriodType = '1Y' | '2Y' | '3Y' | '4Y' | '5Y' | '10Y' | '15Y' | '20Y';
 // Add interface for peer data
 interface PeerDataPoint {
   name: string;
-  [key: string]: string | number;
+  [key: string]: { [ticker: string]: number } | string; // Allow metric keys to store company values
 }
 
 // Update the selectedCompanies state to store ticker objects
@@ -81,8 +81,8 @@ interface CompanyTicker {
 interface ChartDataPoint {
   name: string;
   ticker: string;
-  value: number;
-  [key: string]: string | number;
+  value: number | null;  // Allow null for value
+  [key: string]: string | number | null;  // Allow null for dynamic metrics
 }
 
 // Add this interface near other interfaces
@@ -119,6 +119,17 @@ interface ActiveTooltip {
 // function getCompanyNameFromTicker(ticker: string): string | undefined {
 //   return tickerToCompanyNameMap[ticker];
 // }
+
+// Add interface for data items
+interface DataItem {
+  name: string;
+  value: number;
+}
+
+interface TimePoint {
+  name: string;
+  [key: string]: any;  // Add other properties as needed
+}
 
 const Dashboard: React.FC = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
@@ -319,11 +330,11 @@ const Dashboard: React.FC = () => {
         }
 
         // Create a map of existing data points
-        const dataMap = new Map(data.map(item => [item.name, item.value]));
+        const dataMap = new Map<string, number>(data.map((item: DataItem) => [item.name, item.value]));
 
         // Update all time points, using null for missing data instead of 0
         acc.forEach(point => {
-          point[metric] = dataMap.get(point.name) || null;  // Changed from 0 to null
+          point[metric] = dataMap.get(point.name) ?? null;  // Use null coalescing
           point.ticker = ticker;
         });
 
@@ -385,7 +396,7 @@ const Dashboard: React.FC = () => {
       }
 
       // Create a unified dataset with all companies
-      const transformedData = results[0].data.map(timePoint => {
+      const transformedData = results[0].data.map((timePoint: TimePoint) => {
         const point: PeerDataPoint = { 
           name: timePoint.name,
           // Add metric name as key with company values
@@ -393,9 +404,9 @@ const Dashboard: React.FC = () => {
         };
         
         results.forEach(({ company, data }) => {
-          const matchingPoint = data.find(d => d.name === timePoint.name);
+          const matchingPoint = data.find((d: DataItem) => d.name === timePoint.name);
           if (matchingPoint) {
-            point[selectedPeerMetric][company.ticker] = matchingPoint.value;
+            (point[selectedPeerMetric] as { [ticker: string]: number })[company.ticker] = matchingPoint.value;
           }
         });
         
@@ -462,23 +473,6 @@ const Dashboard: React.FC = () => {
       setAvailableIndustries(formattedIndustries);
     } catch (error) {
       console.error('Error fetching industries:', error);
-    }
-  };
-
-  const handleIndustrySelection = (industryName: string) => {
-    console.log('Selected industry:', industryName);
-    setSelectedIndustry(industryName);
-    
-    // Find the selected industry's companies but don't display them in search box
-    const selectedIndustryData = availableIndustries.find(ind => ind.value === industryName);
-    if (selectedIndustryData && selectedIndustryData.companies) {
-      // Store companies for the box plot hover but clear the search box
-      setSelectedIndustryCompanies([]);
-      setIndustryCompanyInput('');
-      
-      if (selectedIndustryMetrics.length > 0) {
-        fetchIndustryData();
-      }
     }
   };
 
@@ -607,13 +601,8 @@ const Dashboard: React.FC = () => {
     const chartDiv = chartContainerRef.current;
     if (!chartDiv) return;
     // Find the tick element whose label is 2024
-    const tickEls = chartDiv.querySelectorAll('.recharts-cartesian-axis-tick');
-    let tick2024: HTMLElement | null = null;
-    tickEls.forEach((el) => {
-      if (el.textContent?.trim() === '2024') {
-        tick2024 = el as HTMLElement;
-      }
-    });
+    const tickEls = chartDiv.querySelectorAll<HTMLElement>(`.xAxis .recharts-cartesian-axis-tick:last-child`);
+    let tick2024 = document.querySelector(`.xAxis .recharts-cartesian-axis-tick:last-child`) as HTMLElement | null;
     if (!tick2024) return;
     const tickRect = tick2024.getBoundingClientRect();
     const chartRect = chartDiv.getBoundingClientRect();
