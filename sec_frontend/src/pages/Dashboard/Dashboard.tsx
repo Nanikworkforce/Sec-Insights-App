@@ -129,7 +129,6 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent className="pl-2">
                   <Overview 
-                    ticker={ticker}
                     selectedTicker={ticker}
                   />
                 </CardContent>
