@@ -13,7 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BoxPlot from './BoxPlot';
 
-const BASE_URL = 'http://127.0.0.1:8000/api';  // Make sure this matches your Django server
+const BASE_URL = import.meta.env.VITE_API_BASE_URL + 'api';
 
 const API_URL = (tickers: string[], metric: string, period: string) => 
   `${BASE_URL}/aggregated-data/?tickers=${tickers.join(',')}&metric=${metric}&period=${period}`;

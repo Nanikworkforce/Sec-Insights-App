@@ -4,7 +4,7 @@ import BoxPlot from './BoxPlot';
 import { useChat } from './chatbox';
 import { TooltipProps } from 'recharts';
 
-const BASE_URL = 'http://localhost:8000/api';  // Changed from 127.0.0.1 to localhost
+const BASE_URL = import.meta.env.VITE_API_BASE_URL + 'api';  // Changed from 127.0.0.1 to localhost
 
 // const data = [
 //   { date: 'Jan 16', revenue: 15000, cost: 8000 },
@@ -592,18 +592,22 @@ const Dashboard: React.FC = () => {
     if (!fixed2024Data) return;
     const chartDiv = chartContainerRef.current;
     if (!chartDiv) return;
-    // Find the tick element whose label is 2024
-    const tick2024 = document.querySelector(`.xAxis .recharts-cartesian-axis-tick:last-child`) as HTMLElement | null;
+
+    // Find the tick element whose label is "2024"
+    const ticks = chartDiv.querySelectorAll('.recharts-cartesian-axis-tick');
+    let tick2024: HTMLElement | null = null;
+    ticks.forEach(tick => {
+      if ((tick as HTMLElement).textContent?.trim() === "2024") {
+        tick2024 = tick as HTMLElement;
+      }
+    });
     if (!tick2024) return;
+
     const tickRect = tick2024.getBoundingClientRect();
     const chartRect = chartDiv.getBoundingClientRect();
     setFixedTooltipPos({
       left: tickRect.left - chartRect.left + tickRect.width / 2,
       top: 40 // adjust as needed
-    });
-    console.log('Set fixedTooltipPos:', {
-      left: tickRect.left - chartRect.left + tickRect.width / 2,
-      top: 40
     });
   }, [fixed2024Data, chartData, activeChart]);
 
@@ -1481,8 +1485,12 @@ const Dashboard: React.FC = () => {
                         No data available
                       </div>
                     ) : (
-                      <div ref={chartContainerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
-                        <ResponsiveContainer width="100%" height="100%">
+                      <div className="chart-container relative" ref={chartContainerRef}>  {/* Add this wrapper */}
+                        <ResponsiveContainer 
+                          width="100%" 
+                          height={350}
+                          className="!static"  // Disable relative positioning
+                        >
                           <LineChart 
                             data={chartData}
                             onMouseMove={e => {
@@ -1674,8 +1682,12 @@ const Dashboard: React.FC = () => {
                         No data available
                       </div>
                     ) : (
-                      <div ref={chartContainerRef} style={{ position: 'relative', width: '100%', height: 400 }}>
-                        <ResponsiveContainer width="100%" height="100%">
+                      <div className="chart-container relative" ref={chartContainerRef}>  {/* Add this wrapper */}
+                        <ResponsiveContainer 
+                          width="100%" 
+                          height={500}
+                          className="!static"  // Disable relative positioning
+                        >
                           <LineChart 
                             data={peerChartData}
                             onMouseMove={e => {
