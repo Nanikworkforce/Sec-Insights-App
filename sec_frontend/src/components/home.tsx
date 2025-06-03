@@ -593,20 +593,13 @@ const Dashboard: React.FC = () => {
     const chartDiv = chartContainerRef.current;
     if (!chartDiv) return;
 
-    // Find the tick element whose label is "2024"
-    const ticks = chartDiv.querySelectorAll('.recharts-cartesian-axis-tick');
-    let tick2024: HTMLElement | null = null;
-    ticks.forEach(tick => {
-      if ((tick as HTMLElement).textContent?.trim() === "2024") {
-        tick2024 = tick as HTMLElement;
-      }
-    });
+    // Change the query selector and add proper type checking
+    const tick2024 = chartDiv.querySelector('.recharts-cartesian-axis-tick text') as SVGTextElement | null;
     if (!tick2024) return;
 
     const tickRect = tick2024.getBoundingClientRect();
-    const chartRect = chartDiv.getBoundingClientRect();
     setFixedTooltipPos({
-      left: tickRect.left - chartRect.left + tickRect.width / 2,
+      left: tickRect.left - chartDiv.getBoundingClientRect().left + tickRect.width / 2,
       top: 40 // adjust as needed
     });
   }, [fixed2024Data, chartData, activeChart]);
