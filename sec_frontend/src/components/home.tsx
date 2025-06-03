@@ -6,6 +6,7 @@ import { TooltipProps } from 'recharts';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;  
 fetch(`${BASE_URL}industries/`)
+fetch(`${BASE_URL}companies/`)
 
 // const data = [
 //   { date: 'Jan 16', revenue: 15000, cost: 8000 },
