@@ -37,9 +37,9 @@ class ChatbotAPIView(APIView):
             # Check for introspective questions first
             if is_introspective_question(question):
                 return Response({"answer": describe_payload_intent(payload)})
-    
+
             keywords = extract_keywords(question)
-            
+
             logger.info(f"Payload received: {payload}")
             logger.info(f"Keywords extracted: {keywords}")
 
