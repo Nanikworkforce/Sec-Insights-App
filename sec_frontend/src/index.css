@@ -1,0 +1,25 @@
+/* Remove default Recharts padding */
+.recharts-wrapper {
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+/* Fix tooltip container sizing */
+.recharts-tooltip-wrapper {
+  width: max-content !important;
+}
+
+/* Stabilize chart surface */
+.recharts-surface {
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+.chart-container:hover {
+  transform: none !important;  /* Disable scale transforms */
+  padding: 0 !important;       /* Maintain consistent padding */
+  border-width: 0 !important;  /* Keep borders consistent */
+}
+
+
+
