@@ -73,9 +73,13 @@ MIDDLEWARE = [
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:5173",  # React frontend
+# ]
+
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # React frontend
-]
+       "https://sec-insights-app-2v63.vercel.app",
+   ]
 
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
