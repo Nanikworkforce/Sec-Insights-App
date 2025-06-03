@@ -4,7 +4,8 @@ import BoxPlot from './BoxPlot';
 import { useChat } from './chatbox';
 import { TooltipProps } from 'recharts';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL + 'api';  // Changed from 127.0.0.1 to localhost
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;  
+const url = `${BASE_URL}/industries/`;
 
 // const data = [
 //   { date: 'Jan 16', revenue: 15000, cost: 8000 },
