@@ -132,6 +132,8 @@ interface TimePoint {
   [key: string]: any;  // Add other properties as needed
 }
 
+
+
 const Dashboard: React.FC = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [activeChart, setActiveChart] = useState<'metrics' | 'peers' | 'industry'>('metrics');
@@ -150,7 +152,7 @@ const Dashboard: React.FC = () => {
   const [peerChartData, setPeerChartData] = useState<PeerDataPoint[]>([]);
   const [peerLoading, setPeerLoading] = useState(false);
   const [peerError, setPeerError] = useState<string | null>(null);
-  const [selectedIndustryCompanies, setSelectedIndustryCompanies] = useState<CompanyTicker[]>([]);
+  // const [selectedIndustryCompanies, setSelectedIndustryCompanies] = useState<CompanyTicker[]>([]);
   const [selectedIndustryMetrics, setSelectedIndustryMetrics] = useState<string[]>([]);
   const [industryMetricInput, setIndustryMetricInput] = useState('');
   const [industryChartData, setIndustryChartData] = useState<Record<string, (number | null)[]>>({});
@@ -186,9 +188,14 @@ const Dashboard: React.FC = () => {
     handleSendMessage,
     setMessages
   } = useChat({
-    chartData: activeChart === 'peers' ? peerChartData : 
-              activeChart === 'industry' ? industryChartData : 
-              chartData,
+    chartData: activeChart === 'peers'
+      ? peerChartData
+      : activeChart === 'industry'
+        ? Object.entries(industryChartData).map(([metric, values]) => ({
+            metric,
+            values
+          }))
+        : chartData,
     searchValue,
     selectedPeriod,
     selectedMetrics: activeChart === 'peers' ? selectedPeerMetrics : 
@@ -1146,7 +1153,7 @@ const Dashboard: React.FC = () => {
                         .map(ticker => {
                           // Debugging: Log the ticker and the corresponding company
                           console.log('Ticker:', ticker);
-                          const company = selectedIndustryCompanies.find(c => c.ticker === ticker);
+                          const company = selectedCompanies.find((c: any) => c.ticker === ticker);
                           console.log('Company:', company);
 
                           const displayName = company ? `${company.name} (${ticker})` : ticker;
