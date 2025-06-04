@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import BoxPlot from './BoxPlot';
 import { useChat } from './chatbox';
 import { TooltipProps } from 'recharts';
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // import {baseUrl} from '../api';
 import baseUrl from './api';
 console.log("Using baseUrl:", baseUrl);
