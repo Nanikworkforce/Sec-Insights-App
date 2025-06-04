@@ -32,17 +32,17 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 @csrf_exempt
-def load_fixture_data(request):
-    secret = request.GET.get("secret")
-    if secret != "letmein":
-        return JsonResponse({"error": "Unauthorized"}, status=403)
-    try:
-        fixture_path = os.path.join("sec_app", "fixtures", "all_data.json")
-        call_command("loaddata", fixture_path)
-        return JsonResponse({"status": "success"})
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+@api_view(["GET"])
+def load_data(request):
+    if request.GET.get("secret") != "letmein":
+        return Response({"error": "Unauthorized"}, status=401)
 
+    try:
+        fixture_path = os.path.join(settings.BASE_DIR, "sec_app", "fixtures", "all_data.json")
+        call_command("loaddata", fixture_path, verbosity=1)
+        return Response({"status": "success"})
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 
 class ChatbotAPIView(APIView):
     def post(self, request):
