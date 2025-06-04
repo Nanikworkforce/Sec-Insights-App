@@ -65,14 +65,15 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames, selectedTi
       fillcolor: 'rgba(27,90,125,0.3)',
       boxmean: true,
       showlegend: false,
-      whiskerwidth: 0.4,
-      boxwidth: 0.6,
+      whiskerwidth: 0.6,
+      boxwidth: 0.8,
+      boxheight: 0.8,
       quartilemethod: 'linear' as const,
       name: metric,
       hoverinfo: 'y' as const,
       x0: metricIndex,
       xaxis: 'x',
-      yaxis: `y${metricIndex + 1}`, // Assign different y-axes
+      yaxis: `y${metricIndex + 1}`,
       jitter: 0.2,
       pointpos: -1.8
     };
@@ -117,42 +118,42 @@ const BoxPlot: React.FC<BoxPlotProps> = ({ data, title, companyNames, selectedTi
       text: title,
       font: { size: 16 }
     },
-    width: 800,
-    height: 550,
+    width: 700,
+    height: 370,  // Adjusted height
+    margin: { l: 50, r: 50, t: 50, b: 50 },
     xaxis: {
       ticktext: Object.keys(data),
       tickvals: Object.keys(data).map((_, i) => i),
       showgrid: false,
-      domain: [0.1, 0.9] // Give space on both sides for y-axes
+      domain: [0.1, 0.9]  // Give space on both sides for y-axes
     },
-    margin: { l: 50, r: 50, t: 50, b: 50 },
-    // Add multiple y-axes
+    // Configure y-axes to appear beside the boxes
     ...Object.entries(data).reduce((acc, [metric, _], index) => {
       const totalMetrics = Object.keys(data).length;
-      const segmentWidth = 0.8 / totalMetrics; // 0.8 is the width of xaxis domain
-      const xPos = 0.1 + (index * segmentWidth) + (segmentWidth / 2); // Center of each segment
+      const segmentWidth = 0.8 / totalMetrics;  // 0.8 is the width of xaxis domain
+      const xPos = 0.1 + (index * segmentWidth) + (segmentWidth / 2);  // Center of each segment
 
       if (index === 0) {
-        // First y-axis
+        // First y-axis on the left
         return {
           ...acc,
           yaxis: {
             title: metric,
             side: 'left',
-            position: xPos - 0.05, // Slightly to the left of its box plot
+            position: xPos - 0.05,  // Slightly to the left of its box plot
             anchor: 'free',
             showgrid: false
           }
         };
       }
 
-      // Additional y-axes
+      // Additional y-axes alternating sides
       return {
         ...acc,
         [`yaxis${index + 1}`]: {
           title: metric,
-          side: index === 1 ? 'right' : 'left', // Middle axis on right, last on left
-          position: index === 1 ? xPos + 0.05 : xPos - 0.05, // Adjust position based on side
+          side: index % 2 === 0 ? 'left' : 'right',  // Alternate sides
+          position: index % 2 === 0 ? xPos - 0.05 : xPos + 0.05,  // Adjust position based on side
           overlaying: 'y',
           anchor: 'free',
           showgrid: false

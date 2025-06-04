@@ -4,9 +4,7 @@ import BoxPlot from './BoxPlot';
 import { useChat } from './chatbox';
 import { TooltipProps } from 'recharts';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;  
-fetch(`${BASE_URL}/industries/`)
-fetch(`${BASE_URL}/companies/`)
+const BASE_URL = 'http://localhost:8000/api';  // Changed from 127.0.0.1 to localhost
 
 // const data = [
 //   { date: 'Jan 16', revenue: 15000, cost: 8000 },
@@ -152,12 +150,10 @@ const Dashboard: React.FC = () => {
   const [peerChartData, setPeerChartData] = useState<PeerDataPoint[]>([]);
   const [peerLoading, setPeerLoading] = useState(false);
   const [peerError, setPeerError] = useState<string | null>(null);
-  const [selectedIndustryCompanies, setSelectedIndustryCompanies] = useState<CompanyTicker[]>([
-    { ticker: 'AAPL', name: 'Apple Inc.' }
-  ]);
+  const [selectedIndustryCompanies, setSelectedIndustryCompanies] = useState<CompanyTicker[]>([]);
   const [selectedIndustryMetrics, setSelectedIndustryMetrics] = useState<string[]>([]);
   const [industryMetricInput, setIndustryMetricInput] = useState('');
-  const [industryChartData, setIndustryChartData] = useState<ChartDataPoint[]>([]);
+  const [industryChartData, setIndustryChartData] = useState<Record<string, (number | null)[]>>({});
   const [industryLoading, setIndustryLoading] = useState(false);
   const [industryError, setIndustryError] = useState<string | null>(null);
   const [selectedIndustry, setSelectedIndustry] = useState('');
@@ -437,10 +433,9 @@ const Dashboard: React.FC = () => {
       const data = await response.json();
       console.log('Raw industry data:', data);
 
-      // Ensure data is correctly set
-      setIndustryChartData(data.values || []);
+      // Directly use the values object
+      setIndustryChartData(data.values || {});
       setIndustryCompanyNames(data.companyNames || {});
-      setSelectedIndustryCompanies([]);
 
     } catch (error) {
       console.error('Error fetching industry data:', error);
@@ -594,15 +589,18 @@ const Dashboard: React.FC = () => {
     if (!fixed2024Data) return;
     const chartDiv = chartContainerRef.current;
     if (!chartDiv) return;
-
-    // Change the query selector and add proper type checking
-    const tick2024 = chartDiv.querySelector('.recharts-cartesian-axis-tick text') as SVGTextElement | null;
+    // Find the tick element whose label is 2024
+    const tick2024 = document.querySelector(`.xAxis .recharts-cartesian-axis-tick:last-child`) as HTMLElement | null;
     if (!tick2024) return;
-
     const tickRect = tick2024.getBoundingClientRect();
+    const chartRect = chartDiv.getBoundingClientRect();
     setFixedTooltipPos({
-      left: tickRect.left - chartDiv.getBoundingClientRect().left + tickRect.width / 2,
+      left: tickRect.left - chartRect.left + tickRect.width / 2,
       top: 40 // adjust as needed
+    });
+    console.log('Set fixedTooltipPos:', {
+      left: tickRect.left - chartRect.left + tickRect.width / 2,
+      top: 40
     });
   }, [fixed2024Data, chartData, activeChart]);
 
@@ -662,9 +660,10 @@ const Dashboard: React.FC = () => {
     console.log('Current selectedCompanies:', selectedCompanies);
   }, [selectedCompanies]);
 
-  useEffect(() => {
-    console.log('Selected Industry Companies:', selectedIndustryCompanies);
-  }, [selectedIndustryCompanies]);
+  // Remove or comment out the existing useEffect that references selectedIndustryCompanies:
+  // useEffect(() => {
+  //   console.log('Selected Industry Companies:', selectedIndustryCompanies);
+  // }, [selectedIndustryCompanies]);
 
   // Ensure this useEffect is called when the industry is selected
   useEffect(() => {
@@ -1464,7 +1463,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-                <div className="h-[300px] sm:h-[350px] xl:h-[400px] overflow-y-auto p-4 xl:p-6 space-y-4">
+                <div className="h-[200px] sm:h-[350px] xl:h-[400px] overflow-y-auto p-4 xl:p-6 space-y-4">
                   {activeChart === 'metrics' ? (
                     // Metrics Chart
                     isLoading ? (
@@ -1480,12 +1479,8 @@ const Dashboard: React.FC = () => {
                         No data available
                       </div>
                     ) : (
-                      <div className="chart-container relative" ref={chartContainerRef}>  {/* Add this wrapper */}
-                        <ResponsiveContainer 
-                          width="100%" 
-                          height={350}
-                          className="!static"  // Disable relative positioning
-                        >
+                      <div ref={chartContainerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
+                        <ResponsiveContainer width="100%" height="100%">
                           <LineChart 
                             data={chartData}
                             onMouseMove={e => {
@@ -1677,12 +1672,8 @@ const Dashboard: React.FC = () => {
                         No data available
                       </div>
                     ) : (
-                      <div className="chart-container relative" ref={chartContainerRef}>  {/* Add this wrapper */}
-                        <ResponsiveContainer 
-                          width="100%" 
-                          height={500}
-                          className="!static"  // Disable relative positioning
-                        >
+                      <div ref={chartContainerRef} style={{ position: 'relative', width: '100%', height: 400 }}>
+                        <ResponsiveContainer width="100%" height="100%">
                           <LineChart 
                             data={peerChartData}
                             onMouseMove={e => {
@@ -1842,21 +1833,19 @@ const Dashboard: React.FC = () => {
                       <div className="flex items-center justify-center h-full text-red-500">
                         {industryError}
                       </div>
-                    ) : industryChartData && industryChartData.length === 0 ? (
-                      <div className="flex items-center justify-center h-full text-gray-500">
-                        No data available
-                      </div>
-                    ) : (
+                    ) : industryChartData && Object.keys(industryChartData).length > 0 ? (
                       <BoxPlot
-                        data={Object.fromEntries(
-                          industryChartData.map((d: any) => [d.metric, d.values])
-                        )}
+                        data={industryChartData}
                         title={selectedIndustryMetrics.map(metric => 
                           availableMetrics.find(m => m.value === metric)?.label || metric
                         ).join(' vs ')}
                         companyNames={industryCompanyNames}
                         selectedTicker={selectedTicker}
                       />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-500">
+                        No data available
+                      </div>
                     )
                   )}
                 </div>
