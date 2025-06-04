@@ -28,16 +28,21 @@ from .utility.bot import *
 from django.db import transaction
 from django.http import JsonResponse
 from django.core.management import call_command
+from django.views.decorators.csrf import csrf_exempt
 
 
-def load_data(request):
-    if request.GET.get("secret") != "letmein":
+@csrf_exempt
+def load_fixture_data(request):
+    secret = request.GET.get("secret")
+    if secret != "letmein":
         return JsonResponse({"error": "Unauthorized"}, status=403)
     try:
-        call_command('load_seed_data')
-        return JsonResponse({"status": "Data loaded"})
+        fixture_path = os.path.join("sec_app", "fixtures", "all_data.json")
+        call_command("loaddata", fixture_path)
+        return JsonResponse({"status": "success"})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
 
 class ChatbotAPIView(APIView):
     def post(self, request):
