@@ -26,6 +26,18 @@ from .utility.chatbox import answer_question
 logger = logging.getLogger(__name__)
 from .utility.bot import *
 from django.db import transaction
+from django.http import JsonResponse
+from django.core.management import call_command
+
+
+def load_data(request):
+    if request.GET.get("secret") != "letmein":
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+    try:
+        call_command('load_seed_data')
+        return JsonResponse({"status": "Data loaded"})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 class ChatbotAPIView(APIView):
     def post(self, request):

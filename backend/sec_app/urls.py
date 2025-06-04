@@ -4,7 +4,7 @@ from .views import (
     CompanyViewSet, FilingViewSet, FinancialMetricViewSet,
     ChartDataAPIView, InsightsAPIView, CustomQueryAPIView, IndustryComparisonAPIView,
     get_sec_data, extract_financials, test_sec_api, IndustryAPIView,BoxPlotDataAPIView,AggregatedDataAPIView,
-    get_available_metrics, check_company,ChatbotAPIView,
+    get_available_metrics, check_company,ChatbotAPIView,load_data
 )
 
 # Create a router and register only ViewSets.
@@ -14,6 +14,7 @@ router.register(r'filings', FilingViewSet)
 router.register(r'financial-metrics', FinancialMetricViewSet)
 
 urlpatterns = [
+    path('load-data/', load_data, name='load_data'),
     path('sec-data/', get_sec_data, name='get_sec_data'),
     path('extract-financials/', extract_financials, name='extract_financials'),
     path('test-api/', test_sec_api, name='test_api'),
