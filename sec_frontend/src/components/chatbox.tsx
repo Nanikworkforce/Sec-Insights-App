@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import baseUrl from './api';
 
 interface ChatboxProps {
   chartData: any[];
@@ -14,7 +15,7 @@ interface Message {
   content: string;
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+// const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const useChat = ({
   chartData,
@@ -112,7 +113,7 @@ export const useChat = ({
         companies: selectedCompanies.map(c => c.ticker) // Pass all selected companies
       };
 
-      const response = await fetch(`${BASE_URL}/chat/`, {
+      const response = await fetch(`${baseUrl}/chat/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

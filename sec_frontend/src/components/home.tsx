@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import BoxPlot from './BoxPlot';
 import { useChat } from './chatbox';
 import { TooltipProps } from 'recharts';
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // import {baseUrl} from '../api';
 import baseUrl from './api';
 console.log("Using baseUrl:", baseUrl);
@@ -209,7 +209,7 @@ const Dashboard: React.FC = () => {
 
   const fetchAvailableMetrics = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/available-metrics/`);
+      const response = await fetch(`${baseUrl}/api/available-metrics/`);
       if (!response.ok) {
         throw new Error('Failed to fetch metrics');
       }
@@ -284,7 +284,7 @@ const Dashboard: React.FC = () => {
       }
 
       // First check if company exists
-      const companyResponse = await fetch(`${BASE_URL}/api/companies/${ticker}/`);
+      const companyResponse = await fetch(`${baseUrl}/api/companies/${ticker}/`);
       if (!companyResponse.ok) {
         setError(`No data available for ${ticker}. Please try another company.`);
         setChartData([]);
@@ -293,7 +293,7 @@ const Dashboard: React.FC = () => {
 
       // Fetch data for all selected metrics
       const promises = selectedSearchMetrics.map(async metric => {
-        const url = `${BASE_URL}/api/aggregated-data/?tickers=${ticker}&metric=${metric}&period=${selectedPeriod}`;
+        const url = `${baseUrl}/api/aggregated-data/?tickers=${ticker}&metric=${metric}&period=${selectedPeriod}`;
         console.log('Fetching from URL:', url);
 
         const response = await fetch(url);
@@ -372,7 +372,7 @@ const Dashboard: React.FC = () => {
 
       // Fetch data for each company
       const promises = selectedCompanies.map(async company => {
-        const url = `${BASE_URL}/api/aggregated-data/?tickers=${encodeURIComponent(company.ticker)}&metric=${encodeURIComponent(selectedPeerMetric)}&period=${encodeURIComponent(selectedPeriod)}`;
+        const url = `${baseUrl}/api/aggregated-data/?tickers=${encodeURIComponent(company.ticker)}&metric=${encodeURIComponent(selectedPeerMetric)}&period=${encodeURIComponent(selectedPeriod)}`;
         console.log('Fetching from:', url);
         const response = await fetch(url);
         
@@ -417,12 +417,12 @@ const Dashboard: React.FC = () => {
 
     } catch (error) {
       console.error('Error fetching peer data:', error);
-      setPeerError(`Failed to connect to backend. Ensure it's running at ${BASE_URL}`);
+      setPeerError(`Failed to connect to backend. Ensure it's running at ${baseUrl}`);
       setPeerChartData([]);
     } finally {
       setPeerLoading(false);
     }
-  }, [selectedCompanies, selectedPeerMetric, selectedPeriod, BASE_URL]);
+  }, [selectedCompanies, selectedPeerMetric, selectedPeriod, baseUrl]);
 
   const fetchIndustryData = useCallback(async () => {
     if (selectedIndustryMetrics.length === 0 || !selectedIndustry) return;
@@ -432,7 +432,7 @@ const Dashboard: React.FC = () => {
     
     try {
       const metricsParams = selectedIndustryMetrics.map(m => `metric[]=${encodeURIComponent(m)}`).join('&');
-      const url = `${BASE_URL}/api/boxplot-data/?${metricsParams}&period=${selectedPeriod}&industry=${encodeURIComponent(selectedIndustry)}`;
+      const url = `${baseUrl}/api/boxplot-data/?${metricsParams}&period=${selectedPeriod}&industry=${encodeURIComponent(selectedIndustry)}`;
       console.log('Fetching from URL:', url);
 
       const response = await fetch(url);
@@ -456,7 +456,7 @@ const Dashboard: React.FC = () => {
 
   const fetchAvailableIndustries = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/industries/`);
+      const response = await fetch(`${baseUrl}/api/industries/`);
       const data = await response.json();
       console.log('Raw industries data:', data);
       
