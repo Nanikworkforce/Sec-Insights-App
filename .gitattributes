@@ -1,0 +1,1 @@
+backend/sec_app/fixtures/all_data.json filter=lfs diff=lfs merge=lfs -text
