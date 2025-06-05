@@ -617,7 +617,6 @@ class AggregatedDataAPIView(APIView):
             print("No data was aggregated")
             
         return Response(aggregated_data, status=200)
-
 @api_view(['GET'])
 def get_available_metrics(request):
     try:
@@ -626,14 +625,16 @@ def get_available_metrics(request):
         if company_ticker:
             company = Company.objects.filter(ticker=company_ticker).first()
             if not company:
-                return Response({"metrics": []})  # No company found, empty list
+                return Response({"metrics": []})
             
-            metrics = FinancialMetric.objects.filter(company=company).values_list('metric_name', flat=True).distinct()
+            metrics_qs = FinancialMetric.objects.filter(company=company).values_list('metric_name', flat=True).distinct()
         else:
-            metrics = FinancialMetric.objects.values_list('metric_name', flat=True).distinct()
+            metrics_qs = FinancialMetric.objects.values_list('metric_name', flat=True).distinct()
 
-        metrics_list = sorted(metrics)
-        return Response({"metrics": metrics_list})
+        # Convert to set to guarantee uniqueness, then back to sorted list
+        unique_metrics = sorted(set(metrics_qs))
+
+        return Response({"metrics": unique_metrics})
     
     except Exception as e:
         return Response({"error": f"Failed to fetch metrics: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
