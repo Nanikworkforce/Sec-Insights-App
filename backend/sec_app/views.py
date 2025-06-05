@@ -621,25 +621,23 @@ class AggregatedDataAPIView(APIView):
 @api_view(['GET'])
 def get_available_metrics(request):
     try:
-        # Read the first CSV file to get metric names
-        csv_path = os.path.join('sec_app', 'stdmetrics', 'ABCE_StdMetrics.csv')
-        df = pd.read_csv(csv_path)
-        
-        # Get all metric names from the first column (index 0), excluding only 'statementType'
-        metrics = df.iloc[:, 0].tolist()
-        metrics = [m for m in metrics if m != 'statementType']
-        
-        # Sort metrics alphabetically
-        metrics.sort()
-        
-        return Response({
-            "metrics": metrics
-        })
+        company_ticker = request.GET.get('company__ticker', None)
+
+        if company_ticker:
+            company = Company.objects.filter(ticker=company_ticker).first()
+            if not company:
+                return Response({"metrics": []})  # No company found, empty list
+            
+            metrics = FinancialMetric.objects.filter(company=company).values_list('metric_name', flat=True).distinct()
+        else:
+            metrics = FinancialMetric.objects.values_list('metric_name', flat=True).distinct()
+
+        metrics_list = sorted(metrics)
+        return Response({"metrics": metrics_list})
+    
     except Exception as e:
-        return Response(
-            {"error": "Failed to fetch metrics"}, 
-            status=500
-        )
+        return Response({"error": f"Failed to fetch metrics: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['GET'])
 def check_company(request, ticker):
