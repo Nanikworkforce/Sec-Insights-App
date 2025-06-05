@@ -1,65 +1,98 @@
-import os
+# sec_app/management/commands/import_companies.py
+
 import pandas as pd
 from django.core.management.base import BaseCommand
 from sec_app.models.company import Company
+import os
+from django.db import transaction
 
 class Command(BaseCommand):
-    help = 'Load company data from tickers directory (optimized)'
+    help = 'Load company data from tickers directory (fast bulk version)'
 
     def handle(self, *args, **options):
-        # Locate project root
+        # Get the project root directory (where manage.py is)
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.abspath(os.path.join(current_dir, '..', '..', '..', '..'))
-
+        
+        self.stdout.write(f"Current directory: {current_dir}")
+        self.stdout.write(f"Project root: {project_root}")
+        
+        # Try all possible locations
         possible_paths = [
             os.path.join(project_root, 'sec_app', 'stdmetrics'),
             os.path.join(project_root, 'backend', 'sec_app', 'stdmetrics'),
             os.path.join(os.path.dirname(project_root), 'sec_app', 'stdmetrics')
         ]
-
-        tickers_dir = next((p for p in possible_paths if os.path.exists(p)), None)
+        
+        # Find the first path that exists
+        tickers_dir = None
+        for path in possible_paths:
+            if os.path.exists(path):
+                tickers_dir = path
+                break
+        
         if not tickers_dir:
-            self.stdout.write(self.style.ERROR("❌ Could not find tickers directory."))
+            self.stdout.write(self.style.ERROR(f"Could not find tickers directory. Tried:"))
+            for path in possible_paths:
+                self.stdout.write(self.style.ERROR(f"- {path}"))
             return
-
-        self.stdout.write(f"📁 Using tickers directory: {tickers_dir}")
+        
+        self.stdout.write(f"Found tickers directory at: {tickers_dir}")
+        
         ticker_files = [f for f in os.listdir(tickers_dir) if f.endswith('_StdMetrics.csv')]
-        self.stdout.write(f"📄 Found {len(ticker_files)} ticker files")
-
-        # Cache existing companies
-        existing_companies = Company.objects.in_bulk(field_name='ticker')
-        to_create = []
-        to_update = []
-
+        self.stdout.write(f"Found {len(ticker_files)} ticker files")
+        
+        # --- Bulk upsert logic ---
+        # Gather all companies to be created/updated
+        company_objs = []
         for file_name in ticker_files:
             ticker = file_name.replace('_StdMetrics.csv', '')
-            file_path = os.path.join(tickers_dir, file_name)
+            # No need to read CSV, just use ticker for name and CIK
+            company_name = ticker
+            # Ensure CIK is max 10 characters to match model field
+            placeholder_cik = f"CIK{ticker}"[:10]
+            company_objs.append(
+                Company(
+                    ticker=ticker,
+                    name=company_name,
+                    cik=placeholder_cik
+                )
+            )
 
-            try:
-                # Load file quickly (we don’t need the data)
-                df = pd.read_csv(file_path, nrows=1)  # Only read the header
-                name = ticker
-                cik = f"CIK{ticker}"
+        # Fetch existing companies in one query
+        existing_companies = Company.objects.filter(ticker__in=[c.ticker for c in company_objs])
+        existing_ticker_set = set(existing_companies.values_list('ticker', flat=True))
 
-                if ticker in existing_companies:
-                    company = existing_companies[ticker]
-                    # Only update if values differ
-                    if company.name != name or company.cik != cik:
-                        company.name = name
-                        company.cik = cik
-                        to_update.append(company)
-                else:
-                    to_create.append(Company(name=name, ticker=ticker, cik=cik))
+        # Split into new and to-update
+        to_create = [c for c in company_objs if c.ticker not in existing_ticker_set]
+        to_update = [c for c in company_objs if c.ticker in existing_ticker_set]
 
-            except Exception as e:
-                self.stdout.write(self.style.ERROR(f"⚠️ Error with {file_name}: {str(e)}"))
+        companies_added = 0
+        companies_updated = 0
 
-        # Bulk create and update
+        # Bulk create new companies
         if to_create:
-            Company.objects.bulk_create(to_create, batch_size=500)
-        if to_update:
-            Company.objects.bulk_update(to_update, ['name', 'cik'], batch_size=500)
+            with transaction.atomic():
+                Company.objects.bulk_create(to_create, batch_size=1000, ignore_conflicts=True)
+            companies_added = len(to_create)
+            self.stdout.write(self.style.SUCCESS(f"Added {companies_added} new companies"))
 
-        self.stdout.write(self.style.SUCCESS(
-            f"✅ Done: {len(to_create)} created, {len(to_update)} updated."
-        ))
+        # Bulk update existing companies (only name/cik)
+        if to_update:
+            # Fetch all existing company objects to update
+            existing_objs = {c.ticker: c for c in Company.objects.filter(ticker__in=[c.ticker for c in to_update])}
+            for c in to_update:
+                obj = existing_objs.get(c.ticker)
+                if obj:
+                    obj.name = c.name
+                    obj.cik = c.cik
+            with transaction.atomic():
+                Company.objects.bulk_update(list(existing_objs.values()), ['name', 'cik'], batch_size=1000)
+            companies_updated = len(to_update)
+            self.stdout.write(self.style.SUCCESS(f"Updated {companies_updated} companies"))
+
+        self.stdout.write(
+            self.style.SUCCESS(
+                f'Successfully processed companies: {companies_added} added, {companies_updated} updated'
+            )
+        )
