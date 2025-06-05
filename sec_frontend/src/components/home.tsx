@@ -23,7 +23,7 @@ console.log("Using baseUrl:", baseUrl);
 //   { date: 'Jan 17', apple: 16500, microsoft: 14500, google: 16000 },
 //   { date: 'Jul 17', apple: 17500, microsoft: 16000, google: 19000 },
 //   { date: 'Jan 18', apple: 19000, microsoft: 18000, google: 21000 },
-//   { date: 'Jul 18', apple: 23000, microsoft: 20000, google: 24000 },
+//   { date: 'Jul 18', apple: 23000, microsoft: 20000, google: 24000 }, chat
 // ];
 
 // const industryData = [

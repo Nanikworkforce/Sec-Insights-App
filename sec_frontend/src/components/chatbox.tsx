@@ -113,7 +113,7 @@ export const useChat = ({
         companies: selectedCompanies.map(c => c.ticker) // Pass all selected companies
       };
 
-      const response = await fetch(`${baseUrl}/chat/`, {
+      const response = await fetch(`${baseUrl}/api/chat/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
