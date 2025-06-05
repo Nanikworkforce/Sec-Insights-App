@@ -1,12 +1,13 @@
+import os
+import pandas as pd
 from django.core.management.base import BaseCommand
 from sec_app.models.company import Company
-import pandas as pd
-import os
 
 class Command(BaseCommand):
-    help = 'Bulk load company data from tickers directory'
+    help = 'Load company data from tickers directory (optimized)'
 
     def handle(self, *args, **options):
+        # Locate project root
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.abspath(os.path.join(current_dir, '..', '..', '..', '..'))
 
@@ -18,43 +19,47 @@ class Command(BaseCommand):
 
         tickers_dir = next((p for p in possible_paths if os.path.exists(p)), None)
         if not tickers_dir:
-            self.stdout.write(self.style.ERROR("No valid tickers directory found."))
+            self.stdout.write(self.style.ERROR("❌ Could not find tickers directory."))
             return
 
+        self.stdout.write(f"📁 Using tickers directory: {tickers_dir}")
         ticker_files = [f for f in os.listdir(tickers_dir) if f.endswith('_StdMetrics.csv')]
-        self.stdout.write(f"Found {len(ticker_files)} ticker files")
+        self.stdout.write(f"📄 Found {len(ticker_files)} ticker files")
 
-        # Extract tickers from filenames
-        tickers = [f.replace('_StdMetrics.csv', '') for f in ticker_files]
-
-        # Fetch existing companies
-        existing_companies = Company.objects.filter(ticker__in=tickers)
-        existing_ticker_map = {c.ticker: c for c in existing_companies}
-
+        # Cache existing companies
+        existing_companies = Company.objects.in_bulk(field_name='ticker')
         to_create = []
         to_update = []
 
-        for ticker in tickers:
-            company_name = ticker
-            placeholder_cik = f"CIK{ticker}"
+        for file_name in ticker_files:
+            ticker = file_name.replace('_StdMetrics.csv', '')
+            file_path = os.path.join(tickers_dir, file_name)
 
-            if ticker in existing_ticker_map:
-                company = existing_ticker_map[ticker]
-                company.name = company_name
-                company.cik = placeholder_cik
-                to_update.append(company)
-            else:
-                to_create.append(Company(
-                    ticker=ticker,
-                    name=company_name,
-                    cik=placeholder_cik
-                ))
+            try:
+                # Load file quickly (we don’t need the data)
+                df = pd.read_csv(file_path, nrows=1)  # Only read the header
+                name = ticker
+                cik = f"CIK{ticker}"
 
+                if ticker in existing_companies:
+                    company = existing_companies[ticker]
+                    # Only update if values differ
+                    if company.name != name or company.cik != cik:
+                        company.name = name
+                        company.cik = cik
+                        to_update.append(company)
+                else:
+                    to_create.append(Company(name=name, ticker=ticker, cik=cik))
+
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f"⚠️ Error with {file_name}: {str(e)}"))
+
+        # Bulk create and update
         if to_create:
             Company.objects.bulk_create(to_create, batch_size=500)
         if to_update:
             Company.objects.bulk_update(to_update, ['name', 'cik'], batch_size=500)
 
         self.stdout.write(self.style.SUCCESS(
-            f'Companies processed: {len(to_create)} added, {len(to_update)} updated'
+            f"✅ Done: {len(to_create)} created, {len(to_update)} updated."
         ))
