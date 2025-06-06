@@ -92,6 +92,18 @@ media
 instance/
 .webassets-cache
 
+
+
+# Backup files
+*.csv
+
+# Ignore large fixtures
+*.jsonl
+*.json
+
+db_migration/*.csv
+db_migration/*.sqlite3
+
 # Java
 *.class
 *.jar

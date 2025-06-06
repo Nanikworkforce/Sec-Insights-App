@@ -1,0 +1,18 @@
+LOAD DATABASE
+     FROM sqlite:///backend/db.sqlite3
+     INTO postgresql://insightg_db_user:fnOE5J3hlpbX3cOcCXhf0aQGFEt0r3pf@dpg-d109s26mcj7s738bqpn0-a.oregon-postgres.render.com:5432/insightg_db
+
+WITH include no drop,
+     create tables,
+     create indexes,
+     reset sequences,
+     workers = 4,
+     batch size = 50000
+
+SET work_mem TO 16 MB;
+    maintenance_work_mem TO 512 MB;
+    search_path TO 'public';
+
+BEFORE LOAD DO
+    $$ drop schema if exists public cascade; $$,
+    $$ create schema public; $$;
