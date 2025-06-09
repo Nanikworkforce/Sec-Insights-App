@@ -29,7 +29,7 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.core.management import call_command
 from django.views.decorators.csrf import csrf_exempt
-
+from .utility.bot import fetch_google_news
 
 @csrf_exempt
 @api_view(["GET"])
@@ -50,7 +50,7 @@ class ChatbotAPIView(APIView):
             question = request.data.get("question")
             payload = request.data.get("payload", {})
             context = {}
-    
+
             # Check for introspective questions first
             if is_introspective_question(question):
                 return Response({"answer": describe_payload_intent(payload)})
@@ -65,6 +65,23 @@ class ChatbotAPIView(APIView):
                 return Response({
                     "answer": f"'{keywords['invalid_company']}' is not a valid ticker or company. Please provide a valid ticker or company name."
                 })
+
+            # Handle news queries
+            if keywords.get("news_company"):
+                news_company = keywords["news_company"]
+                # Use the fetch_google_news function from bot.py to get the news link
+                try:
+                    news_link = fetch_google_news(news_company)
+                    answer = f"Here are the latest news headlines for {news_company}: {news_link}"
+                except Exception as e:
+                    logger.error(f"Error fetching news link: {str(e)}")
+                    answer = f"Here are the latest news headlines for {news_company}: (News link unavailable. This is a placeholder. News integration coming soon.)"
+                with transaction.atomic():
+                    ChatLog.objects.create(
+                        question=question,
+                        answer=answer,
+                    )
+                return Response({"answer": answer})
 
             # Step 1: If we have company and metric in keywords, use those directly
             if keywords.get("company") and keywords.get("metric"):
@@ -111,7 +128,7 @@ class ChatbotAPIView(APIView):
 
                 # Get the metric the user is asking about
                 asked_metric = keywords.get("metric", "").lower() if keywords.get("metric") else None
-                
+
                 # If user asked for a specific metric, find it in payload metrics
                 if asked_metric:
                     metric_to_use = to_camel_case(asked_metric)  # Always use camelCase for metric name

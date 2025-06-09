@@ -21,8 +21,37 @@ def fetch_google_news(company):
     links = [f"- [{entry.title}]({entry.link})" for entry in articles]
     return f"📰 Here are the latest news articles related to **{company}**:\n\n" + "\n".join(links)
 
+def is_news_query(text):
+    # Accepts queries like "what is the latest news of meta", "show me news for AMZN", etc.
+    news_patterns = [
+        r"\b(latest|recent)?\s*news\s*(of|for|about)?\s*([A-Za-z0-9\-\:\. ]+)",  # e.g. latest news of meta:AM
+        r"\bshow me news\s*(of|for|about)?\s*([A-Za-z0-9\-\:\. ]+)",
+        r"\bnews\s*(of|for|about)?\s*([A-Za-z0-9\-\:\. ]+)",
+    ]
+    for pat in news_patterns:
+        m = re.search(pat, text, re.I)
+        if m:
+            # Try to extract the company/ticker part
+            # Try group 3, then group 2
+            company = m.group(3) if m.lastindex and m.lastindex >= 3 and m.group(3) else m.group(2)
+            if company:
+                # Remove possible "of"/"for"/"about" at the start
+                company = company.strip()
+                # Remove trailing punctuation
+                company = re.sub(r"[^\w\:\-\. ]+$", "", company)
+                # Remove "stock" if present
+                company = re.sub(r"\bstock\b", "", company, flags=re.I).strip()
+                return company
+    return None
 
 def extract_keywords(text):
+    # News query detection
+    news_company = is_news_query(text)
+    if news_company:
+        return {
+            "news_company": news_company
+        }
+
     # Extract time range patterns - make pattern more flexible
     time_range_match = re.search(r"(?:in |over |during |for )?(?:the )?(?:last|past)\s+(\d+)\s*(?:year|years|yr|yrs)", text, re.I)
     year_range_match = re.search(r"(\d{4})\s*(?:to|-)\s*(\d{4})", text, re.I)
@@ -159,6 +188,10 @@ def is_introspective_question(text):
     return any(re.search(p, text, re.I) for p in introspective_patterns)
 
 def query_data_from_db(context):
+    # News query support
+    if context.get("news_company"):
+        return fetch_google_news(context["news_company"])
+
     # Growth query support
     if context.get("growth"):
         company = context.get("company")
@@ -264,6 +297,8 @@ def describe_payload_intent(payload):
         parts.append(f"the metric '{payload['metric_name']}'")
     if payload.get("year"):
         parts.append(f"in {payload['year']}")
+    if payload.get("news_company"):
+        parts.append(f"the latest news for {payload['news_company']}")
 
     if parts:
         return f"Based on your previous selections, you are trying to understand {' '.join(parts)}."
