@@ -98,8 +98,8 @@ instance/
 *.csv
 
 # Ignore large fixtures
-*.jsonl
-*.json
+# *.jsonl
+# *.json
 
 db_migration/*.csv
 db_migration/*.sqlite3
