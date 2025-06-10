@@ -1177,11 +1177,12 @@ const Dashboard: React.FC = () => {
                   )}
                 </div>
               ) : (
-                <div className="relative">
+                <div className="relative" ref={companyDropdownRef}>
                   <input
                     type="text"
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
+                    onFocus={() => setShowCompanyDropdown(true)}
                     placeholder="Search company..."
                     className="w-full font-medium text-sm xl:text-base px-3 py-2 pr-8 border border-gray-200 rounded focus:outline-none focus:border-[#1B5A7D] focus:ring-1 focus:ring-[#1B5A7D]"
                   />
@@ -1210,6 +1211,27 @@ const Dashboard: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
+
+                  {showCompanyDropdown && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-60 overflow-auto">
+                      {availableIndustries.flatMap(industry => 
+                        industry.companies.filter(ticker =>
+                          ticker.toLowerCase().includes(searchValue.toLowerCase())
+                        ).map(ticker => (
+                          <div
+                            key={ticker}
+                            onClick={() => {
+                              setSearchValue(ticker);
+                              setShowCompanyDropdown(false);
+                            }}
+                            className="px-3 py-2 text-sm xl:text-base hover:bg-gray-100 cursor-pointer"
+                          >
+                            {ticker}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
