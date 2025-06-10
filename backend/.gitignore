@@ -100,6 +100,7 @@ instance/
 # Ignore large fixtures
 *.jsonl
 *.json
+sec_app/fixtures/*.json
 
 db_migration/*.csv
 db_migration/*.sqlite3
