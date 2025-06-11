@@ -171,3 +171,54 @@ class LoginViewset(viewsets.GenericViewSet):
     def logout(self, request):
         logout(request)
         return Response({"Message": _("Logout Successful")}, status=status.HTTP_200_OK)
+
+class VerifyEmailViewSet(viewsets.GenericViewSet):
+    serializer_class = VerifyEmailSerializer
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'token',
+                openapi.IN_QUERY,
+                description="JWT token for email verification",
+                type=openapi.TYPE_STRING
+            )
+        ]
+    )
+    @action(methods=['get'], detail=False)
+    def verify(self, request):
+        token = request.GET.get('token')
+
+        if not token:
+            return Response({'error': 'Token is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            email_token = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user = User.objects.get(id=email_token['user_id'])
+
+            if not user.is_verified:
+                user.is_verified = True
+                user.save()
+
+            return Response({'email': 'User is successfully activated'}, status=status.HTTP_200_OK)
+
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Email activation link has expired'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except jwt.DecodeError:
+            return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    @staticmethod
+    def generate_token(user):
+        expiration = datetime.utcnow() + timedelta(hours=24)
+        payload = {
+            'user_id': user.id,
+            'exp': expiration,
+            'iat': datetime.utcnow()
+        }
+        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+        return token

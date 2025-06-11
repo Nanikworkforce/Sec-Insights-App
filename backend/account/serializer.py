@@ -59,3 +59,10 @@ class UserSerializer(serializers.ModelSerializer):
             "date_joined",
         ]
         read_only_fields = ["id", "date_joined", "is_verified"]
+
+class VerifyEmailSerializer(serializers.Serializer):
+    token = serializers.CharField(max_length=1000)
+
+    class Meta:
+        model = User
+        fields = ['token']

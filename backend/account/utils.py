@@ -15,10 +15,15 @@ import jwt
 class Util:
     @staticmethod
     def send_email(data):
-        email = EmailMessage(
-            subject=data["Subject"], body=data["email_body"], to=[data["to_email"]]
-        )
-        email.send()
+        try:
+            email = EmailMessage(
+                subject=data["Subject"],
+                body=data["email_body"],
+                to=[data["to_email"]],
+            )
+            email.send()
+        except Exception as e:
+            print(f"Email send error: {e}")
 
 
 def user_email(request, user):
@@ -28,8 +33,8 @@ def user_email(request, user):
         settings.SECRET_KEY,
         algorithm="HS256",
     )
+    absurl = f"{settings.SITE_URL}/account/verify/?token={token}" 
 
-    absurl = f"{settings.SITE_URL}/account/verify/verify/?token={token}"
     email_body = f"""
     Hi {user.email},
     
