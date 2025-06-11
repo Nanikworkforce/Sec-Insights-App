@@ -139,11 +139,11 @@ interface TimePoint {
 const Dashboard: React.FC = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [activeChart, setActiveChart] = useState<'metrics' | 'peers' | 'industry'>('metrics');
-  const [searchValue, setSearchValue] = useState('AAPL');
+  const [searchValue, setSearchValue] = useState('');
   const [selectedCompanies, setSelectedCompanies] = useState<CompanyTicker[]>([]);
   const [companyInput, setCompanyInput] = useState('');
   const [selectedPeerMetric, setSelectedPeerMetric] = useState<string>('');
-  const [selectedSearchMetrics, setSelectedSearchMetrics] = useState<string[]>(['revenue', 'netIncome']);
+  const [selectedSearchMetrics, setSelectedSearchMetrics] = useState<string[]>([]);
   const [searchMetricInput, setSearchMetricInput] = useState('');
   const [availableMetrics, setAvailableMetrics] = useState<{ value: string; label: string }[]>([]);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
