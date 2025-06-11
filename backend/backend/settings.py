@@ -41,7 +41,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-SITE_URL = "https://sec-insights-app.onrender.com"
+# SITE_URL = "https://sec-insights-app.onrender.com"
 
 
 # Application definition
@@ -240,7 +240,19 @@ CHANNEL_LAYERS = {
     }
 }
 
+# Email settings
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD') 
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+if DEBUG:
+    SITE_URL = "http://localhost:3000"
+else:
+    SITE_URL = "https://sec-insights-app.onrender.com"
 
 # Allow WebSockets
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
