@@ -1063,53 +1063,77 @@ const Dashboard: React.FC = () => {
             <div>
               <div className="text-sm xl:text-base text-gray-500">Company</div>
               {activeChart === 'peers' ? (
-                <div className="relative">
-                <div className="flex flex-wrap gap-2 p-2 border border-gray-200 rounded min-h-[42px]">
-                  {selectedCompanies.map((company, index) => (
-                    <div 
-                      key={index} 
-                      className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-sm"
-                    >
-                      {company.ticker}
-                      <button
-                        onClick={() => setSelectedCompanies(companies => 
-                          companies.filter((_, i) => i !== index)
-                        )}
-                        className="text-gray-400 hover:text-gray-600"
+                <div className="relative" ref={companyDropdownRef}>
+                  <div className="flex flex-wrap gap-2 p-2 border border-gray-200 rounded min-h-[42px]">
+                    {selectedCompanies.map((company, index) => (
+                      <div 
+                        key={index} 
+                        className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-sm"
                       >
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                        {company.ticker}
+                        <button
+                          onClick={() => setSelectedCompanies(companies => 
+                            companies.filter((_, i) => i !== index)
+                          )}
+                          className="text-gray-400 hover:text-gray-600"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                  <input
-                    type="text"
-                    value={companyInput}
-                    onChange={(e) => setCompanyInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && companyInput) {
-                            const [ticker, name] = companyInput.split(':').map(s => s.trim());
-                            if (!selectedCompanies.some(c => c.ticker === ticker)) {
-                              setSelectedCompanies([...selectedCompanies, { ticker, name: name || ticker }]);
-                            }
-                        setCompanyInput('');
-                      }
-                    }}
-                        placeholder="Enter ticker and press Enter..."
-                    className="flex-1 min-w-[100px] outline-none text-sm"
-                  />
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                    <input
+                      type="text"
+                      value={companyInput}
+                      onChange={(e) => setCompanyInput(e.target.value)}
+                      onFocus={() => setShowCompanyDropdown(true)}
+                      placeholder="Search companies..."
+                      className="flex-1 min-w-[100px] outline-none text-sm"
+                    />
                   </div>
+                  
+                  {showCompanyDropdown && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-60 overflow-auto">
+                      {availableIndustries
+                        .flatMap(industry => industry.companies)
+                        .filter((ticker, index, self) => self.indexOf(ticker) === index) // Remove duplicates
+                        .filter(ticker => 
+                          ticker.toLowerCase().includes(companyInput.toLowerCase())
+                        )
+                        .sort((a, b) => a.localeCompare(b))
+                        .map(ticker => {
+                          const company = selectedCompanies.find(c => c.ticker === ticker);
+                          const displayName = company ? `${company.name} (${ticker})` : ticker;
+                          
+                          return (
+                            <div
+                              key={ticker}
+                              onClick={() => {
+                                if (!selectedCompanies.some(c => c.ticker === ticker)) {
+                                  setSelectedCompanies([...selectedCompanies, { ticker, name: ticker }]);
+                                }
+                                setCompanyInput('');
+                                setShowCompanyDropdown(false);
+                              }}
+                              className="px-3 py-2 text-sm xl:text-base hover:bg-gray-100 cursor-pointer"
+                            >
+                              {displayName}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
                 </div>
               ) : activeChart === 'industry' ? (
                 <div className="relative" ref={companyDropdownRef}>
