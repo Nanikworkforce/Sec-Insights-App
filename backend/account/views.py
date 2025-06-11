@@ -222,3 +222,58 @@ class VerifyEmailViewSet(viewsets.GenericViewSet):
         }
         token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
         return token
+
+class RequestPasswordResetEmail(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = RequestPasswordSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if not serializer.is_valid():
+            return Response({'error': 'Invalid input'}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data.get('email')
+
+        # Always respond the same way to prevent email enumeration
+        try:
+            user = User.objects.get(email=email)
+            code = generate_six_digit_code()
+            ResetPassword.objects.create(user=user, code=code)
+            send_reset_code(user, code)
+        except User.DoesNotExist:
+            pass
+
+        return Response({'message': 'If your email is registered, a reset code has been sent.'}, status=status.HTTP_200_OK)
+
+
+class VerifyPasswordReset(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = PasswordResetSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data['email']
+        code = serializer.validated_data['code']
+        new_password = serializer.validated_data['new_password']
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid email or code.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            reset_code = ResetPassword.objects.get(user=user, code=code)
+        except ResetPassword.DoesNotExist:
+            return Response({'error': 'Invalid email or code.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not reset_code.is_valid():
+            return Response({'error': 'Reset code has expired.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        reset_code.delete()
+
+        return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
