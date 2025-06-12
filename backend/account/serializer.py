@@ -4,6 +4,30 @@ from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.password_validation import validate_password
 from .models import ResetPassword
+from .utils import user_email
+# class UserRegistrationSerializer(serializers.ModelSerializer):
+#     password = serializers.CharField(write_only=True, min_length=8)
+#     confirm_password = serializers.CharField(write_only=True)
+
+#     class Meta:
+#         model = User
+#         fields = ["first_name", "last_name", "email", "password", "confirm_password"]
+
+#     def validate(self, data):
+#         if data["password"] != data["confirm_password"]:
+#             raise serializers.ValidationError(_("Passwords do not match"))
+#         return data
+
+#     def create(self, validated_data):
+#         validated_data.pop("confirm_password")
+#         validated_data["username"] = validated_data["email"].split('@')[0]
+
+#         try:
+#             user = User.objects.create_user(**validated_data)
+#             return user
+#         except Exception as e:
+#             print("Error creating user:", str(e))
+#             raise
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
@@ -21,9 +45,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop("confirm_password")
         validated_data["username"] = validated_data["email"].split('@')[0]
+        validated_data["is_active"] = False  # Prevent login until email is verified
 
         try:
             user = User.objects.create_user(**validated_data)
+            user_email(self.context['request'], user)
             return user
         except Exception as e:
             print("Error creating user:", str(e))
