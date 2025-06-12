@@ -1841,9 +1841,9 @@ const Dashboard: React.FC = () => {
                               {selectedPeriod === '1Y' ? '2024' : fixed2024Data.name}
                             </div>
                             {selectedCompanies.map((company, idx) => {
-                              const value = fixed2024Data[company.ticker];
-                              const hoveredValue = (activeTooltip && activeTooltip[company.ticker] != null)
-                                ? Number(activeTooltip[company.ticker])
+                              const value = fixed2024Data[selectedPeerMetric]?.[company.ticker];
+                              const hoveredValue = (activeTooltip && activeTooltip[selectedPeerMetric]?.[company.ticker] != null)
+                                ? Number(activeTooltip[selectedPeerMetric][company.ticker])
                                 : null;
                               const diff = value != null && hoveredValue != null ? value - hoveredValue : null;
                               const percent = (hoveredValue != null && hoveredValue !== 0 && diff != null)
