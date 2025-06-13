@@ -17,7 +17,7 @@ Goodwill,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 IntangibleAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 TotalAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-AccountsPayablesAndAccruedExpenses,,,,,,,,,,0.0,0.0,0.0,,,,10913.0,9950.0,9800.0,,,,,,,0.0,0.0,,10913.0,9800.0,,,,0.0,,9950.0,,,,0.0,10913.0,,,0.0,,,0.0,,,,CommonMetricExtracted
+AccountsPayablesAndAccruedExpenses,,,,,,,,,,,,,,,,10913.0,9950.0,9800.0,,,,,,,,,,10913.0,9800.0,,,,,,9950.0,,,,,10913.0,,,,,,,,,,CommonMetricExtracted
 CurrentLiability,,,,,,,,,,,,,,,21097.0,19472.0,50301.0,80722.0,,,,,,,,,,19472.0,80722.0,,,,,,50301.0,,,,,19472.0,,,,21097.0,,,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 LongtermLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted

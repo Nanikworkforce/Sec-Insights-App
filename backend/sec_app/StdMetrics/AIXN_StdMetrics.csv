@@ -8,7 +8,7 @@ Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 NetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-CurrentReceivables,,,,,,,,,,,,,,36209.0,,0.0,45923.0,562581.0,253586.0,,,,,,,,36209.0,0.0,562581.0,,,,,36209.0,45923.0,,,,,0.0,,,,,,,,,,CommonMetricExtracted
+CurrentReceivables,,,,,,,,,,,,,,36209.0,,,45923.0,562581.0,253586.0,,,,,,,,36209.0,,562581.0,,,,,36209.0,45923.0,,,,,,,,,,,,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Inventory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -20,7 +20,7 @@ ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtra
 AccountsPayablesAndAccruedExpenses,,,,,,,,,,,,,,1957788.0,,836856.0,1391200.0,2859059.0,2212315.0,,,,,,,,1957788.0,836856.0,2859059.0,,,,,1957788.0,1391200.0,,,,,836856.0,,,,,,,,,,CommonMetricExtracted
 CurrentLiability,,,,,,,,,,50624.0,75917.0,,,5311253.0,,1243266.0,5300375.0,6442812.0,8055854.0,,,,,,50624.0,,5311253.0,1243266.0,6442812.0,,,,75917.0,5311253.0,5300375.0,,,,,1243266.0,,,50624.0,,,50624.0,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-LongtermLiability,,,,,,,,,,,,,,0.0,,29250.0,1138710.0,194725.0,789489.0,,,,,,,,0.0,29250.0,194725.0,,,,,0.0,1138710.0,,,,,29250.0,,,,,,,,,,CommonMetricExtracted
+LongtermLiability,,,,,,,,,,,,,,,,29250.0,1138710.0,194725.0,789489.0,,,,,,,,,29250.0,194725.0,,,,,,1138710.0,,,,,29250.0,,,,,,,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShareholderEquity,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 OperatingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted

@@ -18,7 +18,7 @@ IntangibleAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricEx
 TotalAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 AccountsPayablesAndAccruedExpenses,,,,,,,,,,,,,,471456.0,2769512.0,203183.0,,,,,,,,,,,471456.0,203183.0,,,,,,471456.0,,,,,,203183.0,,,,2769512.0,,,,,,CommonMetricExtracted
-CurrentLiability,,,,,,,,,5621.0,951229.0,,,,,3278257.0,361118.0,,,,,,,,,951229.0,,,361118.0,,,,,,,,,,,,361118.0,,,951229.0,3278257.0,,951229.0,,,,CommonMetricExtracted
+CurrentLiability,,,,,,,,4733.0,8244.0,951229.0,,,,,3278257.0,361118.0,,,,,,,,4733.0,951229.0,,,361118.0,,,,4733.0,,,,,,4733.0,,361118.0,,,951229.0,3278257.0,,951229.0,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 LongtermLiability,,,,,,,,,,,,,,,0.0,0.0,,,,,,,,,,,,0.0,,,,,,,,,,,,0.0,,,,0.0,,,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted

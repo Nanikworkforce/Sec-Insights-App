@@ -8,7 +8,7 @@ Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 NetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-CurrentReceivables,,,,,,,,,,134292000.0,160743000.0,,252019000.0,268989000.0,,,,,,,,,,,134292000.0,,268989000.0,,,,,,160743000.0,268989000.0,,,,,,,,,134292000.0,,,134292000.0,,,,CommonMetricExtracted
+CurrentReceivables,,,,,,,,,132403000.0,134292000.0,160743000.0,213737000.0,252019000.0,268989000.0,,,,,,,,,,,134292000.0,213737000.0,268989000.0,,,,,,160743000.0,268989000.0,,,,,213737000.0,,,,134292000.0,,,134292000.0,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Inventory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -20,13 +20,13 @@ ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtra
 AccountsPayablesAndAccruedExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-LongtermLiability,,,,,,,,,,13286000.0,13400000.0,,16180000.0,17475000.0,,,,,,,,,,,13286000.0,,17475000.0,,,,,,13400000.0,17475000.0,,,,,,,,,13286000.0,,,13286000.0,,,,CommonMetricExtracted
+LongtermLiability,,,,,,,,,9574000.0,13286000.0,13400000.0,17586000.0,16180000.0,17475000.0,,,,,,,,,,,13286000.0,17586000.0,17475000.0,,,,,,13400000.0,17475000.0,,,,,17586000.0,,,,13286000.0,,,13286000.0,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShareholderEquity,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 OperatingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CapitalExpenditures,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 InvestingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-DividendsPaid,,,,,,,,,,,,,0.0,817000.0,,,,,,,,,,,,,0.0,,,,,,,,,,,,,0.0,,,,,,,,,,CommonMetricExtracted
+DividendsPaid,,,,,,,,,,,,,,817000.0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 FinancingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 costOfGoodsAndServicesPercentOfRevenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 GrossMargin,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated

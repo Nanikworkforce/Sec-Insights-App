@@ -26,7 +26,7 @@ ShareholderEquity,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricE
 OperatingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CapitalExpenditures,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 InvestingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-DividendsPaid,,,,,,,0.0,0.0,13001000.0,,51006000.0,52252000.0,22600000.0,,,,,,,,,,,0.0,13001000.0,51006000.0,22600000.0,,,,,,13001000.0,52252000.0,,,,,13001000.0,22600000.0,,,,51006000.0,,,51006000.0,,,CommonMetricExtracted
+DividendsPaid,,,,,,,,,13001000.0,28594000.0,51006000.0,52252000.0,22600000.0,,,,,,,,,,,,13001000.0,51006000.0,22600000.0,,,,,,13001000.0,52252000.0,,,,,13001000.0,22600000.0,,,,51006000.0,,,51006000.0,,,CommonMetricExtracted
 FinancingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 costOfGoodsAndServicesPercentOfRevenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 GrossMargin,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated

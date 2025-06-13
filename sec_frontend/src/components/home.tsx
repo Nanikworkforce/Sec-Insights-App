@@ -179,6 +179,7 @@ const Dashboard: React.FC = () => {
   const [fixed2024Data, setFixed2024Data] = useState<any>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [fixedTooltipPos, setFixedTooltipPos] = useState<{ left: number, top: number } | null>(null);
+  const [companyMap, setCompanyMap] = useState<{ [ticker: string]: string }>({});
 
   // Add these lines for peer metrics
   const [selectedPeerMetrics, setSelectedPeerMetrics] = useState<string[]>([]);
@@ -206,6 +207,30 @@ const Dashboard: React.FC = () => {
     activeChart,
     selectedCompanies
   });
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/api/companies/`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch companies: ${response.status}`);
+        }
+        const data = await response.json();
+
+        const map: { [ticker: string]: string } = {};
+        data.forEach((company: any) => {
+          map[company.ticker] = company.display_name || company.name || company.ticker;
+        });
+
+        setCompanyMap(map);
+      } catch (error) {
+        console.error('Error fetching companies:', error);
+      }
+    };
+
+    fetchCompanies();
+  }, [baseUrl]);
+
 
   const fetchAvailableMetrics = async () => {
     try {
@@ -1070,7 +1095,7 @@ const Dashboard: React.FC = () => {
                         key={index} 
                         className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-sm"
                       >
-                        {company.ticker}
+                        {company.name || company.ticker}
                         <button
                           onClick={() => setSelectedCompanies(companies => 
                             companies.filter((_, i) => i !== index)
@@ -1113,22 +1138,21 @@ const Dashboard: React.FC = () => {
                         )
                         .sort((a, b) => a.localeCompare(b))
                         .map(ticker => {
-                          const company = selectedCompanies.find(c => c.ticker === ticker);
-                          const displayName = company ? `${company.name} (${ticker})` : ticker;
+                          const displayName = companyMap[ticker] || ticker;
                           
                           return (
                             <div
                               key={ticker}
                               onClick={() => {
                                 if (!selectedCompanies.some(c => c.ticker === ticker)) {
-                                  setSelectedCompanies([...selectedCompanies, { ticker, name: ticker }]);
+                                  setSelectedCompanies([...selectedCompanies, { ticker, name: displayName }]);
                                 }
                                 setCompanyInput('');
                                 setShowCompanyDropdown(false);
                               }}
                               className="px-3 py-2 text-sm xl:text-base hover:bg-gray-100 cursor-pointer"
                             >
-                              {displayName}
+                              {displayName} ({ticker})
                             </div>
                           );
                         })}
@@ -1177,12 +1201,8 @@ const Dashboard: React.FC = () => {
                         )
                         .sort((a, b) => a.localeCompare(b))
                         .map(ticker => {
-                          // Debugging: Log the ticker and the corresponding company
-                          console.log('Ticker:', ticker);
-                          const company = selectedCompanies.find((c: any) => c.ticker === ticker);
-                          console.log('Company:', company);
+                          const displayName = companyMap[ticker] || ticker;
 
-                          const displayName = company ? `${company.name} (${ticker})` : ticker;
                           return (
                             <div
                               key={ticker}
@@ -1193,7 +1213,7 @@ const Dashboard: React.FC = () => {
                               }}
                               className="px-3 py-2 text-sm xl:text-base hover:bg-gray-100 cursor-pointer"
                             >
-                              {displayName}
+                              {displayName} ({ticker})
                             </div>
                           );
                         })}
@@ -1241,18 +1261,21 @@ const Dashboard: React.FC = () => {
                       {availableIndustries.flatMap(industry => 
                         industry.companies.filter(ticker =>
                           ticker.toLowerCase().includes(searchValue.toLowerCase())
-                        ).map(ticker => (
-                          <div
-                            key={ticker}
-                            onClick={() => {
-                              setSearchValue(ticker);
-                              setShowCompanyDropdown(false);
-                            }}
-                            className="px-3 py-2 text-sm xl:text-base hover:bg-gray-100 cursor-pointer"
-                          >
-                            {ticker}
-                          </div>
-                        ))
+                        ).map(ticker => {
+                          const displayName = companyMap[ticker] || ticker;
+                          return (
+                            <div
+                              key={ticker}
+                              onClick={() => {
+                                setSearchValue(ticker);
+                                setShowCompanyDropdown(false);
+                              }}
+                              className="px-3 py-2 text-sm xl:text-base hover:bg-gray-100 cursor-pointer"
+                            >
+                              {displayName} ({ticker})
+                            </div>
+                          );
+                        })
                       )}
                     </div>
                   )}
@@ -1533,7 +1556,7 @@ const Dashboard: React.FC = () => {
                       <div className="flex items-center justify-center h-full text-gray-500">
                         No data available
                       </div>
-                    ) : (
+                    ) : ( 
                       <div ref={chartContainerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart 

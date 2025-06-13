@@ -20,7 +20,7 @@ ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtra
 AccountsPayablesAndAccruedExpenses,,,,,,,,,,,,56411.0,38274.0,365905.0,,466125.0,729667.0,630137.0,714933.0,,,,,,,56411.0,365905.0,466125.0,630137.0,,,,,365905.0,729667.0,,,,56411.0,466125.0,,,,,,,,,,CommonMetricExtracted
 CurrentLiability,,,,,,,,,62829.0,,94507.0,195482.0,1310772.0,4327989.0,9088.0,755984.0,1347465.0,993549.0,1196381.0,,,,,,,195482.0,4327989.0,755984.0,993549.0,,,,94507.0,4327989.0,1347465.0,,,,195482.0,755984.0,,,,9088.0,,,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-LongtermLiability,,,,,,,,,,,,,,,,,,0.0,20887.0,,,,,,,,,,0.0,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
+LongtermLiability,,,,,,,,,,,,,,,,,,,20887.0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShareholderEquity,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 OperatingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted

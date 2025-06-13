@@ -8,7 +8,7 @@ Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 NetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-CurrentReceivables,,,,,,,,,,,,,,40557000.0,,76420000.0,115720000.0,,,,,,,,,,40557000.0,76420000.0,,,,,,40557000.0,115720000.0,,,,,76420000.0,,,,,,,,,,CommonMetricExtracted
+CurrentReceivables,,,,,,,,,,,,,26909000.0,40557000.0,,76420000.0,115720000.0,,,,,,,,,,40557000.0,76420000.0,,,,,,40557000.0,115720000.0,,,,,76420000.0,,,,,,,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Inventory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -18,9 +18,9 @@ IntangibleAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricEx
 TotalAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 AccountsPayablesAndAccruedExpenses,,,,,,,,,,,,,,46948000.0,,127285000.0,177951000.0,,,,,,,,,,46948000.0,127285000.0,,,,,,46948000.0,177951000.0,,,,,127285000.0,,,,,,,,,,CommonMetricExtracted
-CurrentLiability,,,,,,,,,,,,,,353150000.0,,706067000.0,1054361000.0,,,,,,,,,,353150000.0,706067000.0,,,,,,353150000.0,1054361000.0,,,,,706067000.0,,,,,,,,,,CommonMetricExtracted
+CurrentLiability,,,,,,,,,,,,,136862000.0,353150000.0,,706067000.0,1054361000.0,,,,,,,,,,353150000.0,706067000.0,,,,,,353150000.0,1054361000.0,,,,,706067000.0,,,,,,,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-LongtermLiability,,,,,,,,,,,,,,9829000.0,,93137000.0,129999000.0,,,,,,,,,,9829000.0,93137000.0,,,,,,9829000.0,129999000.0,,,,,93137000.0,,,,,,,,,,CommonMetricExtracted
+LongtermLiability,,,,,,,,,,,,,785000.0,9829000.0,,93137000.0,129999000.0,,,,,,,,,,9829000.0,93137000.0,,,,,,9829000.0,129999000.0,,,,,93137000.0,,,,,,,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShareholderEquity,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 OperatingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted

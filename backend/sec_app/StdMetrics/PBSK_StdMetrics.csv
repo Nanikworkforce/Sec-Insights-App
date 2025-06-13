@@ -8,7 +8,7 @@ Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 NetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-CurrentReceivables,,,,,,,184407000.0,181253000.0,176610000.0,303359000.0,315850000.0,345929000.0,330223000.0,,,,,,,,,,,181253000.0,303359000.0,345929000.0,,,,,,181253000.0,315850000.0,,,,,181253000.0,345929000.0,,,,303359000.0,,,303359000.0,,,,CommonMetricExtracted
+CurrentReceivables,,,,,,183728000.0,185187000.0,181253000.0,176610000.0,304071000.0,315850000.0,345929000.0,330223000.0,,,,,,,,,,183728000.0,181253000.0,304071000.0,345929000.0,,,,,,181253000.0,315850000.0,,,,,181253000.0,345929000.0,,,,304071000.0,,,304071000.0,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Inventory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -26,7 +26,7 @@ ShareholderEquity,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricE
 OperatingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CapitalExpenditures,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 InvestingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-DividendsPaid,,,,,,,,,498000.0,702000.0,,,,,,,,,,,,,,,498000.0,,,,,,,,498000.0,,,,,,498000.0,,,,,,,,,,,CommonMetricExtracted
+DividendsPaid,,,,,,,,405000.0,498000.0,702000.0,840000.0,1000000.0,817000.0,,,,,,,,,,,,498000.0,840000.0,817000.0,,,,,,498000.0,1000000.0,,,,,498000.0,817000.0,,,,840000.0,,,840000.0,,,CommonMetricExtracted
 FinancingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 costOfGoodsAndServicesPercentOfRevenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 GrossMargin,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated

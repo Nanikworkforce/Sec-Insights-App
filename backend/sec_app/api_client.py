@@ -21,7 +21,7 @@ HEADERS = {
 }
 
 CIK_CACHE = {}
-
+#stocks_perf
 cache_file = os.path.join(os.path.dirname(__file__), 'data', 'cik_cache.json')
 if os.path.exists(cache_file):
     try:

@@ -8,7 +8,7 @@ Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 NetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-CurrentReceivables,,,,,,,,,,,,,,0.0,14675.0,,,,,,,,,,,,0.0,,,,,,,0.0,,,,,,,,,,14675.0,,,,,,CommonMetricExtracted
+CurrentReceivables,,,,,,,,,,,,,,,14675.0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,14675.0,,,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Inventory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -20,7 +20,7 @@ ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtra
 AccountsPayablesAndAccruedExpenses,,,,,,,,202006.0,226287.0,236534.0,185230.0,192752.0,470460.0,1442125.0,2094626.0,,,,,,,,,202006.0,236534.0,192752.0,1442125.0,,,,,202006.0,185230.0,1442125.0,,,,202006.0,192752.0,,,,236534.0,2094626.0,,236534.0,,,,CommonMetricExtracted
 CurrentLiability,,,,,,,,1948714.0,1951874.0,2004174.0,2162140.0,2302380.0,,1421373.0,3343012.0,,,,,,,,,1948714.0,2004174.0,2302380.0,1421373.0,,,,,1948714.0,2162140.0,1421373.0,,,,1948714.0,2302380.0,,,,2004174.0,3343012.0,,2004174.0,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-LongtermLiability,,,,,,,,,,,,0.0,,501893.0,431761.0,,,,,,,,,,,0.0,501893.0,,,,,,,501893.0,,,,,0.0,,,,,431761.0,,,,,,CommonMetricExtracted
+LongtermLiability,,,,,,,,,,,,,,501893.0,431761.0,,,,,,,,,,,,501893.0,,,,,,,501893.0,,,,,,,,,,431761.0,,,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShareholderEquity,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 OperatingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted

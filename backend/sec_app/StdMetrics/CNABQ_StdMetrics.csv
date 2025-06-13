@@ -8,7 +8,7 @@ Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 NetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-CurrentReceivables,,,,,,,,,0.0,6245.0,53435.0,24484.0,0.0,,,,,,,,,,,,6245.0,24484.0,,,,,,,53435.0,,,,,,24484.0,,,,6245.0,,,6245.0,,,,CommonMetricExtracted
+CurrentReceivables,,,,,,,,,,6245.0,53435.0,24484.0,,171747.0,,,,,,,,,,,6245.0,24484.0,171747.0,,,,,,53435.0,171747.0,,,,,24484.0,,,,6245.0,,,6245.0,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Inventory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -17,8 +17,8 @@ Goodwill,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 IntangibleAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 TotalAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-AccountsPayablesAndAccruedExpenses,,,,,,,26640.0,32762.0,50000.0,1353219.0,1915978.0,319562.0,738963.0,,,,,,,,,,,32762.0,1353219.0,319562.0,,,,,,32762.0,1915978.0,,,,,32762.0,319562.0,,,,1353219.0,,,1353219.0,,,,CommonMetricExtracted
-CurrentLiability,,,,,,,76640.0,96262.0,50000.0,2404014.0,3608092.0,612326.0,1190495.0,,,,,,,,,,,96262.0,2404014.0,612326.0,,,,,,96262.0,3608092.0,,,,,96262.0,612326.0,,,,2404014.0,,,2404014.0,,,,CommonMetricExtracted
+AccountsPayablesAndAccruedExpenses,,,,,,,26640.0,32762.0,50000.0,1353219.0,1915978.0,319562.0,738963.0,3761069.0,,,,,,,,,,32762.0,1353219.0,319562.0,3761069.0,,,,,32762.0,1915978.0,3761069.0,,,,32762.0,319562.0,,,,1353219.0,,,1353219.0,,,,CommonMetricExtracted
+CurrentLiability,,,,,,,76640.0,96262.0,50000.0,2404014.0,3608092.0,612326.0,1190495.0,5729358.0,,,,,,,,,,96262.0,2404014.0,612326.0,5729358.0,,,,,96262.0,3608092.0,5729358.0,,,,96262.0,612326.0,,,,2404014.0,,,2404014.0,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 LongtermLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -46,7 +46,7 @@ PropertyPlantEquipmentPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 GoodwillPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 IntangibleAssetsPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 ShorttermDebtPercentOfCurrentLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-PayablesAndAccruedExpensesPercentOfCurrentLiability,,,,,,,0.3475991649269311,0.3403419833371424,1.0,0.5628998000843589,0.5310224905573361,0.5218821346798928,0.6207191126380203,,,,,,,,,,,0.3403419833371424,0.5628998000843589,0.5218821346798928,,,,,,0.3403419833371424,0.5310224905573361,,,,,0.3403419833371424,0.5218821346798928,,,,0.5628998000843589,,,0.5628998000843589,,,,CommonMetricCalculated
+PayablesAndAccruedExpensesPercentOfCurrentLiability,,,,,,,0.3475991649269311,0.3403419833371424,1.0,0.5628998000843589,0.5310224905573361,0.5218821346798928,0.6207191126380203,0.656455574952726,,,,,,,,,,0.3403419833371424,0.5628998000843589,0.5218821346798928,0.656455574952726,,,,,0.3403419833371424,0.5310224905573361,0.656455574952726,,,,0.3403419833371424,0.5218821346798928,,,,0.5628998000843589,,,0.5628998000843589,,,,CommonMetricCalculated
 CurrentLiabilityPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 LongtermDebtPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 LongtermLiabilityPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated

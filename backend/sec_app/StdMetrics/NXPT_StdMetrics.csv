@@ -23,11 +23,11 @@ LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtrac
 LongtermLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,1299731.0,,,,,,,,,,1299731.0,,,,,,1299731.0,,,,,1299731.0,,,,1299731.0,,1299731.0,1299731.0,1299731.0,CommonMetricExtracted
 ShareholderEquity,,,,,,,,,,,,,,,,,,,,45276270.0,,,,,,,,,,45276270.0,,,,,,45276270.0,,,,,45276270.0,,,,45276270.0,,45276270.0,45276270.0,45276270.0,CommonMetricExtracted
-OperatingCashFlow,,,,,,,,,,,,,,,,,9086115.0,4023323.0,5143620.0,6855237.0,,,,,,,,,9086115.0,5143620.0,,,,,,4023323.0,,,,,9086115.0,,,,,,,,,CommonMetricExtracted
+OperatingCashFlow,,,,,,,,,,,,,,,,31310408.0,9086115.0,4023323.0,5143620.0,6855237.0,,,,,,,,,9086115.0,5143620.0,,,,,,4023323.0,,,,,9086115.0,,,,31310408.0,,,,,CommonMetricExtracted
 CapitalExpenditures,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 InvestingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-DividendsPaid,,,,,,,,,,,,,,,,,2360642.0,2341712.0,2292690.0,2191570.0,,,,,,,,,2360642.0,2292690.0,,,,,,2341712.0,,,,,2360642.0,,,,,,,,,CommonMetricExtracted
-FinancingCashFlow,,,,,,,,,,,,,,,,,-7004411.0,-5204648.0,-5371722.0,-6585478.0,,,,,,,,,-7004411.0,-5371722.0,,,,,,-5204648.0,,,,,-7004411.0,,,,,,,,,CommonMetricExtracted
+DividendsPaid,,,,,,,,,,,,,,,,2227401.0,2360642.0,2341712.0,2292690.0,2191570.0,,,,,,,,,2360642.0,2292690.0,,,,,,2341712.0,,,,,2360642.0,,,,2227401.0,,,,,CommonMetricExtracted
+FinancingCashFlow,,,,,,,,,,,,,,,,-38345833.0,-7004411.0,-5204648.0,-5371722.0,-6585478.0,,,,,,,,,-7004411.0,-5371722.0,,,,,,-5204648.0,,,,,-7004411.0,,,,-38345833.0,,,,,CommonMetricExtracted
 costOfGoodsAndServicesPercentOfRevenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 GrossMargin,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 GrossMarginPercentOfRevenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
@@ -56,7 +56,7 @@ NetCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalcula
 OperatingCashFlowPercentOfNetCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 CapitalExpendituresPercentOfInvestingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 InvestingCashFlowPercentOfNetCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-DividendsPaidPercentOfFinancingCashFlow,,,,,,,,,,,,,,,,,-0.33702219929698585,-0.44992706519249714,-0.42680726962415405,-0.3327882957015421,,,,,,,,,-0.33702219929698585,-0.42680726962415405,,,,,,-0.44992706519249714,,,,,-0.33702219929698585,,,,,,,,,CommonMetricCalculated
+DividendsPaidPercentOfFinancingCashFlow,,,,,,,,,,,,,,,,-0.05808717207942777,-0.33702219929698585,-0.44992706519249714,-0.42680726962415405,-0.3327882957015421,,,,,,,,,-0.33702219929698585,-0.42680726962415405,,,,,,-0.44992706519249714,,,,,-0.33702219929698585,,,,-0.05808717207942777,,,,,CommonMetricCalculated
 FinancingCashFlowPercentOfNetCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 NetCashFlowPercentOfNetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 FreeCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated

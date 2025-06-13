@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 class Command(BaseCommand):
     help = 'Import financial data from CSV files'
-
+    #stocks_perf
     def handle(self, *args, **kwargs):
         directory_path = 'sec_app/stdmetrics'
         self.stdout.write(f"Looking for CSV files in: {directory_path}")

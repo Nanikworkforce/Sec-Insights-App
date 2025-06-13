@@ -8,10 +8,15 @@ from .models.query import Query
 
 
 class CompanySerializer(serializers.ModelSerializer):
+    display_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Company
-        fields = ['id', 'name', 'ticker', 'cik', 'sector', 'industry']
+        fields = ['id', 'name', 'ticker', 'cik', 'sector', 'industry', 'display_name']
 
+    def get_display_name(self, obj):
+        return obj.name if obj.name else obj.ticker
+    
 class FinancialPeriodSerializer(serializers.ModelSerializer):
     class Meta:
         model = FinancialPeriod

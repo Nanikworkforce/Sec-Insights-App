@@ -8,7 +8,7 @@ Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 NetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-CurrentReceivables,,,,,,,,95899000.0,,107554000.0,,,,,,,,,,,,,,95899000.0,107554000.0,,,,,,,95899000.0,,,,,,95899000.0,,,,,107554000.0,,,107554000.0,,,,CommonMetricExtracted
+CurrentReceivables,,,,,,8228000.0,21619000.0,21846000.0,,107554000.0,,,,,,,,,,,,,8228000.0,21846000.0,107554000.0,,,,,,,21846000.0,,,,,,21846000.0,,,,,107554000.0,,,107554000.0,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Inventory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -17,10 +17,10 @@ Goodwill,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 IntangibleAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 TotalAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-AccountsPayablesAndAccruedExpenses,,,,,,,,17001000.0,,20786000.0,,,,,,,,,,,,,,17001000.0,20786000.0,,,,,,,17001000.0,,,,,,17001000.0,,,,,20786000.0,,,20786000.0,,,,CommonMetricExtracted
-CurrentLiability,,,,,,,,106828000.0,,103888000.0,,,,,,,,,,,,,,106828000.0,103888000.0,,,,,,,106828000.0,,,,,,106828000.0,,,,,103888000.0,,,103888000.0,,,,CommonMetricExtracted
+AccountsPayablesAndAccruedExpenses,,,,,,13684000.0,21141000.0,20874000.0,,20786000.0,,,,,,,,,,,,,13684000.0,20874000.0,20786000.0,,,,,,,20874000.0,,,,,,20874000.0,,,,,20786000.0,,,20786000.0,,,,CommonMetricExtracted
+CurrentLiability,,,,,,27185000.0,49477000.0,36396000.0,,103888000.0,,,,,,,,,,,,,27185000.0,36396000.0,103888000.0,,,,,,,36396000.0,,,,,,36396000.0,,,,,103888000.0,,,103888000.0,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-LongtermLiability,,,,,,,,1992000.0,,4531000.0,,,,,,,,,,,,,,1992000.0,4531000.0,,,,,,,1992000.0,,,,,,1992000.0,,,,,4531000.0,,,4531000.0,,,,CommonMetricExtracted
+LongtermLiability,,,,,,,,,,4531000.0,,,,,,,,,,,,,,,4531000.0,,,,,,,,,,,,,,,,,,4531000.0,,,4531000.0,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShareholderEquity,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 OperatingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -46,7 +46,7 @@ PropertyPlantEquipmentPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 GoodwillPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 IntangibleAssetsPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 ShorttermDebtPercentOfCurrentLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-PayablesAndAccruedExpensesPercentOfCurrentLiability,,,,,,,,0.15914367019882428,,0.20008085630679193,,,,,,,,,,,,,,0.15914367019882428,0.20008085630679193,,,,,,,0.15914367019882428,,,,,,0.15914367019882428,,,,,0.20008085630679193,,,0.20008085630679193,,,,CommonMetricCalculated
+PayablesAndAccruedExpensesPercentOfCurrentLiability,,,,,,0.503365826742689,0.42728944762212745,0.5735245631388065,,0.20008085630679193,,,,,,,,,,,,,0.503365826742689,0.5735245631388065,0.20008085630679193,,,,,,,0.5735245631388065,,,,,,0.5735245631388065,,,,,0.20008085630679193,,,0.20008085630679193,,,,CommonMetricCalculated
 CurrentLiabilityPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 LongtermDebtPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 LongtermLiabilityPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated

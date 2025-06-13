@@ -9,7 +9,7 @@ Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 NetIncome,,,,,,,,,,,,,,,,,-2704.0,-352037.0,1915114.0,1216885.0,,,,,,,,,-2704.0,1915114.0,,,,,,-352037.0,,,,,-2704.0,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,710573.0,4989.0,4895.0,,,,,,,,,710573.0,4895.0,,,,,,4895.0,,,,,4895.0,,,,4895.0,,4895.0,4895.0,4895.0,CommonMetricExtracted
 CurrentReceivables,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-PrepaidExpenses,,,,,,,,,,,,,,,,,,156845.0,13070.0,0.0,,,,,,,,,156845.0,0.0,,,,,,0.0,,,,,0.0,,,,0.0,,0.0,0.0,0.0,CommonMetricExtracted
+PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Inventory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentAssets,,,,,,,,,,,,,,,,,,867418.0,18059.0,4895.0,,,,,,,,,867418.0,4895.0,,,,,,4895.0,,,,,4895.0,,,,4895.0,,4895.0,4895.0,4895.0,CommonMetricExtracted
 PropertyPlantEquipment,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -39,7 +39,7 @@ TaxesPercentOfOperatingMargin,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,C
 NetIncomePercentOfRevenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 CashPercentOfCurrentAssets,,,,,,,,,,,,,,,,,,0.8191817555088781,0.2762611440279085,1.0,,,,,,,,,0.8191817555088781,1.0,,,,,,1.0,,,,,1.0,,,,1.0,,1.0,1.0,1.0,CommonMetricCalculated
 ReceivablesCurrentPercentOfCurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-PrepaidExpensesPercentOfCurrentAssets,,,,,,,,,,,,,,,,,,0.18081824449112194,0.7237388559720915,0.0,,,,,,,,,0.18081824449112194,0.0,,,,,,0.0,,,,,0.0,,,,0.0,,0.0,0.0,0.0,CommonMetricCalculated
+PrepaidExpensesPercentOfCurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 InventoryPercentOfCurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 CurrentAssetsPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,0.010373809365774435,0.00041218621385815746,0.0001324938070987069,,,,,,,,,0.010373809365774435,0.0001324938070987069,,,,,,0.0001324938070987069,,,,,0.0001324938070987069,,,,0.0001324938070987069,,0.0001324938070987069,0.0001324938070987069,0.0001324938070987069,CommonMetricCalculated
 PropertyPlantEquipmentPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated

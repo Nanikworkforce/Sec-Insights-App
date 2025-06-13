@@ -3,10 +3,10 @@ Revenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CostOfGoodsAndServices,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 SellingGeneralAdministrative,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ResearchAndDevelopment,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-OperatingMargin,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
+OperatingMargin,,,,,,,,,,,,,,,,,,,3486597.0,1994255.0,,,,,,,,,,3486597.0,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
+Interest,,,,,,,,,,,,,,,,,,,,4664.0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-NetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
+NetIncome,,,,,,,,,,,,,,,,,-3230.0,410646.0,2424391.0,1442593.0,,,,,,,,,-3230.0,2424391.0,,,,,,410646.0,,,,,-3230.0,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,,5308.0,66985.0,,,,,,,,,,66985.0,,,,,,66985.0,,,,,66985.0,,,,66985.0,,66985.0,66985.0,66985.0,CommonMetricExtracted
 CurrentReceivables,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -34,7 +34,7 @@ GrossMarginPercentOfRevenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Com
 SellingGeneralAdministrativePercentOfRevenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 ResearchAndDevelopmentPercentOfRevenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 OperatingMarginPercentOfRevenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-InterestPercentOfOperatingMargin,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
+InterestPercentOfOperatingMargin,,,,,,,,,,,,,,,,,,,,0.002338717967361245,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 TaxesPercentOfOperatingMargin,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 NetIncomePercentOfRevenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 CashPercentOfCurrentAssets,,,,,,,,,,,,,,,,,,,1.0,1.0,,,,,,,,,,1.0,,,,,,1.0,,,,,1.0,,,,1.0,,1.0,1.0,1.0,CommonMetricCalculated
@@ -58,15 +58,15 @@ CapitalExpendituresPercentOfInvestingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 InvestingCashFlowPercentOfNetCashFlow,,,,,,,,,,,,,,,,,,-190.19794683868378,-59.83595337235733,527.2834768228026,,,,,,,,,,-59.83595337235733,,,,,,-190.19794683868378,,,,,,,,,,,,,,CommonMetricCalculated
 DividendsPaidPercentOfFinancingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 FinancingCashFlowPercentOfNetCashFlow,,,,,,,,,,,,,,,,,,191.69369995733038,59.949990445155194,-517.7090001134945,,,,,,,,,,59.949990445155194,,,,,,191.69369995733038,,,,,,,,,,,,,,CommonMetricCalculated
-NetCashFlowPercentOfNetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
+NetCashFlowPercentOfNetIncome,,,,,,,,,,,,,,,,,,0.9702030459325064,-0.16404284622406204,0.042754262636793605,,,,,,,,,,-0.16404284622406204,,,,,,0.9702030459325064,,,,,,,,,,,,,,CommonMetricCalculated
 FreeCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 FreeCashFlowPercentOfNetProfit,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 NetOperatingProfitAfterTaxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 NetWorkingCapital,,,,,,,,,,,,,,,,,,,-2603855.0,-3957995.0,,,,,,,,,,-3957995.0,,,,,,-3957995.0,,,,,-3957995.0,,,,-3957995.0,,-3957995.0,-3957995.0,-3957995.0,CommonMetricCalculated
 InvestedCapital,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 ReturnOnInvestedCapital,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-ReturnOnAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-ReturnOnEquity,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
+ReturnOnAssets,,,,,,,,,,,,,,,,,,,0.04311073831947872,0.05515723405584588,,,,,,,,,,0.09269607008344435,,,,,,0.015700961765443815,,,,,-0.00012349835747184562,,,,,,,,,CommonMetricCalculated
+ReturnOnEquity,,,,,,,,,,,,,,,,,,,0.04311480781117166,0.055298863132502984,,,,,,,,,,0.09293408888624306,,,,,,0.015741277650667806,,,,,-0.00012381546833929225,,,,,,,,,CommonMetricCalculated
 TotalAssetTurnover,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 PropertyPlantEquipmentTurnover,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 CashTurnover,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
@@ -83,4 +83,4 @@ DebtToOperatingMargin,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMet
 DebtToFreeCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 CurrentRatio,,,,,,,,,,,,,,,,,,,0.0020343688761491714,0.016642318719596122,,,,,,,,,,0.016642318719596122,,,,,,0.016642318719596122,,,,,0.016642318719596122,,,,0.016642318719596122,,0.016642318719596122,0.016642318719596122,0.016642318719596122,CommonMetricCalculated
 QuickRatio,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-OperatingMarginToInterest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
+OperatingMarginToInterest,,,,,,,,,,,,,,,,,,,,427.58469125214407,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated

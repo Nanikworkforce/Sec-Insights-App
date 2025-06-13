@@ -6,7 +6,7 @@ ResearchAndDevelopment,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMe
 OperatingMargin,,,,,,,,,,,,,,,,,,14002297.0,5496878.0,727654.0,,,,,,,,,,5496878.0,,,,,,14002297.0,,,,,,,,,,,,,,CommonMetricExtracted
 Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-NetIncome,,,,,,,,,,,,,,,,,,,4328377.0,56844.0,,,,,,,,,,4328377.0,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
+NetIncome,,,,,,,,,,,,,,,,,10716021.0,,4328377.0,56844.0,,,,,,,,,10716021.0,4328377.0,,,,,,,,,,,10716021.0,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,223048887.0,6588790.0,4664536.0,,,,,,,,,223048887.0,4664536.0,,,,,,4664536.0,,,,,4664536.0,,,,4664536.0,,4664536.0,4664536.0,4664536.0,CommonMetricExtracted
 CurrentReceivables,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,222834.0,0.0,0.0,,,,,,,,,222834.0,0.0,,,,,,0.0,,,,,0.0,,,,0.0,,0.0,0.0,0.0,CommonMetricExtracted
@@ -23,11 +23,11 @@ LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtrac
 LongtermLiability,,,,,,,,,,,,,,,,,,,552035.0,122675.0,,,,,,,,,,122675.0,,,,,,122675.0,,,,,122675.0,,,,122675.0,,122675.0,122675.0,122675.0,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,9334245.0,1145293.0,2394321.0,,,,,,,,,9334245.0,2394321.0,,,,,,2394321.0,,,,,2394321.0,,,,2394321.0,,2394321.0,2394321.0,2394321.0,CommonMetricExtracted
 ShareholderEquity,,,,,,,,,,,,,,,,,,223048887.0,6588790.0,4664536.0,,,,,,,,,223048887.0,4664536.0,,,,,,4664536.0,,,,,4664536.0,,,,4664536.0,,4664536.0,4664536.0,4664536.0,CommonMetricExtracted
-OperatingCashFlow,,,,,,,,,,,,,,,,,,,-401063.0,-446128.0,,,,,,,,,,-401063.0,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
+OperatingCashFlow,,,,,,,,,,,,,,,,,-2578428.0,-1851959.0,-401063.0,-446128.0,,,,,,,,,-2578428.0,-401063.0,,,,,,-1851959.0,,,,,-2578428.0,,,,,,,,,CommonMetricExtracted
 CapitalExpenditures,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 InvestingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 DividendsPaid,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-FinancingCashFlow,,,,,,,,,,,,,,,,,,,0.0,446128.0,,,,,,,,,,0.0,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
+FinancingCashFlow,,,,,,,,,,,,,,,,,225014918.0,-246766.0,0.0,446128.0,,,,,,,,,225014918.0,0.0,,,,,,-246766.0,,,,,225014918.0,,,,,,,,,CommonMetricExtracted
 costOfGoodsAndServicesPercentOfRevenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 GrossMargin,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 GrossMarginPercentOfRevenue,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
@@ -65,8 +65,8 @@ NetOperatingProfitAfterTaxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Co
 NetWorkingCapital,,,,,,,,,,,,,,,,,,439704.0,-834110.0,-2425750.0,,,,,,,,,439704.0,-2425750.0,,,,,,-2425750.0,,,,,-2425750.0,,,,-2425750.0,,-2425750.0,-2425750.0,-2425750.0,CommonMetricCalculated
 InvestedCapital,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 ReturnOnInvestedCapital,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-ReturnOnAssets,,,,,,,,,,,,,,,,,,,0.6569093468176213,0.010044612683205419,,,,,,,,,,0.7648453752708223,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-ReturnOnEquity,,,,,,,,,,,,,,,,,,,0.6569304834423316,0.012186421114554587,,,,,,,,,,0.9279330248496314,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
+ReturnOnAssets,,,,,,,,,,,,,,,,,,,0.6569093468176213,0.010044612683205419,,,,,,,,,0.04790931937085512,0.7648453752708223,,,,,,,,,,,1.8935732962158824,,,,,,,,,CommonMetricCalculated
+ReturnOnEquity,,,,,,,,,,,,,,,,,,,0.6569304834423316,0.012186421114554587,,,,,,,,,0.0480433735587302,0.9279330248496314,,,,,,,,,,,2.297339113686763,,,,,,,,,CommonMetricCalculated
 TotalAssetTurnover,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 PropertyPlantEquipmentTurnover,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 CashTurnover,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated

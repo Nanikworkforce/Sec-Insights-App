@@ -8,7 +8,7 @@ Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 NetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-CurrentReceivables,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
+CurrentReceivables,,,,,,,,,,,,,1357000.0,1861000.0,,,,,,,,,,,,,1861000.0,,,,,,,1861000.0,,,,,,,,,,,,,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Inventory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -17,10 +17,10 @@ Goodwill,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 IntangibleAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 TotalAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-AccountsPayablesAndAccruedExpenses,,,,,,,,,5927000.0,5388000.0,23000000.0,40714000.0,,,,,,,,,,,,,5388000.0,40714000.0,,,,,,,23000000.0,,,,,,40714000.0,,,,5388000.0,,,5388000.0,,,,CommonMetricExtracted
-CurrentLiability,,,,,,,,,14066000.0,8910000.0,13841000.0,29510000.0,,,,,,,,,,,,,8910000.0,29510000.0,,,,,,,13841000.0,,,,,,29510000.0,,,,8910000.0,,,8910000.0,,,,CommonMetricExtracted
+AccountsPayablesAndAccruedExpenses,,,,,,,,,5927000.0,5388000.0,8464000.0,19604000.0,34803000.0,77488000.0,,,,,,,,,,,5388000.0,19604000.0,77488000.0,,,,,,8464000.0,77488000.0,,,,,19604000.0,,,,5388000.0,,,5388000.0,,,,CommonMetricExtracted
+CurrentLiability,,,,,,,,,13993000.0,8782000.0,13616000.0,29406000.0,52344000.0,93683000.0,,,,,,,,,,,8782000.0,29406000.0,93683000.0,,,,,,13616000.0,93683000.0,,,,,29406000.0,,,,8782000.0,,,8782000.0,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-LongtermLiability,,,,,,,,,,,375000.0,14476000.0,,,,,,,,,,,,,,14476000.0,,,,,,,375000.0,,,,,,14476000.0,,,,,,,,,,,CommonMetricExtracted
+LongtermLiability,,,,,,,,,,,0.0,13874000.0,9774000.0,444000.0,,,,,,,,,,,,13874000.0,444000.0,,,,,,0.0,444000.0,,,,,13874000.0,,,,,,,,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShareholderEquity,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 OperatingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -46,7 +46,7 @@ PropertyPlantEquipmentPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 GoodwillPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 IntangibleAssetsPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 ShorttermDebtPercentOfCurrentLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-PayablesAndAccruedExpensesPercentOfCurrentLiability,,,,,,,,,0.4213706810749325,0.6047138047138048,1.6617296438118634,1.3796679091833277,,,,,,,,,,,,,0.6047138047138048,1.3796679091833277,,,,,,,1.6617296438118634,,,,,,1.3796679091833277,,,,0.6047138047138048,,,0.6047138047138048,,,,CommonMetricCalculated
+PayablesAndAccruedExpensesPercentOfCurrentLiability,,,,,,,,,0.42356892732080326,0.6135276702345707,0.6216216216216216,0.6666666666666666,0.6648899587345255,0.8271297887556974,,,,,,,,,,,0.6135276702345707,0.6666666666666666,0.8271297887556974,,,,,,0.6216216216216216,0.8271297887556974,,,,,0.6666666666666666,,,,0.6135276702345707,,,0.6135276702345707,,,,CommonMetricCalculated
 CurrentLiabilityPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 LongtermDebtPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 LongtermLiabilityPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated

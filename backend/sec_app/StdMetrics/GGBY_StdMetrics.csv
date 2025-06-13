@@ -8,7 +8,7 @@ Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 NetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-CurrentReceivables,,,,,,,,,,,,0.0,432.0,,,603667.0,0.0,0.0,0.0,,,,,,,0.0,,603667.0,0.0,,,,,,0.0,,,,0.0,603667.0,,,,,,,,,,CommonMetricExtracted
+CurrentReceivables,,,,,,,,,,,,0.0,432.0,192616.0,545017.0,603667.0,,,,,,,,,,0.0,192616.0,603667.0,,,,,,192616.0,,,,,0.0,603667.0,,,,545017.0,,,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Inventory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -17,8 +17,8 @@ Goodwill,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 IntangibleAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 TotalAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-AccountsPayablesAndAccruedExpenses,,,,,,,,,,,,5636.0,51221.0,70391.0,,292796.0,950726.0,1783442.0,2239746.0,,,,,,,5636.0,70391.0,292796.0,1783442.0,,,,,70391.0,950726.0,,,,5636.0,292796.0,,,,,,,,,,CommonMetricExtracted
-CurrentLiability,,,,,,,,,,,,19729.0,51734.0,70904.0,,691467.0,1156223.0,4301442.0,4901894.0,,,,,,,19729.0,70904.0,691467.0,4301442.0,,,,,70904.0,1156223.0,,,,19729.0,691467.0,,,,,,,,,,CommonMetricExtracted
+AccountsPayablesAndAccruedExpenses,,,,,,,,,,500.0,5562.0,5636.0,51221.0,70904.0,137320.0,512796.0,950726.0,1783442.0,2239746.0,,,,,,500.0,5636.0,70904.0,512796.0,1783442.0,,,,5562.0,70904.0,950726.0,,,,5636.0,512796.0,,,500.0,137320.0,,500.0,,,,CommonMetricExtracted
+CurrentLiability,,,,,,,,,,19851.0,21673.0,19729.0,51734.0,70904.0,137320.0,691467.0,1156223.0,4301442.0,4901894.0,,,,,,19851.0,19729.0,70904.0,691467.0,4301442.0,,,,21673.0,70904.0,1156223.0,,,,19729.0,691467.0,,,19851.0,137320.0,,19851.0,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 LongtermLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -46,7 +46,7 @@ PropertyPlantEquipmentPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 GoodwillPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 IntangibleAssetsPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 ShorttermDebtPercentOfCurrentLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-PayablesAndAccruedExpensesPercentOfCurrentLiability,,,,,,,,,,,,0.2856708398803791,0.9900838906715119,0.9927648651698071,,0.42344175499336917,0.8222687145991734,0.41461491285945506,0.4569144090019082,,,,,,,0.2856708398803791,0.9927648651698071,0.42344175499336917,0.41461491285945506,,,,,0.9927648651698071,0.8222687145991734,,,,0.2856708398803791,0.42344175499336917,,,,,,,,,,CommonMetricCalculated
+PayablesAndAccruedExpensesPercentOfCurrentLiability,,,,,,,,,,0.02518764797743187,0.25663267660222394,0.2856708398803791,0.9900838906715119,1.0,1.0,0.741605890085861,0.8222687145991734,0.41461491285945506,0.4569144090019082,,,,,,0.02518764797743187,0.2856708398803791,1.0,0.741605890085861,0.41461491285945506,,,,0.25663267660222394,1.0,0.8222687145991734,,,,0.2856708398803791,0.741605890085861,,,0.02518764797743187,1.0,,0.02518764797743187,,,,CommonMetricCalculated
 CurrentLiabilityPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 LongtermDebtPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 LongtermLiabilityPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated

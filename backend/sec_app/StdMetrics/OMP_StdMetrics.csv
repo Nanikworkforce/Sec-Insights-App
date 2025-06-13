@@ -8,7 +8,7 @@ Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 NetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-CurrentReceivables,,,,,,,,,,,,,,83503000.0,83540000.0,70578000.0,,,,,,,,,,,83503000.0,70578000.0,,,,,,83503000.0,,,,,,70578000.0,,,,83540000.0,,,,,,CommonMetricExtracted
+CurrentReceivables,,,,,,,,,,,,12388000.0,,83503000.0,83540000.0,70578000.0,,,,,,,,,,12388000.0,83503000.0,70578000.0,,,,,,83503000.0,,,,,12388000.0,70578000.0,,,,83540000.0,,,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Inventory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -17,8 +17,8 @@ Goodwill,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 IntangibleAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 TotalAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-AccountsPayablesAndAccruedExpenses,,,,,,,,,,,,,,96590000.0,80335000.0,48591000.0,,,,,,,,,,,96590000.0,48591000.0,,,,,,96590000.0,,,,,,48591000.0,,,,80335000.0,,,,,,CommonMetricExtracted
-CurrentLiability,,,,,,,,,,,,,,157544000.0,137743000.0,69354000.0,,,,,,,,,,,157544000.0,69354000.0,,,,,,157544000.0,,,,,,69354000.0,,,,137743000.0,,,,,,CommonMetricExtracted
+AccountsPayablesAndAccruedExpenses,,,,,,,,,,,,35493000.0,,96590000.0,80335000.0,48591000.0,,,,,,,,,,35493000.0,96590000.0,48591000.0,,,,,,96590000.0,,,,,35493000.0,48591000.0,,,,80335000.0,,,,,,CommonMetricExtracted
+CurrentLiability,,,,,,,,,,,,108735000.0,,157544000.0,137743000.0,69354000.0,,,,,,,,,,108735000.0,157544000.0,69354000.0,,,,,,157544000.0,,,,,108735000.0,69354000.0,,,,137743000.0,,,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 LongtermLiability,,,,,,,,,,,,,,0.0,5860000.0,6254000.0,,,,,,,,,,,0.0,6254000.0,,,,,,0.0,,,,,,6254000.0,,,,5860000.0,,,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -46,7 +46,7 @@ PropertyPlantEquipmentPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 GoodwillPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 IntangibleAssetsPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 ShorttermDebtPercentOfCurrentLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-PayablesAndAccruedExpensesPercentOfCurrentLiability,,,,,,,,,,,,,,0.6130985629411466,0.5832238298860922,0.7006228912535687,,,,,,,,,,,0.6130985629411466,0.7006228912535687,,,,,,0.6130985629411466,,,,,,0.7006228912535687,,,,0.5832238298860922,,,,,,CommonMetricCalculated
+PayablesAndAccruedExpensesPercentOfCurrentLiability,,,,,,,,,,,,0.3264174368878466,,0.6130985629411466,0.5832238298860922,0.7006228912535687,,,,,,,,,,0.3264174368878466,0.6130985629411466,0.7006228912535687,,,,,,0.6130985629411466,,,,,0.3264174368878466,0.7006228912535687,,,,0.5832238298860922,,,,,,CommonMetricCalculated
 CurrentLiabilityPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 LongtermDebtPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 LongtermLiabilityPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated

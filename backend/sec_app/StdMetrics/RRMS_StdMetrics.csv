@@ -8,7 +8,7 @@ Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 NetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-CurrentReceivables,,,,,,,131655000.0,222862000.0,217213000.0,224881000.0,240606000.0,,,,,,,,,,,,,222862000.0,224881000.0,,,,,,,222862000.0,240606000.0,,,,,222862000.0,,,,,224881000.0,,,224881000.0,,,,CommonMetricExtracted
+CurrentReceivables,,,,,,73387000.0,131655000.0,222862000.0,217213000.0,224881000.0,240606000.0,,,,,,,,,,,,73387000.0,222862000.0,224881000.0,,,,,,,222862000.0,240606000.0,,,,,222862000.0,,,,,224881000.0,,,224881000.0,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Inventory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -17,8 +17,8 @@ Goodwill,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 IntangibleAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 TotalAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-AccountsPayablesAndAccruedExpenses,,,,,,,130389000.0,225472000.0,219943000.0,234582000.0,265788000.0,,,,,,,,,,,,,225472000.0,234582000.0,,,,,,,225472000.0,265788000.0,,,,,225472000.0,,,,,234582000.0,,,234582000.0,,,,CommonMetricExtracted
-CurrentLiability,,,,,,,147434000.0,240246000.0,305490000.0,292155000.0,309515000.0,,,,,,,,,,,,,240246000.0,292155000.0,,,,,,,240246000.0,309515000.0,,,,,240246000.0,,,,,292155000.0,,,292155000.0,,,,CommonMetricExtracted
+AccountsPayablesAndAccruedExpenses,,,,,,61488000.0,130389000.0,225472000.0,219943000.0,234582000.0,265788000.0,,,,,,,,,,,,61488000.0,225472000.0,234582000.0,,,,,,,225472000.0,265788000.0,,,,,225472000.0,,,,,234582000.0,,,234582000.0,,,,CommonMetricExtracted
+CurrentLiability,,,,,,83074000.0,147434000.0,240246000.0,305490000.0,292155000.0,309515000.0,,,,,,,,,,,,83074000.0,240246000.0,292155000.0,,,,,,,240246000.0,309515000.0,,,,,240246000.0,,,,,292155000.0,,,292155000.0,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 LongtermLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -46,7 +46,7 @@ PropertyPlantEquipmentPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 GoodwillPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 IntangibleAssetsPercentOfTotaltAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 ShorttermDebtPercentOfCurrentLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
-PayablesAndAccruedExpensesPercentOfCurrentLiability,,,,,,,0.8843889469186212,0.938504699349833,0.7199679203901928,0.8029367972480361,0.8587241329176292,,,,,,,,,,,,,0.938504699349833,0.8029367972480361,,,,,,,0.938504699349833,0.8587241329176292,,,,,0.938504699349833,,,,,0.8029367972480361,,,0.8029367972480361,,,,CommonMetricCalculated
+PayablesAndAccruedExpensesPercentOfCurrentLiability,,,,,,0.7401593759780437,0.8843889469186212,0.938504699349833,0.7199679203901928,0.8029367972480361,0.8587241329176292,,,,,,,,,,,,0.7401593759780437,0.938504699349833,0.8029367972480361,,,,,,,0.938504699349833,0.8587241329176292,,,,,0.938504699349833,,,,,0.8029367972480361,,,0.8029367972480361,,,,CommonMetricCalculated
 CurrentLiabilityPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 LongtermDebtPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated
 LongtermLiabilityPercentOfTotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricCalculated

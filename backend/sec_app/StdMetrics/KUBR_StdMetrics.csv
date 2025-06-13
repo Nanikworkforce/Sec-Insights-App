@@ -8,7 +8,7 @@ Interest,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Taxes,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 NetIncome,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Cash,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-CurrentReceivables,,,,,,,,,,,,,,,,,,0.0,1102097.0,,,,,,,,,,0.0,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
+CurrentReceivables,,,,,,,,,,,,,,,,,,,1102097.0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 PrepaidExpenses,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 Inventory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 CurrentAssets,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
@@ -20,7 +20,7 @@ ShorttermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtra
 AccountsPayablesAndAccruedExpenses,,,,,,,,63000.0,73000.0,72000.0,,,,,,1907.0,14408.0,130472.0,932453.0,,,,,63000.0,72000.0,,,1907.0,130472.0,,,63000.0,,,14408.0,,,63000.0,,1907.0,,,72000.0,,,72000.0,,,,CommonMetricExtracted
 CurrentLiability,,,,,,,,3237087.0,3256439.0,3266700.0,,,,,,270684.0,467082.0,890173.0,2182973.0,,,,,3237087.0,3266700.0,,,270684.0,890173.0,,,3237087.0,,,467082.0,,,3237087.0,,270684.0,,,3266700.0,,,3266700.0,,,,CommonMetricExtracted
 LongtermDebt,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
-LongtermLiability,,,,,,,,3341759.0,3351049.0,3362254.0,,,,,,,,0.0,56416.0,,,,,3341759.0,3362254.0,,,,0.0,,,3341759.0,,,,,,3341759.0,,,,,3362254.0,,,3362254.0,,,,CommonMetricExtracted
+LongtermLiability,,,,,,,,3341759.0,3351049.0,3362254.0,,,,,,,,,56416.0,,,,,3341759.0,3362254.0,,,,,,,3341759.0,,,,,,3341759.0,,,,,3362254.0,,,3362254.0,,,,CommonMetricExtracted
 TotalLiability,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 ShareholderEquity,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
 OperatingCashFlow,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CommonMetricExtracted
